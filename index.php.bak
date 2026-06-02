@@ -4,181 +4,170 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Japan + South Korea — 15-Day Interactive Trip Plan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
 <style>
-  :root{--ink:#1c1917;--muted:#78716c;--line:#e7e5e4;--bg:#f7f6f4;--card:#fff;--accent:#c2412c;--accent2:#334155;--accent3:#0f766e;--gold:#a16207;--green:#15803d;--shadow:0 4px 24px rgba(28,25,23,.06);--shadow-lg:0 12px 40px rgba(28,25,23,.10);--r:16px;--r-lg:24px}
-  *{box-sizing:border-box}html{scroll-behavior:smooth}
-  body{margin:0;font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
-  h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:500;margin:0;letter-spacing:-.02em}
-  h2{font-size:clamp(22px,3vw,30px);margin:0 0 6px}
-  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-  .lead{color:var(--muted);font-size:15px;margin:0 0 20px;line-height:1.55}
-  a{color:var(--accent2);text-decoration:none;transition:color .2s}a:hover{color:var(--accent)}
+  :root{
+    --ink:#191a23;--muted:#5d6072;--line:#e7e7ef;--bg:#f6f5f2;--card:#fff;
+    --accent:#e0345a;--accent2:#2b6cb0;--gold:#c98a2b;--green:#2f8f6b;--purple:#7b2ff7;
+    --shadow:0 10px 30px rgba(25,26,35,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+  h2{font-size:23px;margin:0 0 4px}.lead{color:var(--muted);font-size:14px;margin:0 0 16px}
 
-  .reveal{opacity:0;transform:translateY(28px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
-  .reveal.visible{opacity:1;transform:translateY(0)}
-  .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.40s}
+  /* CURRENCY BAR */
+  .curbar{position:sticky;top:0;z-index:1200;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);box-shadow:0 2px 14px rgba(0,0,0,.05)}
+  .curbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:9px 20px}
+  .curbar .brand{font-weight:800;font-size:14px;letter-spacing:.02em}
+  .curbar .brand small{color:var(--muted);font-weight:600}
+  .curtoggle{display:flex;gap:0;border:2px solid var(--accent);border-radius:30px;overflow:hidden}
+  .curtoggle button{border:none;background:#fff;color:var(--accent);font-weight:800;font-size:13px;
+    padding:6px 16px;cursor:pointer;transition:.15s}
+  .curtoggle button.on{background:var(--accent);color:#fff}
+  .fxnote{font-size:11px;color:var(--muted);margin-left:10px}
 
-  .curbar{position:sticky;top:0;z-index:1200;background:rgba(247,246,244,.92);backdrop-filter:blur(16px) saturate(1.8);border-bottom:1px solid var(--line)}
-  .curbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 24px}
-  .curbar .brand{font-family:'Outfit',sans-serif;font-weight:600;font-size:15px;letter-spacing:-.01em}
-  .curbar .brand small{color:var(--muted);font-weight:500;font-size:13px}
-  .curtoggle{display:flex;gap:2px;background:var(--bg);border-radius:30px;padding:3px;border:1px solid var(--line)}
-  .curtoggle button{border:none;background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;padding:7px 18px;cursor:pointer;transition:all .25s;border-radius:30px}
-  .curtoggle button.on{background:var(--ink);color:#fff;box-shadow:0 2px 8px rgba(28,25,23,.12)}
-  .fxnote{font-size:12px;color:var(--muted);margin-left:12px;font-weight:500}
-
-  header.hero{background:linear-gradient(150deg,#1c1917,#2d2420 40%,#7c2d23);color:#fff;padding:80px 0 60px;position:relative;overflow:hidden}
-  header.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 70% 0%,rgba(194,65,44,.28),transparent 65%)}
-  header.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 100%,rgba(15,118,110,.15),transparent 60%)}
+  /* HERO */
+  header.hero{background:linear-gradient(135deg,#191a23,#2a2140 55%,#7a1f37);color:#fff;padding:48px 0 38px;position:relative;overflow:hidden}
+  header.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(900px 380px at 85% -10%,rgba(224,52,90,.35),transparent 60%)}
   .hero .wrap{position:relative;z-index:1}
-  .eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#f0a28a;font-weight:600;margin:0 0 14px;font-family:'Outfit'}
-  h1{font-size:clamp(34px,5.5vw,58px);line-height:1.05;font-weight:300;letter-spacing:-.03em}
-  h1 strong{font-weight:600}
-  h1 .sub{display:block;font-size:clamp(15px,2.2vw,19px);font-weight:400;color:#d6d3d1;margin-top:14px;opacity:.9;line-height:1.6;max-width:640px}
-  .facts{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
-  .fact{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:var(--r);padding:14px 18px;min-width:140px;backdrop-filter:blur(4px);transition:transform .3s,background .3s}
-  .fact:hover{transform:translateY(-2px);background:rgba(255,255,255,.12)}
-  .fact b{display:block;font-size:20px;font-weight:500;font-family:'Outfit'}
-  .fact small{color:#a8a29e;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:500;margin-top:4px;display:block}
+  .eyebrow{letter-spacing:.22em;text-transform:uppercase;font-size:12px;color:#ffd0dc;font-weight:700;margin:0 0 10px}
+  h1{font-size:clamp(28px,5vw,46px);line-height:1.06;margin:0 0 12px;font-weight:800}
+  h1 .sub{display:block;font-size:clamp(14px,2.3vw,18px);font-weight:500;color:#e9e7f5;margin-top:10px;opacity:.92}
+  .facts{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+  .fact{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:11px 15px;min-width:128px}
+  .fact b{display:block;font-size:18px}.fact small{color:#d9d7ea;font-size:11px;text-transform:uppercase;letter-spacing:.07em}
 
-  .alert{background:linear-gradient(135deg,#fefce8,#fef9c3);border:1px solid #fde68a;border-radius:var(--r);padding:22px 24px;margin:28px 0;position:relative}
-  .alert::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
-  .alert h3{margin:0 0 8px;font-size:17px;color:#713f12;font-family:'Outfit';font-weight:500}
-  .alert p{margin:6px 0;font-size:14px;color:#5b4321;line-height:1.55}
-  .alert .pill{display:inline-block;background:#fde68a;color:#713f12;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600;margin-right:6px}
+  /* ALERT */
+  .alert{background:#fff7ed;border:1px solid #f4d8b0;border-left:5px solid var(--gold);border-radius:12px;padding:15px 18px;margin:24px 0;box-shadow:var(--shadow)}
+  .alert h3{margin:0 0 6px;font-size:16px;color:#92560c}
+  .alert p{margin:5px 0;font-size:13.5px;color:#5b4321}
+  .alert .pill{display:inline-block;background:#fdeccf;color:#8a5a12;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;margin-right:6px}
 
-  .block{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;margin:28px 0;box-shadow:var(--shadow);transition:transform .3s,box-shadow .3s}
-  .block:hover{box-shadow:var(--shadow-lg)}
+  .block{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:22px 0;box-shadow:var(--shadow)}
 
-  #map{height:460px;border-radius:var(--r);border:1px solid var(--line);z-index:1}
-  .maplegend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:14px;font-size:13px;color:var(--muted)}
+  /* MAP */
+  #map{height:440px;border-radius:14px;border:1px solid var(--line);z-index:1}
+  .maplegend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:13px}
   .maplegend i{display:inline-block;width:22px;height:4px;border-radius:3px;vertical-align:middle;margin-right:6px}
-  .leaflet-popup-content{font-size:13px;margin:10px 14px}
+  .leaflet-popup-content{font-size:13px;margin:10px 12px}
   .leaflet-popup-content b{font-size:14px}
 
-  .tabs{display:flex;gap:12px;margin:10px 0 8px;flex-wrap:wrap}
-  .tab{flex:1;min-width:260px;cursor:pointer;border:1.5px solid var(--line);background:var(--card);border-radius:var(--r-lg);padding:20px;transition:all .3s cubic-bezier(.16,1,.3,1);box-shadow:var(--shadow)}
-  .tab:hover{border-color:#d6d3d1;transform:translateY(-3px);box-shadow:var(--shadow-lg)}
-  .tab.active{border-color:var(--accent);box-shadow:0 4px 20px rgba(194,65,44,.12)}
-  .tab.b.active{border-color:var(--accent2);box-shadow:0 4px 20px rgba(51,65,85,.12)}
-  .tab .tname{font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:'Outfit'}
-  .tab .tdesc{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.5}
-  .tab .badge{font-size:11px;font-weight:600;color:#fff;background:var(--accent);border-radius:20px;padding:3px 10px}
+  /* TABS */
+  .tabs{display:flex;gap:10px;margin:8px 0 6px;flex-wrap:wrap}
+  .tab{flex:1;min-width:250px;cursor:pointer;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:14px 16px;transition:.15s;box-shadow:var(--shadow)}
+  .tab:hover{border-color:#c9c9d6;transform:translateY(-1px)}
+  .tab.active{border-color:var(--accent)}.tab.b.active{border-color:var(--accent2)}
+  .tab .tname{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tab .tdesc{color:var(--muted);font-size:13px;margin-top:4px}
+  .tab .badge{font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:20px;padding:2px 9px}
   .tab.b .badge{background:var(--accent2)}
 
-  .intro{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;margin:14px 0}
-  .intro .seq{color:var(--muted);font-size:14.5px;margin:2px 0 14px;line-height:1.6}
-  .pc{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .pc div{border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.55}
-  .pc .pro{background:#f0fdf4;border:1px solid #bbf7d0}.pc .con{background:#fef2f2;border:1px solid #fecaca}
-  .pc b{display:block;margin-bottom:4px;font-family:'Outfit';font-weight:500}
+  .intro{background:#fbfbfd;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:12px 0}
+  .intro .seq{color:var(--muted);font-size:14px;margin:2px 0 12px}
+  .pc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pc div{border-radius:12px;padding:11px 13px;font-size:13px}
+  .pc .pro{background:#eef8f2;border:1px solid #cfe9dc}.pc .con{background:#fdeef1;border:1px solid #f6d6de}
+  .pc b{display:block;margin-bottom:3px}
 
-  .flights{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .fcard{border:1px solid var(--line);border-radius:var(--r);padding:18px;background:var(--bg);transition:transform .3s,box-shadow .3s}
-  .fcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
-  .fcard .leg{font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;font-family:'Outfit'}
-  .fcard .air{color:var(--muted);font-size:13.5px;margin:8px 0}
-  .fcard .pr{font-size:22px;font-weight:600;color:var(--accent);font-family:'Outfit'}
-  .fcard .pr small{font-size:12px;color:var(--muted);font-weight:500}
-  .fcard a{font-size:13px;font-weight:600}
-  .tag{display:inline-block;font-size:11px;font-weight:600;border-radius:20px;padding:3px 10px;background:#eff6ff;color:#1e40af}
-  .tag.direct{background:#f0fdf4;color:#166534}.tag.stop{background:#fefce8;color:#854d0e}
+  /* FLIGHTS */
+  .flights{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fcard{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fbfbfd}
+  .fcard .leg{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+  .fcard .air{color:var(--muted);font-size:13px;margin:5px 0}
+  .fcard .pr{font-size:20px;font-weight:800;color:var(--accent)}
+  .fcard .pr small{font-size:12px;color:var(--muted);font-weight:600}
+  .fcard a{font-size:12.5px;font-weight:700}
+  .tag{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;background:#eef1f8;color:#2b6cb0}
+  .tag.direct{background:#e7f6ee;color:#2f8f6b}.tag.stop{background:#fdf0e6;color:#b5701f}
 
-  .day{display:grid;grid-template-columns:160px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin:14px 0;box-shadow:var(--shadow);transition:box-shadow .3s}
-  .day:hover{box-shadow:var(--shadow-lg)}
-  .dside{padding:18px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:130px}
-  .dside .dt{font-size:12.5px;font-weight:600;opacity:.95;letter-spacing:.02em}
-  .dside .badges{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:flex-start}
-  .bdg{font-size:11px;font-weight:600;color:#fff;border-radius:20px;padding:3px 10px;background:rgba(255,255,255,.18);backdrop-filter:blur(4px)}
-  .dbody{padding:18px 22px}
-  .dbody h3{margin:0 0 4px;font-size:18px;font-family:'Outfit';font-weight:500}
-  .dbody .loc{color:var(--muted);font-size:13px;margin:0 0 10px;font-weight:500}
-  .dbody ul{margin:8px 0 10px;padding-left:20px}.dbody li{margin:4px 0;font-size:14.5px;line-height:1.55}
-  .review{background:#f8fafc;border-left:3px solid var(--accent2);border-radius:0 10px 10px 0;padding:10px 14px;font-size:13.5px;color:#334155;margin:10px 0;line-height:1.55}
-  .review b{color:var(--accent2);font-weight:600}
-  .mlink{font-size:12.5px;font-weight:600;background:#f1f5f9;color:var(--accent2);border-radius:8px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;margin-top:6px;transition:all .2s}
-  .mlink:hover{background:#e2e8f0;text-decoration:none;transform:translateY(-1px)}
+  /* DAY CARDS */
+  .day{display:grid;grid-template-columns:150px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:12px 0;box-shadow:var(--shadow)}
+  .dside{padding:14px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:120px}
+  .dside .dt{font-size:12px;font-weight:700;opacity:.92}
+  .dside .badges{display:flex;flex-direction:column;gap:5px;margin-top:8px;align-items:flex-start}
+  .bdg{font-size:10.5px;font-weight:800;color:#fff;border-radius:20px;padding:2px 9px;background:rgba(255,255,255,.22)}
+  .dbody{padding:14px 18px}
+  .dbody h3{margin:0 0 3px;font-size:17px}
+  .dbody .loc{color:var(--muted);font-size:12.5px;margin:0 0 8px;font-weight:600}
+  .dbody ul{margin:6px 0 8px;padding-left:18px}.dbody li{margin:3px 0;font-size:14px}
+  .review{background:#f4f6fb;border-left:4px solid var(--accent2);border-radius:0 8px 8px 0;padding:7px 11px;font-size:13px;color:#33384a;margin:8px 0}
+  .review b{color:var(--accent2)}
+  .mlink{font-size:12px;font-weight:700;background:#eef1f8;color:#2b6cb0;border-radius:8px;padding:4px 9px;display:inline-block;margin-top:4px}
+  .mlink:hover{background:#e0e7f6;text-decoration:none}
 
-  .day-carousel{display:flex;gap:10px;overflow-x:auto;padding:8px 0 6px;margin:6px 0 12px;scroll-snap-type:x mandatory;scrollbar-width:none}
+  /* DAY CAROUSEL */
+  .day-carousel{display:flex;gap:8px;overflow-x:auto;padding:8px 0 4px;margin:4px 0 10px;scroll-snap-type:x mandatory;scrollbar-width:none}
   .day-carousel::-webkit-scrollbar{display:none}
-  .day-carousel-item{flex:0 0 160px;height:108px;border-radius:12px;background-size:cover;background-position:center;cursor:pointer;scroll-snap-align:start;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s;position:relative;overflow:hidden}
-  .day-carousel-item::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.08);opacity:0;transition:opacity .3s}
-  .day-carousel-item:hover{transform:scale(1.04);box-shadow:0 8px 24px rgba(28,25,23,.15)}
-  .day-carousel-item:hover::after{opacity:1}
+  .day-carousel-item{flex:0 0 150px;height:100px;border-radius:10px;background-size:cover;background-position:center;cursor:pointer;scroll-snap-align:start;transition:transform .15s;position:relative}
+  .day-carousel-item:hover{transform:scale(1.03)}
 
-  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:2000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .35s}
-  .lightbox.on{display:flex;opacity:1}
-  .lightbox-img{max-width:92vw;max-height:84vh;object-fit:contain;border-radius:var(--r);box-shadow:0 24px 80px rgba(0,0,0,.5);transform:scale(.96);transition:transform .4s cubic-bezier(.16,1,.3,1)}
-  .lightbox.on .lightbox-img{transform:scale(1)}
-  .lightbox-close{position:absolute;top:20px;right:24px;color:#fff;font-size:32px;cursor:pointer;z-index:2001;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s;font-family:'Outfit';font-weight:300}
-  .lightbox-close:hover{background:rgba(255,255,255,.12)}
-  .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:20px;cursor:pointer;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;z-index:2001;transition:background .2s}
-  .lightbox-nav:hover{background:rgba(255,255,255,.15)}
-  .lightbox-prev{left:20px}.lightbox-next{right:20px}
-  .lightbox-count{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:6px 18px;border-radius:20px;font-size:13px;font-weight:600}
+  /* LIGHTBOX */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;display:none;align-items:center;justify-content:center}
+  .lightbox.on{display:flex}
+  .lightbox-img{max-width:92vw;max-height:82vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:36px;cursor:pointer;z-index:2001;line-height:1;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s}
+  .lightbox-close:hover{background:rgba(255,255,255,.15)}
+  .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:22px;cursor:pointer;background:rgba(0,0,0,.45);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;z-index:2001;transition:background .15s}
+  .lightbox-nav:hover{background:rgba(255,255,255,.2)}
+  .lightbox-prev{left:16px}.lightbox-next{right:16px}
+  .lightbox-count{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.55);padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600}
 
-  .city{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin:20px 0;box-shadow:var(--shadow);background:#fff;transition:box-shadow .3s}
-  .city:hover{box-shadow:var(--shadow-lg)}
-  .chead{padding:18px 24px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-  .chead h3{margin:0;font-size:22px;font-family:'Outfit';font-weight:500}
-  .chead .nights{font-size:13.5px;opacity:.9;font-weight:500}
-  .chead button{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.12);color:#fff;border-radius:30px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit'}
-  .chead button:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
-  .cbody{padding:22px 24px}
-  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
-  .chip{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;transition:transform .2s}
-  .chip:hover{transform:translateY(-1px)}
-  .chip b{display:block;font-size:14px;margin-top:2px;font-family:'Outfit'}
-  .subh{font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:16px 0 10px}
-  .hotels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .hcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:var(--bg);transition:transform .3s,box-shadow .3s}
-  .hcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-  .hcard .hn{font-weight:600;font-size:14px;line-height:1.3;font-family:'Outfit'}
-  .hcard .rt{color:var(--gold);font-size:13px;font-weight:600;margin:4px 0}
-  .hcard .hp{font-size:14px;font-weight:600;font-family:'Outfit'}.hcard .hp small{color:var(--muted);font-weight:500;font-size:11px}
-  .hcard a{font-size:12px;font-weight:600}
-  .spot{border-top:1px solid var(--line);padding:18px 0}
+  /* DESTINATIONS */
+  .city{border:1px solid var(--line);border-radius:18px;overflow:hidden;margin:18px 0;box-shadow:var(--shadow);background:#fff}
+  .chead{padding:16px 20px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .chead h3{margin:0;font-size:21px}
+  .chead .nights{font-size:13px;opacity:.9}
+  .chead button{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
+  .cbody{padding:18px 20px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chip{background:#f3f4f8;border:1px solid #e6e7f0;border-radius:10px;padding:7px 12px;font-size:12.5px}
+  .chip b{display:block;font-size:14px;margin-top:1px}
+  .subh{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+  .hotels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .hcard{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fbfbfd}
+  .hcard .hn{font-weight:700;font-size:13.5px;line-height:1.3}
+  .hcard .rt{color:var(--gold);font-size:12.5px;font-weight:700;margin:3px 0}
+  .hcard .hp{font-size:13px;font-weight:800}.hcard .hp small{color:var(--muted);font-weight:600;font-size:11px}
+  .hcard a{font-size:11.5px;font-weight:700}
+  .spot{border-top:1px solid var(--line);padding:14px 0}
   .spot:first-of-type{border-top:none}
-  .gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-  .gallery .ph{position:relative;padding-top:66%;border-radius:10px;overflow:hidden;background-size:cover;background-position:center}
-  .gallery .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
-  .gallery .ph:hover img{transform:scale(1.05)}
-  .spot h4{margin:2px 0 4px;font-size:17px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-family:'Outfit';font-weight:500}
-  .spot h4 .ec{font-size:13px;font-weight:600;color:var(--green);white-space:nowrap}
-  .spot .gr{color:var(--gold);font-weight:600;font-size:13px}
-  .spot p{margin:6px 0;font-size:14px;line-height:1.55}
+  .gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+  .gallery .ph{position:relative;padding-top:66%;border-radius:8px;overflow:hidden;background-size:cover;background-position:center}
+  .gallery .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .spot h4{margin:2px 0 3px;font-size:16px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .spot h4 .ec{font-size:12.5px;font-weight:700;color:var(--green);white-space:nowrap}
+  .spot .gr{color:var(--gold);font-weight:700;font-size:12.5px}
+  .spot p{margin:5px 0;font-size:13.5px}
 
-  .budget-row{display:flex;align-items:center;gap:14px;margin:10px 0}
-  .budget-row .lbl{width:160px;font-weight:600;font-size:14px;font-family:'Outfit'}
-  .bar{flex:1;background:#eee;border-radius:10px;height:22px;overflow:hidden}
-  .bar span{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),#be185d);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
-  .budget-row .amt{width:190px;text-align:right;font-size:13.5px;color:var(--muted)}
-  .total{font-size:15px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);line-height:1.6}
-  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .twocol .tt{border:1px solid var(--line);border-radius:var(--r);padding:18px;background:var(--bg);transition:transform .3s,box-shadow .3s}
-  .twocol .tt:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-  .twocol .tt b.h{display:block;font-size:16px;margin-bottom:8px;font-family:'Outfit';font-weight:500}
-  .twocol .big{font-size:28px;font-weight:600;color:var(--accent);font-family:'Outfit'}
+  /* BUDGET */
+  .budget-row{display:flex;align-items:center;gap:12px;margin:7px 0}
+  .budget-row .lbl{width:150px;font-weight:700;font-size:13.5px}
+  .bar{flex:1;background:#eee;border-radius:8px;height:20px;overflow:hidden}
+  .bar span{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#e0345a,#7b2ff7)}
+  .budget-row .amt{width:180px;text-align:right;font-size:13px;color:var(--muted)}
+  .total{font-size:14.5px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .twocol .tt{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfbfd}
+  .twocol .tt b.h{display:block;font-size:15px;margin-bottom:6px}
+  .twocol .big{font-size:24px;font-weight:800;color:var(--accent)}
 
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-  .cols h4{margin:0 0 10px;font-size:16px;font-family:'Outfit';font-weight:500}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .cols h4{margin:0 0 8px;font-size:15px}
   .chk{list-style:none;padding:0;margin:0}
-  .chk li{padding:6px 0 6px 28px;position:relative;font-size:14px;border-bottom:1px solid #f5f5f4}
-  .chk li::before{content:"";position:absolute;left:2px;top:11px;width:13px;height:13px;border:2px solid #d6d3d1;border-radius:4px}
-  .dos li::before{content:"";border:none;background:var(--green);border-radius:50%;width:6px;height:6px;left:6px;top:14px}
-  .donts li::before{content:"";border:none;background:var(--accent);border-radius:50%;width:6px;height:6px;left:6px;top:14px}
-  .timeline div{border-left:2px solid var(--line);padding:6px 0 16px 20px;margin-left:8px;position:relative;transition:border-color .3s}
-  .timeline div:hover{border-left-color:var(--accent2)}
-  .timeline div::before{content:"";position:absolute;left:-7px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--line);border:2px solid var(--bg);transition:background .3s}
-  .timeline div:hover::before{background:var(--accent2)}
-  .timeline b{font-size:14px;font-family:'Outfit';font-weight:500}.timeline small{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5}
+  .chk li{padding:4px 0 4px 24px;position:relative;font-size:13.5px;border-bottom:1px solid #f1f1f6}
+  .chk li::before{content:"";position:absolute;left:2px;top:9px;width:13px;height:13px;border:2px solid #c2c4d2;border-radius:4px}
+  .dos li::before{content:"✓";border:none;color:var(--green);font-weight:900;left:2px;top:2px}
+  .donts li::before{content:"✕";border:none;color:var(--accent);font-weight:900;left:2px;top:2px}
+  .timeline div{border-left:3px solid var(--accent2);padding:4px 0 12px 16px;margin-left:6px;position:relative}
+  .timeline div::before{content:"";position:absolute;left:-8px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent2)}
+  .timeline b{font-size:13.5px}.timeline small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
 
-  footer{padding:32px 0 70px;color:var(--muted);font-size:13px;line-height:1.7}
-  footer a{color:var(--muted);text-decoration:underline;transition:color .2s}footer a:hover{color:var(--ink)}
+  footer{padding:26px 0 60px;color:var(--muted);font-size:12px}
+  footer a{color:var(--muted);text-decoration:underline}
   .hide{display:none}
   @media(max-width:760px){
     .flights,.pc,.twocol,.cols{grid-template-columns:1fr}
@@ -186,8 +175,6 @@
     .day{grid-template-columns:1fr}.dside{flex-direction:row;align-items:center;min-height:auto}
     .dside .badges{flex-direction:row;flex-wrap:wrap;margin:0}
     .budget-row{flex-wrap:wrap}.budget-row .amt{width:auto}
-    .curbar .wrap{padding:10px 16px}
-    .wrap{padding:0 16px}
   }
 </style>
 </head>
@@ -195,7 +182,7 @@
 
 <!-- CURRENCY BAR -->
 <div class="curbar"><div class="wrap">
-  <div class="brand">Japan + Korea &middot; 15 Days <small>&middot; interactive plan</small></div>
+  <div class="brand">🗾 Japan + Korea · 15 Days <small>· interactive plan</small></div>
   <div style="display:flex;align-items:center">
     <div class="curtoggle">
       <button id="btnINR" class="on" onclick="setCurrency('INR')">₹ INR</button>
@@ -207,7 +194,7 @@
 
 <header class="hero"><div class="wrap">
   <p class="eyebrow">Mumbai · Japan · South Korea</p>
-  <h1><strong>15 Days</strong> Across Japan &amp; Korea
+  <h1>15 Days Across Japan &amp; Korea
     <span class="sub">Two routes on a live map, every hotel &amp; spot with real costs, best flights, and prices in ₹ or $ — toggle up top. Arrival window 10–17 Oct 2026.</span>
   </h1>
   <div class="facts">
@@ -220,32 +207,32 @@
 
 <div class="wrap">
 
-  <div class="alert reveal d1">
-    <h3>Visas first — Indian passport</h3>
+  <div class="alert">
+    <h3>⚠️ Visas first — Indian passport</h3>
     <p><span class="pill">JAPAN</span> Visa required (no visa-free). Single-entry tourist <b>eVisa</b> via accredited agency / VFS, ~5 working days. Single-entry is fine — you enter once and exit to Korea.</p>
     <p><span class="pill">KOREA</span> K-ETA does <b>not</b> apply — get a <b>C-3 tourist visa</b> (sticker, via embassy/VFS) and complete the online <b>e-Arrival Card</b> before landing. Apply for both ~6–8 weeks out.</p>
   </div>
 
   <!-- ROUTE TABS -->
-  <div class="block reveal d2">
-    <h2>Choose your route</h2>
+  <div class="block">
+    <h2>🧭 Choose your route</h2>
     <p class="lead">Pick a route to highlight it on the map and switch the day-by-day plan below.</p>
     <div class="tabs">
       <div class="tab a active" id="tabA" onclick="showTrip('A')">
-        <div class="tname">Trip A — Classic Order <span class="badge">Your route</span></div>
+        <div class="tname">🗾 Trip A — Classic Order <span class="badge">Your route</span></div>
         <div class="tdesc">Tokyo first, Golden Route west, mountains, Fuji, back to Tokyo, finish in Seoul.</div>
       </div>
       <div class="tab b" id="tabB" onclick="showTrip('B')">
-        <div class="tname">Trip B — Smooth Sweep <span class="badge">No backtracking</span></div>
+        <div class="tname">🚄 Trip B — Smooth Sweep <span class="badge">No backtracking</span></div>
         <div class="tdesc">Fly into Osaka, one clean west→east line, Fuji as finale before Tokyo, then Seoul.</div>
       </div>
     </div>
 
     <div id="map" style="margin-top:14px"></div>
     <div class="maplegend">
-      <span><i style="background:var(--accent)"></i>Trip A route</span>
-      <span><i style="background:var(--accent2)"></i>Trip B route</span>
-      <span><i style="background:#888;border-top:2px dashed #888;height:0"></i>dashed = flight leg</span>
+      <span><i style="background:#e0345a"></i>Trip A route</span>
+      <span><i style="background:#2b6cb0"></i>Trip B route</span>
+      <span><i style="background:#888;border-top:2px dashed #888;height:0"></i>✈ dashed = flight leg</span>
       <span style="color:var(--muted)">Tap any city pin for hotel &amp; cost.</span>
     </div>
 
@@ -266,8 +253,8 @@
   </div>
 
   <!-- FLIGHTS -->
-  <div class="block reveal">
-    <h2>Best flights &amp; prices</h2>
+  <div class="block">
+    <h2>✈️ Best flights &amp; prices</h2>
     <p class="lead">Indicative one-way fares for Oct 2026 (October is a low-demand, cheaper month on these routes). Prices update with your ₹/$ toggle. Tap to check live fares.</p>
     <div class="subh">Trip A flights</div>
     <div class="flights" style="margin-bottom:16px">
@@ -289,8 +276,8 @@
         <div class="pr"><span class="money" data-usd="240"></span> <small>/ one-way</small></div>
         <a href="https://www.google.com/travel/flights?q=flights%20ICN%20to%20BOM%20Oct%2024%202026" target="_blank" rel="noopener">Check fares ↗</a>
       </div>
-      <div class="fcard" style="background:linear-gradient(135deg,#fef2f2,#fff5f5);border-color:#fecaca">
-        <div class="leg">Trip A air total</div>
+      <div class="fcard" style="background:#fff5f8;border-color:#f6d6de">
+        <div class="leg">🧮 Trip A air total</div>
         <div class="air">Mumbai → Tokyo → Seoul → Mumbai (open-jaw)</div>
         <div class="pr"><span class="money" data-usd="660"></span> <small>/ person</small></div>
         <span class="tag">Book Mumbai–Tokyo early for non-stop</span>
@@ -316,8 +303,8 @@
         <div class="pr"><span class="money" data-usd="240"></span> <small>/ one-way</small></div>
         <a href="https://www.google.com/travel/flights?q=flights%20ICN%20to%20BOM%20Oct%2024%202026" target="_blank" rel="noopener">Check fares ↗</a>
       </div>
-      <div class="fcard" style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border-color:#bfdbfe">
-        <div class="leg">Trip B air total</div>
+      <div class="fcard" style="background:#eef5fc;border-color:#cfe0f3">
+        <div class="leg">🧮 Trip B air total</div>
         <div class="air">Mumbai → Osaka → Seoul → Mumbai (open-jaw)</div>
         <div class="pr"><span class="money" data-usd="630"></span> <small>/ person</small></div>
         <span class="tag">Slightly cheaper, but no Mumbai non-stop</span>
@@ -326,23 +313,23 @@
   </div>
 
   <!-- DAY BY DAY -->
-  <div class="block reveal">
-    <h2>Day-by-day</h2>
+  <div class="block">
+    <h2>🗓️ Day-by-day</h2>
     <p class="lead">Switching the route at the top changes this plan. Balanced pace, 2–3 stops/day.</p>
     <div id="daysA"></div>
     <div id="daysB" class="hide"></div>
   </div>
 
   <!-- DESTINATIONS -->
-  <div class="block reveal">
-    <h2>Destinations — spots, hotels &amp; costs</h2>
+  <div class="block">
+    <h2>📍 Destinations — spots, hotels &amp; costs</h2>
     <p class="lead">Every city with the best-reviewed spots (multiple photos + what travelers say), top-rated hotels near them, and estimated costs. All prices follow your ₹/$ toggle.</p>
     <div id="cities"></div>
   </div>
 
   <!-- BUDGET -->
-  <div class="block reveal">
-    <h2>Budget — mid-range, per person</h2>
+  <div class="block">
+    <h2>💰 Budget — mid-range, per person</h2>
     <p class="lead">15 days, excluding international flights (shown above). Tuned to real Japan/Korea 2026 costs.</p>
     <div class="budget-row"><div class="lbl">Accommodation</div><div class="bar"><span style="width:35%"></span></div><div class="amt"><span class="money" data-usd="1190"></span> · ~<span class="money" data-usd="85"></span>/night</div></div>
     <div class="budget-row"><div class="lbl">Food</div><div class="bar"><span style="width:25%"></span></div><div class="amt"><span class="money" data-usd="850"></span> · ~<span class="money" data-usd="57"></span>/day</div></div>
@@ -357,10 +344,10 @@
   </div>
 
   <!-- PACKING + CULTURE -->
-  <div class="block reveal">
-    <h2>Packing — mid-October (10–20°C)</h2>
+  <div class="block">
+    <h2>🎒 Packing — mid-October (10–20°C)</h2>
     <div class="cols">
-      <div><h4>Essentials</h4><ul class="chk">
+      <div><h4>🧳 Essentials</h4><ul class="chk">
         <li>Passport (6+ mo, 2 blank pages)</li>
         <li>Japan eVisa notice on phone + Korea C-3 visa</li>
         <li>Korea e-Arrival Card confirmation</li>
@@ -368,7 +355,7 @@
         <li>Suica/ICOCA (Japan) &amp; T-money (Seoul) IC cards</li>
         <li>Power bank, eSIM, plug adapters (JP 100V / KR Type-C)</li>
       </ul></div>
-      <div><h4>Clothing &amp; day kit</h4><ul class="chk">
+      <div><h4>👕 Clothing &amp; day kit</h4><ul class="chk">
         <li>Warm mid-layer + packable down jacket</li>
         <li>Long sleeves, a sweater, comfy pants</li>
         <li>Very comfortable walking shoes (10k+ steps/day)</li>
@@ -379,22 +366,22 @@
     </div>
   </div>
 
-  <div class="block reveal">
-    <h2>Culture — do's &amp; don'ts</h2>
+  <div class="block">
+    <h2>🙏 Culture — do's &amp; don'ts</h2>
     <div class="cols">
-      <div><h4>Japan</h4>
+      <div><h4>🇯🇵 Japan</h4>
         <ul class="chk dos"><li>Stand left on Tokyo escalators (right in Osaka)</li><li>Carry a trash bag — bins are rare</li><li>Slurp noodles; cash goes in the tray</li><li>Remove shoes at ryokan, temples, some eateries</li></ul>
         <ul class="chk donts"><li>Don't tip — it confuses staff</li><li>Don't eat/talk loudly on trains</li><li>Don't photograph or chase geisha in Gion</li><li>Don't stick chopsticks upright in rice</li></ul>
       </div>
-      <div><h4>South Korea</h4>
+      <div><h4>🇰🇷 South Korea</h4>
         <ul class="chk dos"><li>Pour for elders with two hands</li><li>Tap T-money in and out on transit</li><li>Enjoy free banchan side-dish refills</li><li>Be quiet at palaces &amp; memorials</li></ul>
         <ul class="chk donts"><li>Don't tip; not expected</li><li>Don't write names in red ink</li><li>Don't eat before the eldest starts</li><li>Don't blow your nose at the table</li></ul>
       </div>
     </div>
   </div>
 
-  <div class="block reveal">
-    <h2>Pre-trip countdown</h2>
+  <div class="block">
+    <h2>🗓️ Pre-trip countdown</h2>
     <div class="timeline">
       <div><b>8 weeks before (mid-Aug)</b><small>Book international flights. Start Japan eVisa &amp; Korea C-3 visa — gather bank statements, ITR, itinerary, hotel bookings.</small></div>
       <div><b>6 weeks before</b><small>Submit both visas. Book hotels/ryokan (Takayama &amp; Kawaguchiko sell out in foliage season). Grab teamLab Planets tickets when your dates open.</small></div>
@@ -629,10 +616,6 @@ function updateLightbox(){document.getElementById('lightboxImg').src=lightboxIma
 function lightboxPrev(e){e.stopPropagation();lightboxIndex=(lightboxIndex-1+lightboxImages.length)%lightboxImages.length;updateLightbox();}
 function lightboxNext(e){e.stopPropagation();lightboxIndex=(lightboxIndex+1)%lightboxImages.length;updateLightbox();}
 document.addEventListener('keydown',function(e){if(!document.getElementById('lightbox').classList.contains('on'))return;if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')lightboxPrev({stopPropagation:function(){}});if(e.key==='ArrowRight')lightboxNext({stopPropagation:function(){}});});
-
-/* SCROLL REVEAL */
-var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}});},{threshold:.01,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el);});
 
 /* INIT */
 window.addEventListener('load',function(){initMap();applyCurrency();});
