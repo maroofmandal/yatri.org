@@ -73,6 +73,9 @@ jobs:
             set_env DB_DATABASE "$PROD_DB_DATABASE"
             set_env DB_USERNAME "$PROD_DB_USERNAME"
             set_env DB_PASSWORD "$PROD_DB_PASSWORD"
+            ln -sfn public/css css
+            ln -sfn public/favicon.ico favicon.ico
+            ln -sfn public/robots.txt robots.txt
             "$COMPOSER_BIN" install --no-dev --optimize-autoloader --no-interaction
             grep -q '^APP_KEY=base64:' .env || "$PHP_BIN" artisan key:generate --force
             "$PHP_BIN" artisan migrate --force
