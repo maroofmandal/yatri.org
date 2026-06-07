@@ -132,6 +132,15 @@ class TripPlanner
             );
 
             $plan = json_decode($result['text'], true) ?: [];
+
+            // Truncated JSON: model hit its output-token ceiling mid-itinerary.
+            if (empty($plan['days']) && ($result['finish'] ?? null) === 'MAX_TOKENS') {
+                throw new \RuntimeException(
+                    'Itinerary exceeded the model output limit (too many days/stops for one pass). '
+                    .'Try a shorter trip or fewer destinations.'
+                );
+            }
+
             $total = $this->budgetTotal($plan['budget'] ?? []);
 
             if ($cap <= 0 || $total <= $cap * 1.05) {

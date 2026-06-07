@@ -179,7 +179,8 @@ class GeminiClient
                 'prompt' => $json['usageMetadata']['promptTokenCount'] ?? 0,
                 'output' => $json['usageMetadata']['candidatesTokenCount'] ?? 0,
             ],
-            'model' => $model,
+            'model'  => $model,
+            'finish' => $candidate['finishReason'] ?? null,
         ];
     }
 }
