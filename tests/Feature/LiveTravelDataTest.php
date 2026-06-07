@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Setting;
 use App\Models\Trip;
 use App\Services\Gemini\GeminiClient;
+use App\Services\Llm\LlmClient;
 use App\Services\Planner\TripPlanner;
+use App\Services\Search\SearchProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -51,7 +53,7 @@ class LiveTravelDataTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $trip = (new TripPlanner(new GeminiClient))->generate($trip);
+        $trip = (new TripPlanner($this->llm()))->generate($trip);
 
         $this->assertSame('google_weather', $trip->plan['weather']['source']);
         $this->assertSame('live_forecast', $trip->plan['weather']['days'][0]['status']);
@@ -76,7 +78,7 @@ class LiveTravelDataTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $trip = (new TripPlanner(new GeminiClient))->generate($trip);
+        $trip = (new TripPlanner($this->llm()))->generate($trip);
 
         $this->assertSame('seasonal_estimate', $trip->plan['weather']['source']);
         $this->assertSame('seasonal_estimate', $trip->plan['weather']['days'][0]['status']);
@@ -150,5 +152,10 @@ class LiveTravelDataTest extends TestCase
             ->assertSee('Estimated · check live rates')
             ->assertSee('Museum visit')
             ->assertSee('Estimated');
+    }
+
+    private function llm(): LlmClient
+    {
+        return new LlmClient(new GeminiClient, new SearchProvider);
     }
 }
