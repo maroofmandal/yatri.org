@@ -66,6 +66,7 @@ jobs:
             set_env APP_ENV production
             set_env APP_DEBUG false
             set_env APP_URL https://yatri.org
+            set_env ASSET_URL https://yatri.org/public
             set_env DB_CONNECTION mysql
             set_env DB_HOST 127.0.0.1
             set_env DB_PORT 3306
