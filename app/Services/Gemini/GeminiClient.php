@@ -80,28 +80,67 @@ class GeminiClient
         }
         $toolSets[] = null;
 
-        $url = rtrim(config('gemini.base'), '/') . "/models/{$model}:generateContent";
+        // Model fallback chain. Free-tier quota is PER-DAY, PER-MODEL
+        // (GenerateRequestsPerDayPerProjectPerModel-FreeTier), so when one model is
+        // exhausted (429) we advance to a different model with its own daily bucket.
+        // Order: chosen model first, then high-headroom 'lite' models, then alternates.
+        $models = array_values(array_unique(array_filter([
+            $model,
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-2.0-flash-lite',
+            'gemini-flash-latest',
+            'gemini-2.0-flash',
+        ])));
+
+        $base = rtrim(config('gemini.base'), '/');
         $lastError = null;
 
-        foreach ($toolSets as $tools) {
-            $payload = $body;
-            if ($tools) {
-                $payload['tools'] = $tools;
-            }
+        foreach ($models as $candidate) {
+            $url = "{$base}/models/{$candidate}:generateContent";
 
-            $resp = Http::timeout(180)
-                ->withHeaders(['x-goog-api-key' => $key])
-                ->acceptJson()
-                ->post($url, $payload);
+            foreach ($toolSets as $tools) {
+                $payload = $body;
+                if ($tools) {
+                    $payload['tools'] = $tools;
+                }
 
-            if ($resp->successful()) {
-                return $this->parse($resp->json(), $model);
-            }
+                $status = null;
 
-            $lastError = $resp->status() . ': ' . $resp->body();
+                // Up to 3 attempts with exponential backoff on transient overload (503/500).
+                for ($attempt = 0; $attempt < 3; $attempt++) {
+                    $resp = Http::timeout(180)
+                        ->withHeaders(['x-goog-api-key' => $key])
+                        ->acceptJson()
+                        ->post($url, $payload);
 
-            // Retry with fewer tools only on a 400 (likely an unsupported tool).
-            if ($resp->status() !== 400) {
+                    if ($resp->successful()) {
+                        return $this->parse($resp->json(), $candidate);
+                    }
+
+                    $status = $resp->status();
+                    $lastError = $status . ': ' . $resp->body();
+
+                    if (in_array($status, [500, 503], true)) {
+                        usleep((int) (800_000 * (2 ** $attempt))); // 0.8s, 1.6s, 3.2s
+                        continue;
+                    }
+
+                    break; // 429/400/403/404 → no point retrying the SAME model/call
+                }
+
+                // 429 → this model's daily bucket is exhausted; advance to next model
+                // (separate per-model quota). No sleep — daily quota won't clear in-request.
+                if ($status === 429) {
+                    break; // next model
+                }
+
+                // 400 → unsupported tool: drop to next, smaller tool set (same model).
+                if ($status === 400) {
+                    continue;
+                }
+
+                // 503/500 (still failing after retries) or 403/404 → try next model.
                 break;
             }
         }
