@@ -26,7 +26,9 @@
   $flightAff = \App\Models\Setting::get('affiliate_flights', 'https://www.google.com/travel/flights');
   $flightLink = fn($q) => rtrim($flightAff,'?&').(str_contains($flightAff,'?')?'&':'?').'q='.urlencode($q);
 
-  $canManage = ($trip->user_id === null) || (auth()->check() && (auth()->user()->isAdmin() || $trip->user_id === auth()->id()));
+  $canManage = auth()->check()
+      ? (auth()->user()->isAdmin() || $trip->user_id === auth()->id())
+      : (($trip->user_id === null) && $trip->session_id === session()->getId());
 
   $placesData = $plan['places'] ?? [];
   $weatherDays = collect($plan['weather']['days'] ?? []);
@@ -95,7 +97,7 @@
 
 @section('content')
 <header class="hero"><div class="wrap">
-  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget</p>
+  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->nights }} nights · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget</p>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <h1 style="margin:0"><strong>{{ $trip->title }}</strong>
       @if(!empty($plan['summary']))<span class="sub">{{ $plan['summary'] }}</span>@endif
@@ -128,7 +130,16 @@
           <span class="step-val" id="dayValue">{{ $trip->days }}</span>
           <button type="button" id="dayPlus">+</button>
         </div>
-        <span class="muted" style="font-size:13px" id="dayNote"></span>
+      </div>
+    </div>
+    <div class="ctrl-card">
+      <label>Nights</label>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="day-stepper">
+          <button type="button" id="nightMinus">−</button>
+          <span class="step-val" id="nightValue">{{ $trip->nights }}</span>
+          <button type="button" id="nightPlus">+</button>
+        </div>
       </div>
     </div>
     <div class="ctrl-card">
@@ -150,16 +161,6 @@
         @endforeach
       </div>
     </div>
-    @endif
-  </div>
-
-  {{-- Regenerate prompt (hidden, shown when days change) --}}
-  <div class="regen-prompt" id="regenPrompt" style="display:none">
-    <p>Day count changed. Regenerate the plan to get an updated itinerary with the new duration.</p>
-    @if($canManage)
-    <form method="POST" action="{{ route('trip.regenerate', $trip) }}">
-      @csrf<button class="btn btn-primary btn-sm" type="submit">↻ Regenerate</button>
-    </form>
     @endif
   </div>
 
@@ -533,8 +534,28 @@
       @foreach($plan['culture'] as $c)
         <div class="card">
           <h3>{{ $c['place'] ?? '' }}</h3>
-          @if(!empty($c['dos']))<div class="subh">Do</div><ul>@foreach($c['dos'] as $d)<li style="margin:4px 0;font-size:14px">✅ {{ $d }}</li>@endforeach</ul>@endif
-          @if(!empty($c['donts']))<div class="subh">Don't</div><ul>@foreach($c['donts'] as $d)<li style="margin:4px 0;font-size:14px">⛔ {{ $d }}</li>@endforeach</ul>@endif
+          <div style="display:flex;gap:16px">
+            @if(!empty($c['dos']))
+            <div style="flex:1">
+              <div class="subh">Do</div>
+              <ul style="list-style:none;padding:0;margin:0">
+                @foreach($c['dos'] as $d)
+                <li style="margin:6px 0;font-size:14px;padding:10px 12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #22c55e">✅ {{ $d }}</li>
+                @endforeach
+              </ul>
+            </div>
+            @endif
+            @if(!empty($c['donts']))
+            <div style="flex:1">
+              <div class="subh">Don't</div>
+              <ul style="list-style:none;padding:0;margin:0">
+                @foreach($c['donts'] as $d)
+                <li style="margin:6px 0;font-size:14px;padding:10px 12px;background:#fef2f2;border-radius:8px;border-left:3px solid #ef4444">⛔ {{ $d }}</li>
+                @endforeach
+              </ul>
+            </div>
+            @endif
+          </div>
         </div>
       @endforeach
     </div>
@@ -671,6 +692,7 @@
      data-budget-total="{{ $total }}"
      data-trip-budget="{{ $trip->budget_total }}"
      data-trip-days="{{ $trip->days }}"
+     data-trip-nights="{{ $trip->nights }}"
      data-trip-travelers="{{ $trip->travelers }}"
      data-share-token="{{ $trip->share_token }}"
      data-photo-key="{!! e($placesApiKey ?: '') !!}"
@@ -687,6 +709,7 @@ const ROUTE_OPTIONS = JSON.parse(_pd.routeOptions);
 const TRIP_BUDGET = parseFloat(_pd.tripBudget);
 const PLAN_TOTAL = parseFloat(_pd.budgetTotal);
 const TRIP_DAYS = parseInt(_pd.tripDays, 10);
+const TRIP_NIGHTS = parseInt(_pd.tripNights, 10);
 const TRIP_TRAVELLERS = parseInt(_pd.tripTravelers, 10);
 const SHARE_TOKEN = _pd.shareToken;
 const PHOTO_KEY = _pd.photoKey;
@@ -698,6 +721,7 @@ let state = {
   selectedRoute: 0,
   budget: TRIP_BUDGET,
   days: TRIP_DAYS,
+  nights: TRIP_NIGHTS,
   travelers: TRIP_TRAVELLERS,
   selectedFlights: [],
   currency: CUR_TRIP,
@@ -768,25 +792,35 @@ function updateBudgetDisplay() {
 
 /* ===== DAY STEPPER ===== */
 const dayValue = document.getElementById('dayValue');
-const dayNote = document.getElementById('dayNote');
-const regenPrompt = document.getElementById('regenPrompt');
+const nightValue = document.getElementById('nightValue');
 if (dayValue) dayValue.textContent = state.days;
+if (nightValue) nightValue.textContent = state.nights;
 document.getElementById('dayMinus')?.addEventListener('click', () => {
-  if (state.days > 1) { state.days--; dayValue.textContent = state.days; checkDayChange(); saveState(); }
+  if (state.days > 1) {
+    state.days--;
+    state.nights = Math.min(state.nights, state.days + 1);
+    state.nights = Math.max(state.nights, Math.max(1, state.days - 1));
+    dayValue.textContent = state.days;
+    nightValue.textContent = state.nights;
+    saveState();
+  }
 });
 document.getElementById('dayPlus')?.addEventListener('click', () => {
-  state.days++; dayValue.textContent = state.days; checkDayChange(); saveState();
+  state.days++;
+  state.nights = Math.min(state.nights, state.days + 1);
+  state.nights = Math.max(state.nights, Math.max(1, state.days - 1));
+  dayValue.textContent = state.days;
+  nightValue.textContent = state.nights;
+  saveState();
 });
-function checkDayChange() {
-  if (state.days !== TRIP_DAYS) {
-    dayNote.textContent = 'Changed from ' + TRIP_DAYS + ' days';
-    regenPrompt.style.display = 'flex';
-  } else {
-    dayNote.textContent = '';
-    regenPrompt.style.display = 'none';
-  }
-  recalcTotal();
-}
+
+/* ===== NIGHT STEPPER ===== */
+document.getElementById('nightMinus')?.addEventListener('click', () => {
+  if (state.nights > Math.max(1, state.days - 1)) { state.nights--; nightValue.textContent = state.nights; saveState(); }
+});
+document.getElementById('nightPlus')?.addEventListener('click', () => {
+  if (state.nights < state.days + 1) { state.nights++; nightValue.textContent = state.nights; saveState(); }
+});
 
 /* ===== TRAVELLER STEPPER ===== */
 const travValue = document.getElementById('travValue');

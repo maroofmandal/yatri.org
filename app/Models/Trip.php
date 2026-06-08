@@ -10,9 +10,9 @@ use Illuminate\Support\Str;
 class Trip extends Model
 {
     protected $fillable = [
-        'user_id', 'share_token', 'title',
+        'user_id', 'session_id', 'share_token', 'title',
         'origin', 'origin_lat', 'origin_lng', 'destinations',
-        'start_date', 'end_date', 'days', 'travelers',
+        'start_date', 'end_date', 'days', 'nights', 'travelers',
         'budget_total', 'currency', 'style', 'interests',
         'status', 'plan', 'budget_breakdown', 'fit_status',
         'grounding', 'model_used', 'error', 'is_public', 'views',

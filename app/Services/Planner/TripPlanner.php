@@ -292,7 +292,7 @@ class TripPlanner
         $interests = $trip->interests ? implode(', ', $trip->interests) : 'general sightseeing';
 
         return <<<TXT
-        Plan a {$trip->days}-day trip for {$trip->travelers} traveler(s).
+        Plan a {$trip->days}-day ({$trip->nights}-night) trip for {$trip->travelers} traveler(s).
         Origin: {$trip->origin}
         Route: {$trip->origin} → {$stops} → back to {$trip->origin}
         Dates: {$this->dateLabel($trip)}
@@ -314,7 +314,7 @@ class TripPlanner
     {
         return "You convert travel research into a STRICT JSON itinerary.\n"
             ."HARD RULE 1 (budget): the realistic grand total must be <= {$trip->budget_total} {$trip->currency} for the WHOLE party "
-            ."({$trip->travelers} traveler(s)) across {$trip->days} days. If realistic costs exceed the cap, downgrade "
+            ."({$trip->travelers} traveler(s)) across {$trip->days} days ({$trip->nights} nights). If realistic costs exceed the cap, downgrade "
             ."(cheaper hotels, buses/trains over flights for SHORT legs, fewer paid activities) until total <= cap, and explain in fit.note.\n"
             .'HARD RULE 2 (transport realism): international or intercontinental legs — anywhere separated by sea/ocean or roughly >1500 km, '
             .'e.g. Mumbai→Tokyo — MUST be FLIGHTS. Never label such a leg train, bus or ferry. Put long-haul air legs in `flights`; '
@@ -332,7 +332,7 @@ class TripPlanner
     {
         $stops = collect($trip->destinations)->pluck('name')->implode(', ');
 
-        return "Trip: origin {$trip->origin}; stops: {$stops}; {$trip->days} days; {$trip->travelers} traveler(s); "
+        return "Trip: origin {$trip->origin}; stops: {$stops}; {$trip->days} days ({$trip->nights} nights); {$trip->travelers} traveler(s); "
             ."style {$trip->style}; budget cap {$trip->budget_total} {$trip->currency}; dates {$this->dateLabel($trip)}.\n\n"
             ."Research:\n{$research}\n\n"
             .($feedback ? $feedback."\n\n" : '')
@@ -422,9 +422,9 @@ class TripPlanner
             'name' => 'Well-rated stay in '.$d['name'],
             'area' => 'Central',
             'rating' => 4.3,
-            'price_per_night' => round(($budget['accommodation'] / max(1, $trip->days))),
+            'price_per_night' => round(($budget['accommodation'] / max(1, $trip->nights))),
             'nights' => (int) ($d['nights'] ?? 2),
-            'total' => round(($budget['accommodation'] / max(1, $trip->days)) * (int) ($d['nights'] ?? 2)),
+            'total' => round(($budget['accommodation'] / max(1, $trip->nights)) * (int) ($d['nights'] ?? 2)),
             'booking_query' => 'Hotels in '.$d['name'],
             'price_status' => 'estimated',
         ])->all();

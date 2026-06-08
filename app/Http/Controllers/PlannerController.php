@@ -39,12 +39,14 @@ class PlannerController extends Controller
 
         $trip = Trip::create([
             'user_id'      => $request->user()?->id,
+            'session_id'   => $request->user() ? null : $request->session()->getId(),
             'title'        => $this->defaultTitle($data['origin'], $dests),
             'origin'       => $data['origin'],
             'destinations' => $dests,
             'start_date'   => $data['start_date'] ?? null,
             'end_date'     => $data['end_date'] ?? null,
             'days'         => $this->computeDays($data, $dests),
+            'nights'       => max(1, $this->computeDays($data, $dests) - 1),
             'travelers'    => $data['travelers'],
             'budget_total' => $data['budget_total'],
             'currency'     => strtoupper($data['currency']),
@@ -175,12 +177,23 @@ class PlannerController extends Controller
 
     protected function canManage(Trip $trip): bool
     {
-        if ($trip->user_id === null) {
-            return true; // guest-created — the link holder manages it
-        }
-
         $user = request()->user();
 
-        return $user && ($user->isAdmin() || $trip->user_id === $user->id);
+        // Admin can always manage
+        if ($user && $user->isAdmin()) {
+            return true;
+        }
+
+        // Logged-in user owns the trip
+        if ($user && $trip->user_id === $user->id) {
+            return true;
+        }
+
+        // Guest trip: only the same session can manage
+        if ($trip->user_id === null) {
+            return $trip->session_id === request()->session()->getId();
+        }
+
+        return false;
     }
 }
