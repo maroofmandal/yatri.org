@@ -32,6 +32,11 @@ class SettingController extends Controller
             'gemini_grounding_maps'   => $settings['ai']['gemini_grounding_maps'] ?? config('gemini.grounding_maps'),
         ];
 
+        // Ensure fx_rates is always an array for the form.
+        if (!is_array($settings['brand']['fx_rates'] ?? null)) {
+            $settings['brand']['fx_rates'] = [];
+        }
+
         $hasEnvKey = ! empty(config('gemini.key'));
 
         return view('admin.settings', compact('settings', 'hasEnvKey'));
@@ -49,7 +54,8 @@ class SettingController extends Controller
 
             'site_name'               => ['required', 'string', 'max:80'],
             'default_currency'        => ['required', 'string', 'size:3'],
-            'fx_rate_inr'             => ['required', 'numeric', 'min:1'],
+            'fx_rates'                => ['required', 'array'],
+            'fx_rates.*'              => ['required', 'numeric', 'min:0.001'],
 
             'affiliate_flights'       => ['nullable', 'string', 'max:200'],
             'affiliate_hotels'        => ['nullable', 'string', 'max:200'],
@@ -84,7 +90,13 @@ class SettingController extends Controller
         // Brand
         Setting::put('site_name', $data['site_name'], 'brand', 'string');
         Setting::put('default_currency', strtoupper($data['default_currency']), 'brand', 'string');
-        Setting::put('fx_rate_inr', $data['fx_rate_inr'], 'brand', 'string');
+
+        // Store fallback FX rates as JSON  (keys are lowercase currency codes).
+        $fxRates = [];
+        foreach ($data['fx_rates'] as $code => $rate) {
+            $fxRates[strtolower($code)] = (float) $rate;
+        }
+        Setting::put('fx_rates', $fxRates, 'brand', 'json');
 
         // Booking / affiliate
         Setting::put('affiliate_flights', $data['affiliate_flights'] ?? '', 'booking', 'string');

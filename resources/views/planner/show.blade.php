@@ -6,7 +6,7 @@
   $cur  = $trip->currency;
   $symMap = ['USD'=>'$','INR'=>'₹','EUR'=>'€','GBP'=>'£','AED'=>'AED ','SGD'=>'S$','JPY'=>'¥'];
   $sym = $symMap[$cur] ?? ($cur.' ');
-  $money = fn($n) => $sym.number_format((float)$n);
+  $money = fn($n) => '<span class="money" data-amt="'.(float)$n.'">'.$sym.number_format((float)$n).'</span>';
 
   $budget = $trip->budget_breakdown ?: ($plan['budget'] ?? []);
   $cats = [
@@ -47,12 +47,22 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
 @endpush
 
+@push('nav-right')
+<select id="currencySelect">
+  @foreach(['USD'=>'$ USD','INR'=>'₹ INR','EUR'=>'€ EUR','GBP'=>'£ GBP','AED'=>'AED','SGD'=>'S$ SGD','JPY'=>'¥ JPY'] as $code=>$lbl)
+    <option value="{{ $code }}" {{ $cur===$code?'selected':'' }}>{{ $lbl }}</option>
+  @endforeach
+</select>
+@endpush
+
 @section('content')
 <header class="hero"><div class="wrap">
-  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->travelers }} traveler(s){{ $trip->model_used && $trip->model_used!=='sample' ? ' · '.$trip->model_used : '' }}</p>
-  <h1><strong>{{ $trip->title }}</strong>
-    @if(!empty($plan['summary']))<span class="sub">{{ $plan['summary'] }}</span>@endif
-  </h1>
+  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget</p>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <h1 style="margin:0"><strong>{{ $trip->title }}</strong>
+      @if(!empty($plan['summary']))<span class="sub">{{ $plan['summary'] }}</span>@endif
+    </h1>
+  </div>
 </div></header>
 
 <div class="wrap">
@@ -67,22 +77,22 @@
 
   {{-- Budget fit --}}
   <div class="block">
-    <h2>Budget — fits your {{ $money($trip->budget_total) }}</h2>
+    <h2>Budget — fits your {!! $money($trip->budget_total) !!}</h2>
     @php $fitClass = 'fit-'.($trip->fit_status ?? 'fit'); @endphp
     <div class="fit-banner {{ $fitClass }}">
       @if($trip->fit_status==='over') ⚠️ Realistic costs run over your cap.
       @elseif($trip->fit_status==='under') ✅ Comes in under budget — room to upgrade.
       @else ✅ Planned to fit your budget.
       @endif
-      <strong style="margin-left:auto">{{ $money($total) }} / {{ $money($trip->budget_total) }}</strong>
+      <strong style="margin-left:auto">{!! $money($total) !!} / {!! $money($trip->budget_total) !!}</strong>
     </div>
     @foreach($cats as $key=>$lbl)
       @php $val=(float)($budget[$key] ?? 0); @endphp
       @if($val>0)
       <div class="bbar">
         <div class="lbl">{{ $lbl }}</div>
-        <div class="track"><span style="width:{{ max(4, round($val/$maxCat*100)) }}%"></span></div>
-        <div class="amt">{{ $money($val) }}</div>
+        <div class="track"><span class="bbar-fill" data-pct="{{ max(4, round($val/$maxCat*100)) }}"></span></div>
+        <div class="amt">{!! $money($val) !!}</div>
       </div>
       @endif
     @endforeach
@@ -167,7 +177,7 @@
         <div class="card">
           <div style="font-weight:600;font-family:Outfit">{{ $f['from'] ?? '' }} → {{ $f['to'] ?? '' }} @if(!empty($f['type']))<span class="tag">{{ $f['type'] }}</span>@endif</div>
           <div class="muted" style="font-size:13px;margin:6px 0">{{ $f['airlines'] ?? '' }}{{ !empty($f['duration']) ? ' · '.$f['duration'] : '' }}</div>
-          <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit">{{ $money($f['price'] ?? 0) }}</div>
+          <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit">{!! $money($f['price'] ?? 0) !!}</div>
           <span class="data-badge">{{ $statusText($f['price_status'] ?? 'estimated') }} · check live before booking</span>
           <a class="mlink mt" target="_blank" rel="noopener" href="{{ $flightLink('flights '.($f['from']??'').' to '.($f['to']??'')) }}">Check fares ↗</a>
         </div>
@@ -184,7 +194,7 @@
       <div class="tline">
         <span class="mode">{{ $t['mode'] ?? 'Transit' }}</span>
         <span class="ar">{{ $t['from'] ?? '' }} → {{ $t['to'] ?? '' }}{{ !empty($t['duration']) ? ' · '.$t['duration'] : '' }}{{ !empty($t['note']) ? ' · '.$t['note'] : '' }}</span>
-        <span class="tc">{{ isset($t['cost']) ? $money($t['cost']) : '' }}</span>
+        <span class="tc">{!! isset($t['cost']) ? $money($t['cost']) : '' !!}</span>
       </div>
     @endforeach
   </div>
@@ -234,7 +244,7 @@
                   <img class="place-thumb" src="{{ $photoUrl($placesData[$it['place_key']]['photos'][0], 200) }}" alt="{{ $placesData[$it['place_key']]['name'] ?? '' }}" loading="lazy">
                 @endif
               </div>
-              <div class="cost">{{ !empty($it['cost']) ? $money($it['cost']) : (isset($it['cost']) ? 'Free' : '') }}</div>
+              <div class="cost">{!! !empty($it['cost']) ? $money($it['cost']) : (isset($it['cost']) ? 'Free' : '') !!}</div>
             </div>
           @endforeach
         </div>
@@ -253,7 +263,7 @@
           <div class="hn">{{ $h['name'] ?? '' }}</div>
           <div class="muted" style="font-size:12.5px">{{ $h['city'] ?? '' }}{{ !empty($h['area']) ? ' · '.$h['area'] : '' }}</div>
           @if(!empty($h['rating']))<div class="rt">★ {{ number_format($h['rating'],1) }}</div>@endif
-          <div class="hp">{{ $money($h['price_per_night'] ?? 0) }} <small>/ night · {{ $h['nights'] ?? 1 }} nights</small></div>
+          <div class="hp">{!! $money($h['price_per_night'] ?? 0) !!} <small>/ night · {{ $h['nights'] ?? 1 }} nights</small></div>
           <span class="data-badge">{{ $statusText($h['price_status'] ?? 'estimated') }} · check live rates</span>
           <a class="mlink mt" target="_blank" rel="noopener" href="{{ $hotelLink($h['booking_query'] ?? (($h['name']??'').' '.($h['city']??''))) }}">Check rates ↗</a>
           @if(($h['place_key'] ?? null) && ($placesData[$h['place_key']] ?? null))
@@ -439,13 +449,24 @@
 </div>
 
 @push('scripts')
+<div id="page-data"
+     data-route="{!! e(json_encode($route->map(fn($r)=>['name'=>$r['name'],'lat'=>(float)$r['lat'],'lng'=>(float)$r['lng']]))) !!}"
+     data-route-options="{!! e(json_encode($plan['route_options'] ?? [])) !!}"
+     data-cur-trip="{!! e(json_encode($cur)) !!}"
+     style="display:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
+const _pd = document.getElementById('page-data').dataset;
+
+// ── budget bar widths ──
+document.querySelectorAll('.bbar-fill').forEach(el => {
+  el.style.width = el.dataset.pct + '%';
+});
 
 // ── map ──
-const ROUTE = @json($route->map(fn($r)=>['name'=>$r['name'],'lat'=>(float)$r['lat'],'lng'=>(float)$r['lng']]));
-const ROUTE_OPTIONS = @json($plan['route_options'] ?? []);
+const ROUTE = JSON.parse(_pd.route);
+const ROUTE_OPTIONS = JSON.parse(_pd.routeOptions);
 let routePolylines = [];
 if (ROUTE.length && window.L) {
   const map = L.map('map',{scrollWheelZoom:false}).setView([ROUTE[0].lat,ROUTE[0].lng],4);
@@ -517,6 +538,50 @@ document.getElementById('chatForm').addEventListener('submit', async e=>{
     typing.innerHTML = html;
   }catch(err){ typing.textContent='Sorry — something went wrong.'; }
 });
+
+// ── currency converter ──
+const CUR_TRIP = JSON.parse(_pd.curTrip);
+const CUR_SYM_MAP = {'USD':'$','INR':'₹','EUR':'€','GBP':'£','AED':'AED ','SGD':'S$','JPY':'¥'};
+const curSel = document.getElementById('currencySelect');
+let curRate = 1; // USD → current display currency
+let baseRate = 1; // USD → trip's original currency
+
+async function fetchFxRate(currency) {
+  if (currency === 'USD') return 1;
+  try {
+    const res = await fetch('/api/fx/' + currency);
+    const d = await res.json();
+    if (d.rate) return d.rate;
+  } catch(e) {}
+  return null;
+}
+
+function convertCurrency() {
+  const sym = CUR_SYM_MAP[curSel.value] ?? (curSel.value + ' ');
+  document.querySelectorAll('.money[data-amt]').forEach(el => {
+    const origAmt = parseFloat(el.dataset.amt);
+    if (isNaN(origAmt)) return;
+    // origAmt is in trip currency → USD → target currency
+    const usdAmt = baseRate ? origAmt / baseRate : origAmt;
+    const converted = usdAmt * curRate;
+    el.textContent = sym + Math.round(converted).toLocaleString();
+  });
+}
+
+curSel.addEventListener('change', async () => {
+  const newRate = await fetchFxRate(curSel.value);
+  if (newRate !== null) {
+    curRate = newRate;
+    convertCurrency();
+  }
+});
+
+// Init: fetch the trip's currency rate so we have the base
+(async () => {
+  const r = await fetchFxRate(CUR_TRIP);
+  if (r !== null) baseRate = r;
+  curRate = baseRate; // start displaying in trip currency
+})();
 
 // ── like ──
 const likeBtn = document.getElementById('likeBtn');

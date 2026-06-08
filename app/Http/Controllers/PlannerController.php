@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePlanRequest;
 use App\Models\Destination;
+use App\Models\Setting;
 use App\Models\Trip;
 use App\Services\Planner\TripPlanner;
 use Illuminate\Http\Request;
@@ -16,7 +17,13 @@ class PlannerController extends Controller
         $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
         $recent = Trip::where('is_public', true)->where('status', 'ready')->latest()->limit(6)->get();
 
-        return view('planner.create', compact('destinations', 'recent'));
+        // Admin-set fallback FX rates (1 USD → X) for client-side conversion.
+        $fxRates = Setting::get('fx_rates', []);
+        if (!is_array($fxRates)) {
+            $fxRates = [];
+        }
+
+        return view('planner.create', compact('destinations', 'recent', 'fxRates'));
     }
 
     public function store(StorePlanRequest $request)
@@ -62,15 +69,58 @@ class PlannerController extends Controller
         return view('planner.generating', compact('trip'));
     }
 
-    /** Called by the loader on the generating page (synchronous generation). */
+    /**
+     * Loader endpoint for the generating page. Non-blocking + poll-based.
+     *
+     * Live generation legitimately takes ~30–120s (grounded research + structured
+     * JSON + Places/weather enrichment). Doing that inside the HTTP request blows
+     * past front-proxy/PHP timeouts, so the browser saw a "Network error" even
+     * though the plan generated fine. Instead we kick generation off AFTER the
+     * response is flushed and let the page poll this endpoint until it's ready.
+     */
     public function generate(Trip $trip, TripPlanner $planner)
     {
-        if (! $trip->isReady() || request()->boolean('force')) {
-            $planner->generate($trip);
+        $force = request()->boolean('force');
+
+        // Already done.
+        if ($trip->isReady() && ! $force) {
+            return $this->generateStatus($trip);
         }
 
-        $trip->refresh();
+        // A run is already in flight (and not stuck) — just report status; keep polling.
+        $stuck = $trip->status === 'generating'
+            && $trip->updated_at
+            && $trip->updated_at->lt(now()->subMinutes(4));
 
+        if ($trip->status === 'generating' && ! $stuck && ! $force) {
+            return $this->generateStatus($trip);
+        }
+
+        // Kick off (or restart a stuck/forced) generation. Mark it in-flight now so
+        // concurrent polls don't trigger a second run, then do the heavy work after
+        // the response is sent to the browser.
+        $trip->update(['status' => 'generating', 'error' => null]);
+
+        $tripId = $trip->id;
+        dispatch(function () use ($tripId) {
+            @set_time_limit(0);
+            $trip = Trip::find($tripId);
+            if (! $trip) {
+                return;
+            }
+            try {
+                app(TripPlanner::class)->generate($trip);
+            } catch (\Throwable $e) {
+                report($e);
+                $trip->update(['status' => 'error', 'error' => 'Generation failed: '.$e->getMessage()]);
+            }
+        })->afterResponse();
+
+        return $this->generateStatus($trip);
+    }
+
+    protected function generateStatus(Trip $trip)
+    {
         return response()->json([
             'status'   => $trip->status,
             'error'    => $trip->error,

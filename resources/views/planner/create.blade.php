@@ -108,8 +108,10 @@
 </datalist>
 
 @push('scripts')
+<script type="application/json" id="suggestData">{!! json_encode($destinations->map(fn($d)=>['name'=>$d->name,'lat'=>$d->lat,'lng'=>$d->lng])) !!}</script>
+<script type="application/json" id="fxRatesData">{!! json_encode($fxRates) !!}</script>
 <script>
-const SUGGEST = @json($destinations->map(fn($d)=>['name'=>$d->name,'lat'=>$d->lat,'lng'=>$d->lng]));
+const SUGGEST = JSON.parse(document.getElementById('suggestData').textContent);
 const list = document.getElementById('destList');
 
 function destRow(name='', nights=2, lat='', lng=''){
@@ -161,15 +163,84 @@ document.querySelectorAll('#suggest button').forEach(b=>{
 // seed two rows
 addRow(); addRow();
 
-// budget slider <-> input <-> currency symbol
+// budget slider <-> input <-> currency symbol + live FX conversion
 const SYM = {USD:'$',INR:'₹',EUR:'€',GBP:'£',AED:'AED ',SGD:'S$',JPY:'¥'};
+const FALLBACK_RATES = JSON.parse(document.getElementById('fxRatesData').textContent);
 const range=document.getElementById('budgetRange'), input=document.getElementById('budgetInput'),
       label=document.getElementById('budgetLabel'), sym=document.getElementById('curSym'), cur=document.getElementById('currency');
+
+// baseUSD is the "real" value the user is budgeting in USD terms.
+let baseUSD = Number(input.value) || 3000;
+let currentRate = 1; // 1 USD → currentRate units of selected currency
+
+function round100(n){ return Math.round(n / 100) * 100; }
+
 function syncLabel(v){ label.textContent = Number(v).toLocaleString(); }
-range.oninput = ()=>{ input.value=range.value; syncLabel(range.value); };
-input.oninput = ()=>{ if(+input.value<=+range.max) range.value=input.value; syncLabel(input.value); };
-cur.onchange = ()=>{ sym.textContent = SYM[cur.value]||cur.value+' '; };
-syncLabel(input.value); cur.onchange();
+
+// Apply a known exchange rate: update slider/input to converted + rounded value.
+function applyRate(rate){
+  currentRate = rate;
+  const converted = round100(baseUSD * rate);
+  // Scale slider range proportionally (keep 10 steps within the converted range).
+  const sliderMax = Math.max(converted * 10, round100(baseUSD * rate * 10));
+  range.max = sliderMax;
+  range.step = 100;
+  range.value = converted;
+  input.value = converted;
+  input.max = sliderMax;
+  syncLabel(converted);
+}
+
+// Fetch live rate from backend, fall back to admin rates, then hardcoded defaults.
+async function fetchRate(currency){
+  if(currency === 'USD') return 1;
+  try {
+    const res = await fetch('/api/fx/' + currency);
+    if(res.ok){
+      const data = await res.json();
+      if(data.rate) return data.rate;
+    }
+  } catch(_){}
+  // Admin fallback
+  const lc = currency.toLowerCase();
+  if(FALLBACK_RATES && FALLBACK_RATES[lc]) return FALLBACK_RATES[lc];
+  // Hardcoded last resort
+  const hardcoded = {inr:85,eur:0.92,gbp:0.79,aed:3.67,sgd:1.34,jpy:157};
+  return hardcoded[lc] || 1;
+}
+
+// Slider drag → update input (within current currency space)
+range.oninput = ()=>{
+  input.value = range.value;
+  syncLabel(range.value);
+  // Keep baseUSD in sync so switching currencies stays consistent.
+  baseUSD = Math.round(Number(range.value) / currentRate);
+};
+
+// Manual input → update slider
+input.oninput = ()=>{
+  if(+input.value <= +range.max) range.value = input.value;
+  syncLabel(input.value);
+  baseUSD = Math.round(Number(input.value) / currentRate);
+};
+
+// Currency change → fetch rate and convert
+cur.onchange = async ()=>{
+  sym.textContent = SYM[cur.value] || cur.value + ' ';
+  const rate = await fetchRate(cur.value);
+  applyRate(rate);
+};
+
+// Initialise on page load
+(async ()=>{
+  sym.textContent = SYM[cur.value] || cur.value + ' ';
+  if(cur.value !== 'USD'){
+    const rate = await fetchRate(cur.value);
+    applyRate(rate);
+  } else {
+    syncLabel(input.value);
+  }
+})();
 
 // serialize destinations on submit
 document.getElementById('plannerForm').addEventListener('submit', e=>{

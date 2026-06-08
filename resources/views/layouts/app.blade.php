@@ -12,12 +12,21 @@
 @stack('head')
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
 </head>
-<body>
+@php
+  $geoProvider = \App\Models\Setting::get('geocode_provider', config('providers.geocode', 'photon'));
+  $yatriMapsKey = \App\Models\Setting::get('google_places_api_key')
+      ?: \App\Models\Setting::get('google_maps_api_key')
+      ?: config('gemini.places_key')
+      ?: config('gemini.maps_key');
+  $useGoogle = $geoProvider === 'google' && $yatriMapsKey;
+@endphp
+<body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}">
 <nav class="nav"><div class="wrap">
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')">
     <span></span><span></span><span></span>
   </button>
   <a class="brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
+  <div class="nav-currency">@stack('nav-right')</div>
   <div class="links">
     <a href="{{ route('home') }}">Explore</a>
     <a href="{{ route('pricing') }}">Pricing</a>
@@ -78,15 +87,7 @@
   });
 })();
 </script>
-@php
-  $geoProvider = \App\Models\Setting::get('geocode_provider', config('providers.geocode', 'photon'));
-  $yatriMapsKey = \App\Models\Setting::get('google_places_api_key')
-      ?: \App\Models\Setting::get('google_maps_api_key')
-      ?: config('gemini.places_key')
-      ?: config('gemini.maps_key');
-  $useGoogle = $geoProvider === 'google' && $yatriMapsKey;
-@endphp
-<script>window.YATRI_GEO="{{ $geoProvider }}";</script>
+<script>window.YATRI_GEO=document.body.dataset.geo;</script>
 @if($useGoogle)
 <script>
 (function(){
@@ -148,7 +149,7 @@ function customAutocomplete(input, opts){
     var q=input.value.trim();
     if(q.length<2){ close(); return; }
     timer=setTimeout(function(){
-      fetch('{{ route('geo.suggest') }}?q='+encodeURIComponent(q))
+      fetch(document.body.dataset.geoUrl+'?q='+encodeURIComponent(q))
         .then(function(r){return r.json();}).then(render).catch(close);
     }, 250);
   });

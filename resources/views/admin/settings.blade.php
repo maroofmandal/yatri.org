@@ -91,11 +91,28 @@
 
   <div class="card mb">
     <h3>Brand</h3>
-    <div class="row row-3">
+    <div class="row row-2">
       <div class="field"><label>Site name</label><input type="text" name="site_name" value="{{ $settings['brand']['site_name'] ?? 'Yatri' }}"></div>
       <div class="field"><label>Default currency</label><input type="text" name="default_currency" maxlength="3" value="{{ $settings['brand']['default_currency'] ?? 'USD' }}"></div>
-      <div class="field"><label>FX rate (1 USD → INR)</label><input type="number" step="0.01" name="fx_rate_inr" value="{{ $settings['brand']['fx_rate_inr'] ?? 85 }}"></div>
     </div>
+
+    <label>Fallback exchange rates <span class="muted" style="font-weight:500">— 1 USD = X units (used when live API is down)</span></label>
+    @php
+      $fxRates = $settings['brand']['fx_rates'] ?? [];
+      if (!is_array($fxRates)) $fxRates = [];
+      $defaults = ['inr'=>85,'eur'=>0.92,'gbp'=>0.79,'aed'=>3.67,'sgd'=>1.34,'jpy'=>157];
+      $symbols = ['INR'=>'₹','EUR'=>'€','GBP'=>'£','AED'=>'AED','SGD'=>'S$','JPY'=>'¥'];
+    @endphp
+    <div class="row row-3">
+      @foreach($symbols as $code => $sym)
+        @php $lc = strtolower($code); @endphp
+        <div class="field">
+          <label style="font-size:12px">{{ $sym }} {{ $code }} <span class="muted" style="font-weight:400">(1 USD →)</span></label>
+          <input type="number" step="0.01" min="0.01" name="fx_rates[{{ $lc }}]" value="{{ $fxRates[$lc] ?? $defaults[$lc] ?? '' }}" placeholder="{{ $defaults[$lc] ?? '' }}">
+        </div>
+      @endforeach
+    </div>
+    <div class="hint">These rates are the safety net. The planner uses live rates from a free CDN API; if that is unreachable, it falls back to these values.</div>
   </div>
 
   <div class="card mb">

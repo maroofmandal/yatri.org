@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\FxController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\PlannerController;
 use App\Http\Controllers\PricingController;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [FeedController::class, 'index'])->name('home');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/geo/suggest', [GeocodeController::class, 'suggest'])->name('geo.suggest');
+Route::get('/api/fx', [FxController::class, 'all'])->name('fx.all');
+Route::get('/api/fx/{currency}', [FxController::class, 'rate'])->name('fx.rate');
 Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile');
 
 // ── Planner ─────────────────────────────────────────────────────
@@ -44,7 +48,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // ── User dashboard ──────────────────────────────────────────────
 Route::get('/dashboard', function () {
-    $trips = Trip::where('user_id', auth()->id())->latest()->get();
+    $trips = Trip::where('user_id', Auth::id())->latest()->get();
 
     return view('dashboard', compact('trips'));
 })->middleware('auth')->name('dashboard');

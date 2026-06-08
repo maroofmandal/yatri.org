@@ -59,6 +59,15 @@ class GeminiClient
         $grounded = $opts['grounding'] ?? false;
         $temp     = $opts['temperature'] ?? 0.7;
 
+        // Thinking budget. The 2.5 "thinking" models spend most of their wall-clock
+        // (and tokens) on internal reasoning — a structured JSON pass routinely took
+        // 100s+ of thinking, which blows past front proxy timeouts. The JSON pass needs
+        // no reasoning, so disable thinking there (≈100x faster). Grounded research keeps
+        // a modest budget. Callers may override via opts['thinking_budget'].
+        $thinkingBudget = array_key_exists('thinking_budget', $opts)
+            ? $opts['thinking_budget']
+            : ($schema ? 0 : null);
+
         $body = [
             'systemInstruction' => ['parts' => [['text' => $system]]],
             'contents'          => [['role' => 'user', 'parts' => [['text' => $user]]]],
@@ -66,6 +75,7 @@ class GeminiClient
                 'temperature'      => $temp,
                 'responseMimeType' => $schema ? 'application/json' : null,
                 'responseSchema'   => $schema,
+                'thinkingConfig'   => $thinkingBudget === null ? null : ['thinkingBudget' => $thinkingBudget],
             ], fn ($v) => $v !== null),
         ];
 
