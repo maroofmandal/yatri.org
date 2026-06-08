@@ -114,15 +114,79 @@
 const SUGGEST = JSON.parse(document.getElementById('suggestData').textContent);
 const list = document.getElementById('destList');
 
-function destRow(name='', nights=2, lat='', lng=''){
+function destRow(name='', days=3, nights=2, lat='', lng=''){
   const row = document.createElement('div');
   row.className = 'dest-item';
   row.innerHTML = `<span class="grip">⠿</span>
     <input class="dname" list="cityList" data-places placeholder="Add a city" value="${name}" autocomplete="off">
     <input type="hidden" class="dlat" value="${lat??''}"><input type="hidden" class="dlng" value="${lng??''}">
-    <span class="nights">nights <input type="number" class="dnights" min="1" max="60" value="${nights}"></span>
+    <input type="hidden" class="ddays" value="${days}"><input type="hidden" class="dnights" value="${nights}">
+    <span class="dest-counter">
+      <label>Days</label>
+      <div class="day-stepper">
+        <button type="button" class="dd-minus">−</button>
+        <span class="step-val">${days}</span>
+        <button type="button" class="dd-plus">+</button>
+      </div>
+    </span>
+    <span class="dest-counter">
+      <label>Nights</label>
+      <div class="day-stepper">
+        <button type="button" class="dn-minus">−</button>
+        <span class="step-val">${nights}</span>
+        <button type="button" class="dn-plus">+</button>
+      </div>
+    </span>
     <button type="button" class="rm" title="Remove">×</button>`;
   row.querySelector('.rm').onclick = ()=>{ row.remove(); if(!list.children.length) addRow(); };
+  // Days stepper
+  const ddaysInput = row.querySelector('.ddays');
+  const dnightsInput = row.querySelector('.dnights');
+  const ddVal = row.querySelector('.dd-minus + .step-val');
+  const dnVal = row.querySelector('.dn-minus + .step-val');
+  row.querySelector('.dd-minus').onclick = ()=>{
+    let d = parseInt(ddaysInput.value)||3;
+    if(d > 1){
+      d--;
+      ddaysInput.value = d;
+      ddVal.textContent = d;
+      let n = parseInt(dnightsInput.value)||2;
+      n = Math.min(n, d + 1);
+      n = Math.max(n, Math.max(1, d - 1));
+      dnightsInput.value = n;
+      dnVal.textContent = n;
+    }
+  };
+  row.querySelector('.dd-plus').onclick = ()=>{
+    let d = parseInt(ddaysInput.value)||3;
+    d++;
+    ddaysInput.value = d;
+    ddVal.textContent = d;
+    let n = parseInt(dnightsInput.value)||2;
+    n = Math.min(n, d + 1);
+    n = Math.max(n, Math.max(1, d - 1));
+    dnightsInput.value = n;
+    dnVal.textContent = n;
+  };
+  // Nights stepper
+  row.querySelector('.dn-minus').onclick = ()=>{
+    let d = parseInt(ddaysInput.value)||3;
+    let n = parseInt(dnightsInput.value)||2;
+    if(n > Math.max(1, d - 1)){
+      n--;
+      dnightsInput.value = n;
+      dnVal.textContent = n;
+    }
+  };
+  row.querySelector('.dn-plus').onclick = ()=>{
+    let d = parseInt(ddaysInput.value)||3;
+    let n = parseInt(dnightsInput.value)||2;
+    if(n < d + 1){
+      n++;
+      dnightsInput.value = n;
+      dnVal.textContent = n;
+    }
+  };
   list.appendChild(row);
   // attach Places autocomplete to this row's city input
   const dname = row.querySelector('.dname');
@@ -156,7 +220,7 @@ document.querySelectorAll('#suggest button').forEach(b=>{
   b.onclick = ()=>{
     const empty = [...list.querySelectorAll('.dest-item')].find(r=>!r.querySelector('.dname').value.trim());
     if(empty){ empty.querySelector('.dname').value=b.dataset.name; empty.querySelector('.dlat').value=b.dataset.lat||''; empty.querySelector('.dlng').value=b.dataset.lng||''; }
-    else destRow(b.dataset.name,2,b.dataset.lat,b.dataset.lng);
+    else destRow(b.dataset.name,3,2,b.dataset.lat,b.dataset.lng);
   };
 });
 
@@ -246,6 +310,7 @@ cur.onchange = async ()=>{
 document.getElementById('plannerForm').addEventListener('submit', e=>{
   const dests = [...list.querySelectorAll('.dest-item')].map(r=>({
     name: r.querySelector('.dname').value.trim(),
+    days: parseInt(r.querySelector('.ddays').value)||3,
     nights: parseInt(r.querySelector('.dnights').value)||2,
     lat: parseFloat(r.querySelector('.dlat').value)||null,
     lng: parseFloat(r.querySelector('.dlng').value)||null,

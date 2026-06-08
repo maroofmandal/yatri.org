@@ -32,6 +32,7 @@ class PlannerController extends Controller
 
         $dests = collect($data['destinations'])->map(fn ($d) => [
             'name'   => $d['name'],
+            'days'   => (int) ($d['days'] ?? 3),
             'nights' => (int) ($d['nights'] ?? 2),
             'lat'    => $d['lat'] ?? null,
             'lng'    => $d['lng'] ?? null,
@@ -46,7 +47,7 @@ class PlannerController extends Controller
             'start_date'   => $data['start_date'] ?? null,
             'end_date'     => $data['end_date'] ?? null,
             'days'         => $this->computeDays($data, $dests),
-            'nights'       => max(1, $this->computeDays($data, $dests) - 1),
+            'nights'       => $this->computeNights($dests),
             'travelers'    => $data['travelers'],
             'budget_total' => $data['budget_total'],
             'currency'     => strtoupper($data['currency']),
@@ -158,9 +159,14 @@ class PlannerController extends Controller
             return Carbon::parse($data['start_date'])->diffInDays(Carbon::parse($data['end_date'])) + 1;
         }
 
-        $nights = array_sum(array_map(fn ($d) => (int) ($d['nights'] ?? 2), $dests));
+        $totalDays = array_sum(array_map(fn ($d) => (int) ($d['days'] ?? 3), $dests));
 
-        return max(1, $nights);
+        return max(1, $totalDays);
+    }
+
+    protected function computeNights(array $dests): int
+    {
+        return max(1, array_sum(array_map(fn ($d) => (int) ($d['nights'] ?? 2), $dests)));
     }
 
     protected function defaultTitle(string $origin, array $dests): string
