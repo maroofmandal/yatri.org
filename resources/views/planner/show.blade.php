@@ -134,14 +134,15 @@
   </div>
   @endif
 
-  {{-- Weather --}}
-  @if($weatherDays->count())
+  {{-- Weather (only show when live Google Weather data is available) --}}
+  @php $hasLiveWeather = $weatherDays->contains(fn($w) => ($w['source'] ?? '') === 'google_weather'); @endphp
+  @if($hasLiveWeather)
   <div class="block">
     <h2>Weather during trip</h2>
-    <p class="lead">{{ $plan['weather']['note'] ?? 'Live Google Weather appears for trips within 10 days; later dates use seasonal estimates.' }}</p>
+    <p class="lead">Live Google Weather daily forecast for your trip dates.</p>
     <div class="weather-grid">
       @foreach($weatherDays as $w)
-        <div class="weather-card {{ ($w['source'] ?? '') === 'google_weather' ? 'weather-live' : 'weather-est' }}">
+        <div class="weather-card weather-live">
           <div class="weather-top">
             <div>
               <b>Day {{ $w['day'] ?? $loop->iteration }}</b>
@@ -151,7 +152,7 @@
               <img src="{{ $w['icon'] }}.svg" alt="" loading="lazy">
             @endif
           </div>
-          <p>{{ $w['summary'] ?? 'Weather estimate unavailable.' }}</p>
+          <p>{{ $w['summary'] ?? 'Weather data unavailable.' }}</p>
           <div class="weather-meta">
             @if(isset($w['temperature_min_c']) || isset($w['temperature_max_c']))
               <span>{{ isset($w['temperature_min_c']) ? round($w['temperature_min_c']) : '—' }}°C / {{ isset($w['temperature_max_c']) ? round($w['temperature_max_c']) : '—' }}°C</span>
@@ -160,7 +161,7 @@
               <span>{{ round($w['precipitation_probability']) }}% rain</span>
             @endif
           </div>
-          <span class="data-badge">{{ $statusText($w['status'] ?? 'estimated') }}</span>
+          <span class="data-badge">Live Google forecast</span>
         </div>
       @endforeach
     </div>
