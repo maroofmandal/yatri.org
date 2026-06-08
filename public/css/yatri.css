@@ -353,7 +353,10 @@ footer{padding:40px 0 70px;color:var(--muted);font-size:13px;line-height:1.7;tex
 
 /* ============ interactive controls panel ============ */
 .controls-panel{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch;margin:24px 0}
-.ctrl-card{flex:1;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow)}
+.ctrl-card{flex:1;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow)}
+.controls-panel .ctrl-card:nth-child(2){flex:0.6}
+.controls-panel .ctrl-card:nth-child(3){flex:0.6}
+.controls-panel .ctrl-card:nth-child(4){flex:2}
 .ctrl-card label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px;font-family:'Outfit';font-weight:600}
 .ctrl-card .ctrl-value{font-family:'Outfit';font-weight:600;font-size:24px;color:var(--accent)}
 .day-stepper{display:inline-flex;align-items:center;gap:0;border:1.5px solid var(--line);border-radius:30px;overflow:hidden}

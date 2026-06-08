@@ -118,7 +118,7 @@
     <div class="ctrl-card">
       <label>Budget target</label>
       <div class="ctrl-value" id="budgetDisplay">{!! $money($trip->budget_total) !!}</div>
-      <input type="range" id="budgetSlider" min="{{ round($total * 0.5) }}" max="{{ round($total * 2) }}" step="{{ round($total * 0.02) }}" value="{{ round($trip->budget_total) }}" style="margin-top:8px">
+      <input type="range" id="budgetSlider" min="50" max="50000" step="50" value="{{ round($trip->budget_total) }}" style="margin-top:8px">
     </div>
     <div class="ctrl-card">
       <label>Days</label>
@@ -131,6 +131,16 @@
         <span class="muted" style="font-size:13px" id="dayNote"></span>
       </div>
     </div>
+    <div class="ctrl-card">
+      <label>Travellers</label>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="day-stepper">
+          <button type="button" id="travMinus">−</button>
+          <span class="step-val" id="travValue">{{ $trip->travelers }}</span>
+          <button type="button" id="travPlus">+</button>
+        </div>
+      </div>
+    </div>
     @if(!empty($plan['route_options']) && count($plan['route_options']) > 1)
     <div class="ctrl-card">
       <label>Route</label>
@@ -141,13 +151,6 @@
       </div>
     </div>
     @endif
-    <div class="ctrl-card">
-      <label>Currency</label>
-      <div class="route-tab-btn" id="curQuickToggle">
-        <button type="button" class="{{ $cur === 'USD' ? 'on' : '' }}" data-cur="USD">$ USD</button>
-        <button type="button" class="{{ $cur === 'INR' ? 'on' : '' }}" data-cur="INR">₹ INR</button>
-      </div>
-    </div>
   </div>
 
   {{-- Regenerate prompt (hidden, shown when days change) --}}
@@ -668,6 +671,7 @@
      data-budget-total="{{ $total }}"
      data-trip-budget="{{ $trip->budget_total }}"
      data-trip-days="{{ $trip->days }}"
+     data-trip-travelers="{{ $trip->travelers }}"
      data-share-token="{{ $trip->share_token }}"
      data-photo-key="{!! e($placesApiKey ?: '') !!}"
      data-chat-url="{{ route('trip.chat', $trip) }}"
@@ -683,6 +687,7 @@ const ROUTE_OPTIONS = JSON.parse(_pd.routeOptions);
 const TRIP_BUDGET = parseFloat(_pd.tripBudget);
 const PLAN_TOTAL = parseFloat(_pd.budgetTotal);
 const TRIP_DAYS = parseInt(_pd.tripDays, 10);
+const TRIP_TRAVELLERS = parseInt(_pd.tripTravelers, 10);
 const SHARE_TOKEN = _pd.shareToken;
 const PHOTO_KEY = _pd.photoKey;
 const CUR_TRIP = JSON.parse(_pd.curTrip);
@@ -693,6 +698,7 @@ let state = {
   selectedRoute: 0,
   budget: TRIP_BUDGET,
   days: TRIP_DAYS,
+  travelers: TRIP_TRAVELLERS,
   selectedFlights: [],
   currency: CUR_TRIP,
   estBarVisible: true
@@ -730,6 +736,7 @@ function convertCurrency() {
     const converted = usdAmt * curRate;
     el.textContent = sym + Math.round(converted).toLocaleString();
   });
+  updateBudgetDisplay();
   recalcTotal();
   saveState();
 }
@@ -737,16 +744,7 @@ curSel.addEventListener('change', async () => {
   const r = await fetchFxRate(curSel.value);
   if (r !== null) { curRate = r; convertCurrency(); }
 });
-/* Quick currency toggle */
-document.querySelectorAll('#curQuickToggle button').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    document.querySelectorAll('#curQuickToggle button').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    curSel.value = btn.dataset.cur;
-    const r = await fetchFxRate(btn.dataset.cur);
-    if (r !== null) { curRate = r; convertCurrency(); }
-  });
-});
+
 
 /* ===== BUDGET BAR WIDTHS ===== */
 document.querySelectorAll('.bbar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
@@ -789,6 +787,16 @@ function checkDayChange() {
   }
   recalcTotal();
 }
+
+/* ===== TRAVELLER STEPPER ===== */
+const travValue = document.getElementById('travValue');
+if (travValue) travValue.textContent = state.travelers;
+document.getElementById('travMinus')?.addEventListener('click', () => {
+  if (state.travelers > 1) { state.travelers--; travValue.textContent = state.travelers; saveState(); }
+});
+document.getElementById('travPlus')?.addEventListener('click', () => {
+  state.travelers++; travValue.textContent = state.travelers; saveState();
+});
 
 /* ===== MAP ===== */
 let map, routePolylines = [], cityMarkers = [];
