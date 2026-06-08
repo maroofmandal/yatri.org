@@ -61,6 +61,7 @@ jobs:
             COMPOSER_BIN="$(find_cmd composer composer2 /usr/local/bin/composer /opt/cpanel/composer/bin/composer "$HOME/bin/composer" "$HOME/.local/bin/composer")"
 
             cd ~/htdocs/yatri.org
+            git stash --quiet || true
             git pull origin main
             [ -f .env ] || cp .env.example .env
             set_env APP_ENV production
