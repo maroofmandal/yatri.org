@@ -104,6 +104,15 @@ function renderPreview(file, index) {
   div.appendChild(btn);
   preview.appendChild(div);
 }
+const form = dropzone.closest('form');
+form.addEventListener('submit', function(e) {
+  if (files.length === 0) return;
+  e.preventDefault();
+  const dt = new DataTransfer();
+  files.forEach(f => dt.items.add(f));
+  input.files = dt.files;
+  form.submit();
+});
 </script>
 @endpush
 @endsection
