@@ -1072,6 +1072,11 @@ const observer = new IntersectionObserver((entries) => {
 }, {threshold: 0.01, rootMargin: '0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+/* Fallback: force-reveal all if observer hasn't fired within 2s (JS error protection) */
+setTimeout(() => {
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => el.classList.add('visible'));
+}, 2000);
+
 /* ===== ESTIMATION BAR VISIBILITY ===== */
 const heroEl = document.querySelector('.hero');
 if (heroEl) {
