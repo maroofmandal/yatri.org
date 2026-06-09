@@ -12,7 +12,11 @@ REMOTE_DIR="/home/yatri/htdocs/yatri.org"
 echo "==> Bumping asset version..."
 # Auto-bump the APP_VERSION in config/app.php
 NEW_VERSION=$(date +%Y.%m.%d.%H%M)
-sed -i '' "s/'version' => env('APP_VERSION', '[^']*')/'version' => env('APP_VERSION', '$NEW_VERSION')/" config/app.php
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s/'version' => env('APP_VERSION', '[^']*')/'version' => env('APP_VERSION', '$NEW_VERSION')/" config/app.php
+else
+  sed -i "s/'version' => env('APP_VERSION', '[^']*')/'version' => env('APP_VERSION', '$NEW_VERSION')/" config/app.php
+fi
 echo "    Version bumped to: $NEW_VERSION"
 
 echo "==> Committing changes..."
