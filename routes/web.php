@@ -6,9 +6,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FxController;
 use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlannerController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReplyController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SocialController;
 use App\Models\Trip;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +26,16 @@ Route::get('/geo/suggest', [GeocodeController::class, 'suggest'])->name('geo.sug
 Route::get('/api/fx', [FxController::class, 'all'])->name('fx.all');
 Route::get('/api/fx/{currency}', [FxController::class, 'rate'])->name('fx.rate');
 Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile');
+
+// ── Rankings ─────────────────────────────────────────────────────
+Route::get('/rankings', [RankingController::class, 'index'])->name('rankings');
+
+// ── Posts ────────────────────────────────────────────────────────
+Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
 // ── Planner ─────────────────────────────────────────────────────
 Route::get('/plan', [PlannerController::class, 'create'])->name('planner');
@@ -33,8 +49,24 @@ Route::post('/t/{trip}/regenerate', [PlannerController::class, 'regenerate'])->n
 Route::middleware('auth')->group(function () {
     Route::post('/u/{user}/follow', [ProfileController::class, 'follow'])->name('profile.follow');
     Route::delete('/u/{user}/follow', [ProfileController::class, 'unfollow'])->name('profile.unfollow');
+    
     Route::post('/t/{trip}/like', [SocialController::class, 'like'])->name('trip.like');
     Route::post('/t/{trip}/comment', [SocialController::class, 'comment'])->name('trip.comment');
+    
+    Route::post('/posts/{post}/like', [SocialController::class, 'likePost'])->name('post.like');
+    Route::post('/posts/{post}/comment', [SocialController::class, 'commentPost'])->name('post.comment');
+    Route::post('/comments/{comment}/reply', [SocialController::class, 'reply'])->name('comment.reply');
+    
+    Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    
+    Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
 });
 
 // ── Auth ────────────────────────────────────────────────────────
@@ -49,8 +81,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // ── User dashboard ──────────────────────────────────────────────
 Route::get('/dashboard', function () {
     $trips = Trip::where('user_id', Auth::id())->latest()->get();
+    $posts = \App\Models\Post::where('user_id', Auth::id())->latest()->get();
 
-    return view('dashboard', compact('trips'));
+    return view('dashboard', compact('trips', 'posts'));
 })->middleware('auth')->name('dashboard');
 
 // ── Admin panel ─────────────────────────────────────────────────

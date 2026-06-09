@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -24,6 +24,9 @@ class User extends Authenticatable
         'travel_style',
         'bio',
         'avatar_url',
+        'total_days_traveled',
+        'total_kilometers',
+        'total_likes_received',
     ];
 
     protected $hidden = [
@@ -36,6 +39,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'total_days_traveled' => 'integer',
+            'total_kilometers' => 'decimal:2',
+            'total_likes_received' => 'integer',
         ];
     }
 
@@ -47,6 +53,16 @@ class User extends Authenticatable
     public function trips(): HasMany
     {
         return $this->hasMany(Trip::class);
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function likes(): HasMany
@@ -69,6 +85,11 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
     }
 
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
+
     public function isFollowing(User $user): bool
     {
         return $this->following()->where('following_id', $user->id)->exists();
@@ -78,5 +99,17 @@ class User extends Authenticatable
     {
         return $this->avatar_url
             ?: 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' . urlencode($this->name);
+    }
+
+    public function getUnreadNotificationsCount(): int
+    {
+        return $this->notifications()->whereNull('read_at')->count();
+    }
+
+    public function getTotalMediaCount(): int
+    {
+        return Media::where('mediable_type', Post::class)
+            ->whereIn('mediable_id', $this->posts()->pluck('id'))
+            ->count();
     }
 }

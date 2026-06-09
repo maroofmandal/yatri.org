@@ -3,8 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Like extends Model
 {
-    protected $fillable = ['user_id', 'trip_id'];
+    protected $fillable = [
+        'user_id',
+        'likeable_type',
+        'likeable_id',
+    ];
+
+    public function likeable(): MorphTo
+    {
+        return $this->morphTo();
+    }
 }
