@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 @stack('head')
-<link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
+<link rel="stylesheet" href="{{ asset('css/yatri.css') }}?v={{ config('app.version') }}">
 </head>
 @php
   $geoProvider = \App\Models\Setting::get('geocode_provider', config('providers.geocode', 'photon'));

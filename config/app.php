@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Asset Version (cache buster)
+    |--------------------------------------------------------------------------
+    |
+    | Bump this on every deploy so browsers fetch fresh CSS/JS.
+    | The deploy script auto-updates this value.
+    |
+    */
+
+    'version' => env('APP_VERSION', '2026.06.09.2124'),
+
 ];
