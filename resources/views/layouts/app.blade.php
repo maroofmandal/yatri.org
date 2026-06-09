@@ -22,7 +22,6 @@
       ?: config('gemini.maps_key');
   $useGoogle = $geoProvider === 'google' && $yatriMapsKey;
   $unreadCount = auth()->check() ? auth()->user()->getUnreadNotificationsCount() : 0;
-  $isMobile = request()->agent()->isPhone() || request()->agent()->isTablet();
 @endphp
 <body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}" class="@auth has-bottom-nav @endauth" @auth @if(auth()->user()->theme === 'dark' || (auth()->user()->theme === 'auto' && request()->cookie('theme-pref') === 'dark')) style="background:var(--md-surface)" @endif @endauth>
 @php $currentPage = request()->route()->getName(); @endphp
