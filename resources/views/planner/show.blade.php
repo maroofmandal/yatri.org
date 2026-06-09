@@ -834,7 +834,10 @@ document.getElementById('travPlus')?.addEventListener('click', () => {
 
 /* ===== MAP ===== */
 let map, routePolylines = [], cityMarkers = [];
-if (ROUTE.length && window.L) {
+function initMap() {
+  if (!ROUTE.length || !window.L) return;
+  const mapEl = document.getElementById('map');
+  if (!mapEl) return;
   map = L.map('map', {scrollWheelZoom: false}).setView([ROUTE[0].lat, ROUTE[0].lng], 4);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'© OpenStreetMap'}).addTo(map);
   const pts = ROUTE.map(r => [r.lat, r.lng]);
@@ -862,6 +865,21 @@ if (ROUTE.length && window.L) {
     L.polyline(pts, {color:'#c2412c', weight:3.5}).addTo(map);
   }
   map.fitBounds(L.latLngBounds(pts).pad(0.25));
+}
+/* Defer map init until after reveal animation so container has dimensions */
+const mapContainer = document.getElementById('map')?.closest('.reveal');
+if (mapContainer) {
+  const mapObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        initMap();
+        mapObs.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.01});
+  mapObs.observe(mapContainer);
+} else {
+  initMap();
 }
 function flyCity(ci) {
   const card = document.getElementById('city' + ci);
@@ -1003,6 +1021,11 @@ function toggleEstBar() {
   document.getElementById('estToggle').textContent = estHidden ? '▲ Estimate' : '▼ Hide';
   document.body.classList.toggle('has-est-bar', !estHidden);
 }
+/* Click on toggle button — stop propagation so document click handler doesn't interfere */
+document.getElementById('estToggle').addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleEstBar();
+});
 function recalcTotal() {
   /* Accommodation: sum selected hotels */
   let accom = 0;
@@ -1078,10 +1101,17 @@ setTimeout(() => {
 }, 2000);
 
 /* ===== ESTIMATION BAR VISIBILITY ===== */
+/* Hero observer only auto-shows on scroll; toggle button has full control */
 const heroEl = document.querySelector('.hero');
 if (heroEl) {
+  let heroPassed = false;
   const heroObs = new IntersectionObserver(([entry]) => {
-    if (!estHidden) estBar.classList.toggle('visible', !entry.isIntersecting);
+    heroPassed = !entry.isIntersecting;
+    /* Only auto-show when scrolling past hero; never auto-hide */
+    if (heroPassed && !estHidden) {
+      estBar.classList.add('visible');
+      document.body.classList.add('has-est-bar');
+    }
   }, {threshold: 0});
   heroObs.observe(heroEl);
 }
@@ -1107,10 +1137,12 @@ if (likeBtn && !likeBtn.disabled) {
   if (r !== null) baseRate = r;
   curRate = baseRate;
   convertCurrency();
-  recalcTotal();
-  /* Show est bar */
-  document.body.classList.add('has-est-bar');
-  if (!estHidden) estBar.classList.add('visible');
+  /* Show est bar after short delay to ensure DOM is ready */
+  setTimeout(() => {
+    document.body.classList.add('has-est-bar');
+    if (!estHidden) estBar.classList.add('visible');
+    recalcTotal();
+  }, 300);
 })();
 </script>
 @endpush
