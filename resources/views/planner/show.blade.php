@@ -109,8 +109,8 @@
 
   @if(!empty($plan['demo']))
     <div class="flash flash-err" style="margin-top:20px">
-      @if($trip->error)⚠️ Live AI unavailable — showing a budget-fit sample. Set a Gemini key in Admin → Settings → AI.
-      @else⚠️ Sample plan (no AI key). Add a Gemini key in Admin → Settings → AI for a live itinerary.
+      @if($trip->error)<span class="material-symbols-outlined md-18" style="vertical-align:middle">warning</span> Live AI unavailable — showing a budget-fit sample. Set a Gemini key in Admin → Settings → AI.
+      @else<span class="material-symbols-outlined md-18" style="vertical-align:middle">info</span> Sample plan (no AI key). Add a Gemini key in Admin → Settings → AI for a live itinerary.
       @endif
     </div>
   @endif
@@ -169,7 +169,7 @@
     <h2>Budget — fits your {!! $money($trip->budget_total) !!}</h2>
     @php $fitClass = 'fit-'.($trip->fit_status ?? 'fit'); @endphp
     <div class="fit-banner {{ $fitClass }}" id="fitBanner">
-      @if($trip->fit_status==='over') ⚠️ Realistic costs run over your cap.
+      @if($trip->fit_status==='over') <span class="material-symbols-outlined md-16" style="vertical-align:middle">warning</span> Realistic costs run over your cap.
       @elseif($trip->fit_status==='under') ✅ Comes in under budget — room to upgrade.
       @else ✅ Planned to fit your budget.
       @endif
@@ -367,7 +367,7 @@
                     <span class="place-rating">★ {{ number_format($placesData[$it['place_key']]['rating'], 1) }}{{ !empty($placesData[$it['place_key']]['reviews_count']) ? ' ('.number_format($placesData[$it['place_key']]['reviews_count']).')' : '' }}</span>
                   @endif
                   @if(!empty($it['note']))<div class="note">{{ $it['note'] }}</div>@endif
-                  @if(!empty($it['map_query']))<a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($it['map_query']) }}">📍 Map</a>@endif
+                  @if(!empty($it['map_query']))<a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($it['map_query']) }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Map</a>@endif
                   @if(isset($it['cost']) || !empty($it['entry_fee_status']))
                     <span class="fee-badge {{ ($it['entry_fee_status'] ?? '') === 'free' ? 'fee-free' : '' }}">{{ $statusText($it['entry_fee_status'] ?? (((float)($it['cost'] ?? 0)) <= 0 ? 'free' : 'estimated')) }}</span>
                   @endif
@@ -410,7 +410,7 @@
             <h3>{{ $cityName }}</h3>
             <div class="nights">{{ $cityNights }} night{{ $cityNights != 1 ? 's' : '' }}</div>
           </div>
-          <button class="city-map-btn" onclick="flyCity({{ $cityIdx }})">📍 Show on map</button>
+          <button class="city-map-btn" onclick="flyCity({{ $cityIdx }})"><span class="material-symbols-outlined md-16" style="vertical-align:middle">location_on</span> Show on map</button>
         </div>
         <div class="city-body">
           {{-- Cost chips --}}
@@ -490,9 +490,9 @@
                 <div class="spot-review"><b>From the reviews —</b> {{ \Illuminate\Support\Str::limit($spot['reviews'][0]['text'], 160) }}</div>
               @endif
               @if(!empty($spot['maps_url']))
-                <a class="mlink" target="_blank" rel="noopener" href="{{ $spot['maps_url'] }}">📍 Maps &amp; live reviews</a>
+                <a class="mlink" target="_blank" rel="noopener" href="{{ $spot['maps_url'] }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Maps &amp; live reviews</a>
               @elseif(!empty($spotItem['map_query']))
-                <a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($spotItem['map_query']) }}">📍 Open in Google Maps</a>
+                <a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($spotItem['map_query']) }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Open in Google Maps</a>
               @endif
             </div>
           @endforeach
@@ -596,7 +596,7 @@
     <p class="lead">Live references the AI used to ground this plan.</p>
     <div class="source-list">
       @foreach($trip->grounding as $g)
-        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{{ $g['type']==='maps'?'📍':'🔗' }} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
+        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{{ $g['type']==='maps'?'<span class=&quot;material-symbols-outlined md-14&quot; style=&quot;vertical-align:middle&quot;>location_on</span>':'<span class=&quot;material-symbols-outlined md-14&quot; style=&quot;vertical-align:middle&quot;>link</span>' }} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
       @endforeach
     </div>
   </div>
@@ -606,9 +606,9 @@
   <div class="block reveal" id="comments">
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <button class="btn {{ $trip->isLikedBy(auth()->user())?'btn-accent':'btn-ghost' }}" id="likeBtn" {{ auth()->check()?'':'disabled' }}>
-        <span id="likeIcon">{{ $trip->isLikedBy(auth()->user())?'♥':'♡' }}</span> <span id="likeCount">{{ $trip->likes()->count() }}</span>
+        <span id="likeIcon" class="material-symbols-outlined md-20" style="font-variation-settings:{{ $trip->isLikedBy(auth()->user()) ? "'FILL' 1" : "'FILL' 0" }};vertical-align:middle">favorite</span> <span id="likeCount">{{ $trip->likes()->count() }}</span>
       </button>
-      <span class="muted">💬 {{ $trip->comments()->count() }} comments</span>
+      <span class="muted"><span class="material-symbols-outlined md-16" style="vertical-align:middle">chat_bubble</span> {{ $trip->comments()->count() }} comments</span>
       @guest<span class="muted" style="font-size:13px">· <a href="{{ route('login') }}">Log in</a> to like &amp; comment</span>@endguest
     </div>
     <h2 style="margin-top:20px">Comments</h2>
@@ -1089,7 +1089,7 @@ if (likeBtn && !likeBtn.disabled) {
       const r = await fetch(_pd.likeUrl, {method:'POST', headers:{'X-CSRF-TOKEN':CSRF, 'Accept':'application/json'}});
       const d = await r.json();
       document.getElementById('likeCount').textContent = d.count;
-      document.getElementById('likeIcon').textContent = d.liked ? '♥' : '♡';
+      document.getElementById('likeIcon').style.fontVariationSettings = d.liked ? "'FILL' 1" : "'FILL' 0";
       likeBtn.classList.toggle('btn-accent', d.liked);
       likeBtn.classList.toggle('btn-ghost', !d.liked);
     } catch(e) {}

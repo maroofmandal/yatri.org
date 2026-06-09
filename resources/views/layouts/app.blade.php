@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ auth()->check() ? auth()->user()->theme : 'auto' }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,8 @@
 <title>@yield('title', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI budget trip planner')</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 @stack('head')
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
@@ -20,221 +21,398 @@
       ?: config('gemini.places_key')
       ?: config('gemini.maps_key');
   $useGoogle = $geoProvider === 'google' && $yatriMapsKey;
+  $unreadCount = auth()->check() ? auth()->user()->getUnreadNotificationsCount() : 0;
+  $isMobile = request()->agent()->isPhone() || request()->agent()->isTablet();
 @endphp
-<body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}">
-<nav class="nav"><div class="wrap">
-  <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')">
-    <span></span><span></span><span></span>
-  </button>
-  <a class="brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
-  <div class="nav-currency">@stack('nav-right')</div>
-  <div class="links">
-    <a href="{{ route('home') }}">Explore</a>
-    <a href="{{ route('rankings') }}">Rankings</a>
-    <a href="{{ route('pricing') }}">Pricing</a>
-    <a class="btn btn-accent btn-sm" href="{{ route('planner') }}">✨ Plan a trip</a>
+<body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}" class="@auth has-bottom-nav @endauth" @auth @if(auth()->user()->theme === 'dark' || (auth()->user()->theme === 'auto' && request()->cookie('theme-pref') === 'dark')) style="background:var(--md-surface)" @endif @endauth>
+@php $currentPage = request()->route()->getName(); @endphp
+
+{{-- ═══ TOP APP BAR ═══ --}}
+<header class="topbar"><div class="wrap">
+  <div class="topbar-left">
+    <button class="icon-btn" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')" style="display:none" id="menu-btn">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+    <a class="topbar-brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
+  </div>
+  <nav class="topbar-nav">
+    <a href="{{ route('home') }}" @if($currentPage === 'home') style="color:var(--md-primary)" @endif>
+      <span class="material-symbols-outlined md-20">explore</span> Explore
+    </a>
+    <a href="{{ route('rankings') }}" @if($currentPage === 'rankings') style="color:var(--md-primary)" @endif>
+      <span class="material-symbols-outlined md-20">leaderboard</span> Rankings
+    </a>
+    <a href="{{ route('pricing') }}" @if($currentPage === 'pricing') style="color:var(--md-primary)" @endif>
+      <span class="material-symbols-outlined md-20">payments</span> Pricing
+    </a>
+  </nav>
+  <div class="topbar-right">
     @auth
-      <a href="{{ route('posts.create') }}">+ Post</a>
-      <a href="{{ route('dashboard') }}">My trips</a>
-      <a href="{{ route('profile', auth()->user()) }}">Profile</a>
-      <a href="{{ route('notifications.index') }}" class="notification-bell" id="notification-bell">
-        🔔
-        <span class="notification-badge" id="notification-badge" style="display:none">0</span>
+      <a class="btn btn-filled btn-sm" href="{{ route('planner') }}" style="display:flex;align-items:center;gap:6px">
+        <span class="material-symbols-outlined md-18">add</span> Plan a trip
       </a>
-      @if(auth()->user()->isAdmin())<a href="{{ route('admin.dashboard') }}">Admin</a>@endif
-      <form method="post" action="{{ route('logout') }}" style="display:inline">@csrf<button class="btn btn-ghost btn-sm">Log out</button></form>
+      <a class="icon-btn" href="{{ route('notifications.index') }}" aria-label="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+        @if($unreadCount > 0)<span class="badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
+      </a>
+      <div class="profile-dropdown-wrap" id="profile-dropdown-wrap">
+        <img src="{{ auth()->user()->avatar() }}" alt="" class="topbar-avatar" onclick="toggleProfileDropdown()" id="profile-avatar-btn">
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div class="profile-dropdown-user">
+            <img src="{{ auth()->user()->avatar() }}" alt="">
+            <div>
+              <div class="name">{{ auth()->user()->name }}</div>
+              <div class="email">{{ auth()->user()->email }}</div>
+            </div>
+          </div>
+          <a class="profile-dropdown-item" href="{{ route('profile', auth()->user()) }}">
+            <span class="material-symbols-outlined">person</span> My profile
+          </a>
+          <a class="profile-dropdown-item" href="{{ route('dashboard') }}">
+            <span class="material-symbols-outlined">dashboard</span> Dashboard
+          </a>
+          <a class="profile-dropdown-item" href="{{ route('settings') }}">
+            <span class="material-symbols-outlined">settings</span> Settings
+          </a>
+          @if(auth()->user()->isAdmin())
+          <a class="profile-dropdown-item" href="{{ route('admin.dashboard') }}">
+            <span class="material-symbols-outlined">admin_panel_settings</span> Admin
+          </a>
+          @endif
+          <div class="profile-dropdown-divider"></div>
+          <div style="padding:6px 12px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Theme</div>
+            <div class="theme-options" style="display:flex;gap:4px">
+              <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'light' ? 'active' : '' }}" onclick="setTheme('light')" title="Light" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">light_mode</span>
+              </button>
+              <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'dark' ? 'active' : '' }}" onclick="setTheme('dark')" title="Dark" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">dark_mode</span>
+              </button>
+              <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'auto' ? 'active' : '' }}" onclick="setTheme('auto')" title="Auto" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">contrast</span>
+              </button>
+            </div>
+          </div>
+          <div class="profile-dropdown-divider"></div>
+          <form method="post" action="{{ route('logout') }}" style="margin:0">
+            @csrf
+            <button type="submit" class="profile-dropdown-item">
+              <span class="material-symbols-outlined">logout</span> Log out
+            </button>
+          </form>
+        </div>
+      </div>
     @else
-      <a href="{{ route('login') }}">Log in</a>
-      <a class="btn btn-primary btn-sm" href="{{ route('register') }}">Sign up</a>
+      <a class="btn btn-text btn-sm" href="{{ route('login') }}">Log in</a>
+      <a class="btn btn-filled btn-sm" href="{{ route('register') }}">Sign up</a>
     @endauth
   </div>
-</div></nav>
+</div></header>
 
-{{-- Mobile drawer (Android-style left sidebar) --}}
+{{-- ═══ NAVIGATION DRAWER (Mobile Sidebar) ═══ --}}
 <div class="nav-drawer">
   <div class="nav-drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
   <div class="nav-drawer-panel">
     <div class="nav-drawer-header">
-      <a class="brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
-      <button class="nav-drawer-close" aria-label="Close" onclick="document.querySelector('.nav-drawer').classList.remove('open')">&times;</button>
+      <a class="topbar-brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
+      <button class="nav-drawer-close" aria-label="Close" onclick="document.querySelector('.nav-drawer').classList.remove('open')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
     <div class="nav-drawer-links">
-      <a href="{{ route('home') }}">Explore</a>
-      <a href="{{ route('rankings') }}">Rankings</a>
-      <a href="{{ route('pricing') }}">Pricing</a>
-      <a href="{{ route('planner') }}">✨ Plan a trip</a>
       @auth
-        <a href="{{ route('posts.create') }}">+ Create Post</a>
-        <a href="{{ route('dashboard') }}">My trips</a>
-        <a href="{{ route('profile', auth()->user()) }}">Profile</a>
-        <a href="{{ route('notifications.index') }}">🔔 Notifications</a>
-        @if(auth()->user()->isAdmin())<a href="{{ route('admin.dashboard') }}">Admin</a>@endif
-        <form method="post" action="{{ route('logout') }}">@csrf<button class="btn btn-ghost btn-block" style="margin-top:12px">Log out</button></form>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:8px">
+          <img src="{{ auth()->user()->avatar() }}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+          <div>
+            <div style="font-weight:600;font-size:14px">{{ auth()->user()->name }}</div>
+            <div style="font-size:12px;color:var(--md-on-surface-variant)">{{ auth()->user()->email }}</div>
+          </div>
+        </div>
+        <div class="nav-drawer-divider"></div>
+      @endauth
+
+      <a class="nav-drawer-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
+        <span class="material-symbols-outlined">explore</span> Explore
+      </a>
+      <a class="nav-drawer-item @if($currentPage === 'rankings') active @endif" href="{{ route('rankings') }}">
+        <span class="material-symbols-outlined">leaderboard</span> Rankings
+      </a>
+      <a class="nav-drawer-item @if($currentPage === 'pricing') active @endif" href="{{ route('pricing') }}">
+        <span class="material-symbols-outlined">payments</span> Pricing
+      </a>
+      <a class="nav-drawer-item" href="{{ route('planner') }}">
+        <span class="material-symbols-outlined">route</span> Plan a trip
+      </a>
+
+      @auth
+        <div class="nav-drawer-divider"></div>
+        <a class="nav-drawer-item" href="{{ route('posts.create') }}">
+          <span class="material-symbols-outlined">add_circle</span> Create Post
+        </a>
+        <a class="nav-drawer-item @if($currentPage === 'dashboard') active @endif" href="{{ route('dashboard') }}">
+          <span class="material-symbols-outlined">dashboard</span> My trips
+        </a>
+        <a class="nav-drawer-item @if($currentPage === 'profile') active @endif" href="{{ route('profile', auth()->user()) }}">
+          <span class="material-symbols-outlined">person</span> Profile
+        </a>
+        <a class="nav-drawer-item @if($currentPage === 'notifications.index') active @endif" href="{{ route('notifications.index') }}">
+          <span class="material-symbols-outlined">notifications</span> Notifications
+          @if($unreadCount > 0)<span style="margin-left:auto;background:var(--md-error);color:var(--md-on-error);font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--md-shape-full)">{{ $unreadCount }}</span>@endif
+        </a>
+        @if(auth()->user()->isAdmin())
+        <a class="nav-drawer-item" href="{{ route('admin.dashboard') }}">
+          <span class="material-symbols-outlined">admin_panel_settings</span> Admin
+        </a>
+        @endif
+        <div class="nav-drawer-divider"></div>
+        <a class="nav-drawer-item" href="{{ route('settings') }}">
+          <span class="material-symbols-outlined">settings</span> Settings
+        </a>
+
+        <div class="nav-drawer-footer">
+          <form method="post" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="nav-drawer-item" style="width:100%;color:var(--md-error)">
+              <span class="material-symbols-outlined">logout</span> Log out
+            </button>
+          </form>
+        </div>
       @else
-        <a href="{{ route('login') }}">Log in</a>
-        <a class="btn btn-primary btn-block" style="margin-top:12px" href="{{ route('register') }}">Sign up</a>
+        <div class="nav-drawer-divider"></div>
+        <a class="nav-drawer-item" href="{{ route('login') }}">
+          <span class="material-symbols-outlined">login</span> Log in
+        </a>
+        <a class="nav-drawer-item" href="{{ route('register') }}">
+          <span class="material-symbols-outlined">person_add</span> Sign up
+        </a>
       @endauth
     </div>
   </div>
 </div>
 
-@if(session('ok'))<div class="wrap"><div class="flash flash-ok">{{ session('ok') }}</div></div>@endif
-@if(session('error'))<div class="wrap"><div class="flash flash-err">{{ session('error') }}</div></div>@endif
+@if(session('ok'))<div class="wrap"><div class="flash flash-ok"><span class="material-symbols-outlined md-20">check_circle</span> {{ session('ok') }}</div></div>@endif
+@if(session('error'))<div class="wrap"><div class="flash flash-err"><span class="material-symbols-outlined md-20">error</span> {{ session('error') }}</div></div>@endif
 
 @yield('content')
 
-<footer><div class="wrap">
-  {{ \App\Models\Setting::get('site_name', 'Yatri') }} · AI budget trip planner — itineraries grounded with live Google Search &amp; Maps data via Gemini. © {{ date('Y') }}
-</div></footer>
+<footer style="padding:32px 0 40px;color:var(--md-on-surface-variant);font-size:13px;text-align:center;border-top:1px solid var(--md-outline-variant)">
+  <div class="wrap">
+    {{ \App\Models\Setting::get('site_name', 'Yatri') }} · AI budget trip planner — itineraries grounded with live Google Search &amp; Maps data via Gemini. © {{ date('Y') }}
+  </div>
+</footer>
+
+{{-- ═══ BOTTOM NAVIGATION BAR (Mobile M3) ═══ --}}
+@auth
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
+      <span class="material-symbols-outlined">home</span>
+      <span>Home</span>
+    </a>
+    <a class="bottom-nav-item @if(in_array($currentPage, ['dashboard','trip.show'])) active @endif" href="{{ route('dashboard') }}">
+      <span class="material-symbols-outlined">map</span>
+      <span>Trips</span>
+    </a>
+    <a class="bottom-nav-fab" href="{{ route('planner') }}">
+      <div class="fab-circle">
+        <span class="material-symbols-outlined">add</span>
+      </div>
+      <span>Plan</span>
+    </a>
+    <a class="bottom-nav-item @if($currentPage === 'notifications.index') active @endif" href="{{ route('notifications.index') }}">
+      <span class="material-symbols-outlined">notifications</span>
+      @if($unreadCount > 0)<span class="nav-badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
+      <span>Alerts</span>
+    </a>
+    <a class="bottom-nav-item @if($currentPage === 'profile') active @endif" href="{{ route('profile', auth()->user()) }}">
+      <span class="material-symbols-outlined">person</span>
+      <span>Profile</span>
+    </a>
+  </div>
+</nav>
+@endauth
+
 @stack('scripts')
 <script>
-(function(){
-  // Close mobile drawer on back-button or Escape
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape'){
-      document.querySelector('.nav-drawer').classList.remove('open');
+// ── Theme Management ──
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'auto') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', theme);
+  }
+  document.querySelectorAll('.theme-option-btn').forEach(btn => {
+    btn.style.borderColor = '';
+    btn.style.background = '';
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) icon.style.color = '';
+  });
+  document.querySelectorAll('.theme-option-btn').forEach(btn => {
+    const title = btn.getAttribute('title');
+    if (title === theme) {
+      btn.style.borderColor = 'var(--md-primary)';
+      btn.style.background = 'var(--md-primary-container)';
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (icon) icon.style.color = 'var(--md-on-primary-container)';
     }
   });
+}
 
-  // Notification polling
+function setTheme(theme) {
+  applyTheme(theme);
   @auth
-  function checkNotifications() {
-    fetch('{{ route("notifications.unreadCount") }}')
-      .then(r => r.json())
-      .then(data => {
-        const badge = document.getElementById('notification-badge');
-        if (badge) {
-          if (data.count > 0) {
-            badge.textContent = data.count;
-            badge.style.display = 'flex';
-          } else {
-            badge.style.display = 'none';
-          }
-        }
-      });
-  }
-  
-  checkNotifications();
-  setInterval(checkNotifications, 30000);
+  fetch('{{ route("settings.theme") }}', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ theme: theme })
+  });
   @endauth
-})();
-</script>
-<script>
-// Social interaction functions
-function toggleLike(postId) {
-    fetch('/posts/' + postId + '/like', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        }
-    })
+}
+
+// ── Profile Dropdown ──
+function toggleProfileDropdown() {
+  const dd = document.getElementById('profile-dropdown');
+  dd.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('profile-dropdown-wrap');
+  const dd = document.getElementById('profile-dropdown');
+  if (wrap && dd && !wrap.contains(e.target)) {
+    dd.classList.remove('open');
+  }
+});
+
+// ── Mobile Menu Button ──
+function checkMobile() {
+  const btn = document.getElementById('menu-btn');
+  if (btn) {
+    btn.style.display = window.innerWidth <= 760 ? 'flex' : 'none';
+  }
+}
+checkMobile();
+window.addEventListener('resize', checkMobile);
+
+// ── Mobile Drawer ──
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelector('.nav-drawer').classList.remove('open');
+  }
+});
+
+// ── Notification Polling ──
+@auth
+function checkNotifications() {
+  fetch('{{ route("notifications.unreadCount") }}')
     .then(r => r.json())
     .then(data => {
-        const btn = document.querySelector(`[data-post-id="${postId}"]`);
-        const countEl = btn.querySelector('.like-count');
-        
-        if (data.liked) {
-            btn.classList.add('liked');
+      document.querySelectorAll('.badge, .nav-badge').forEach(badge => {
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.setAttribute('data-count', data.count);
+          badge.style.display = 'flex';
         } else {
-            btn.classList.remove('liked');
+          badge.setAttribute('data-count', '0');
+          badge.style.display = 'none';
         }
-        countEl.textContent = data.count;
+      });
     });
+}
+checkNotifications();
+setInterval(checkNotifications, 30000);
+@endauth
+</script>
+<script>
+// ── Social Interaction Functions ──
+function toggleLike(postId) {
+  fetch('/posts/' + postId + '/like', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const btn = document.querySelector('[data-post-id="' + postId + '"]');
+    const countEl = btn.querySelector('.like-count');
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (data.liked) {
+      btn.classList.add('liked');
+      if (icon) icon.classList.add('filled');
+    } else {
+      btn.classList.remove('liked');
+      if (icon) icon.classList.remove('filled');
+    }
+    countEl.textContent = data.count;
+  });
 }
 
 function toggleComments(postId) {
-    const el = document.getElementById('comments-' + postId);
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  const el = document.getElementById('comments-' + postId);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function submitComment(e, postId) {
-    e.preventDefault();
-    const form = e.target;
-    const input = form.querySelector('input');
-    const body = input.value.trim();
-    
-    if (!body) return;
-    
-    fetch('/posts/' + postId + '/comment', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ body })
-    })
-    .then(r => r.json())
-    .then(data => {
-        const list = document.getElementById('comment-list-' + postId);
-        const html = `
-            <div class="comment-item">
-                <a href="/u/${data.comment.user.name}">
-                    <img src="${data.comment.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.comment.user.name)}" alt="" class="comment-avatar">
-                </a>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <a href="/u/${data.comment.user.name}"><strong>${data.comment.user.name}</strong></a>
-                        <span class="muted" style="font-size:11px">just now</span>
-                    </div>
-                    <p class="comment-body">${data.comment.body}</p>
-                </div>
-            </div>
-        `;
-        list.insertAdjacentHTML('beforeend', html);
-        input.value = '';
-    });
+  e.preventDefault();
+  const form = e.target;
+  const input = form.querySelector('input');
+  const body = input.value.trim();
+  if (!body) return;
+  fetch('/posts/' + postId + '/comment', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const list = document.getElementById('comment-list-' + postId);
+    const html = '<div class="comment-item"><a href="/u/' + data.comment.user.name + '"><img src="' + (data.comment.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.comment.user.name)) + '" alt="" class="comment-avatar"></a><div class="comment-content"><div class="comment-header"><a href="/u/' + data.comment.user.name + '"><strong>' + data.comment.user.name + '</strong></a><span class="muted" style="font-size:11px">just now</span></div><p class="comment-body">' + data.comment.body + '</p></div></div>';
+    list.insertAdjacentHTML('beforeend', html);
+    input.value = '';
+  });
 }
 
 function toggleReplyForm(commentId) {
-    const form = document.getElementById('reply-form-' + commentId);
-    form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+  const form = document.getElementById('reply-form-' + commentId);
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
 }
 
 function submitReply(e, commentId) {
-    e.preventDefault();
-    const form = e.target;
-    const input = form.querySelector('input');
-    const body = input.value.trim();
-    
-    if (!body) return;
-    
-    fetch('/comments/' + commentId + '/reply', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ body })
-    })
-    .then(r => r.json())
-    .then(data => {
-        const repliesContainer = form.previousElementSibling;
-        if (!repliesContainer || !repliesContainer.classList.contains('comment-replies')) {
-            const newContainer = document.createElement('div');
-            newContainer.className = 'comment-replies';
-            form.parentNode.insertBefore(newContainer, form);
-        }
-        
-        const container = form.previousElementSibling;
-        const html = `
-            <div class="reply-item">
-                <a href="/u/${data.reply.user.name}">
-                    <img src="${data.reply.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.reply.user.name)}" alt="" class="reply-avatar">
-                </a>
-                <div class="reply-content">
-                    <div class="reply-header">
-                        <a href="/u/${data.reply.user.name}"><strong>${data.reply.user.name}</strong></a>
-                        <span class="muted" style="font-size:11px">just now</span>
-                    </div>
-                    <p class="reply-body">${data.reply.body}</p>
-                </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
-        input.value = '';
-        form.style.display = 'none';
-    });
+  e.preventDefault();
+  const form = e.target;
+  const input = form.querySelector('input');
+  const body = input.value.trim();
+  if (!body) return;
+  fetch('/comments/' + commentId + '/reply', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => {
+    let container = form.previousElementSibling;
+    if (!container || !container.classList.contains('comment-replies')) {
+      const newContainer = document.createElement('div');
+      newContainer.className = 'comment-replies';
+      form.parentNode.insertBefore(newContainer, form);
+      container = form.previousElementSibling;
+    }
+    const html = '<div class="reply-item"><a href="/u/' + data.reply.user.name + '"><img src="' + (data.reply.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.reply.user.name)) + '" alt="" class="reply-avatar"></a><div class="reply-content"><div class="reply-header"><a href="/u/' + data.reply.user.name + '"><strong>' + data.reply.user.name + '</strong></a><span class="muted" style="font-size:11px">just now</span></div><p class="reply-body">' + data.reply.body + '</p></div></div>';
+    container.insertAdjacentHTML('beforeend', html);
+    input.value = '';
+    form.style.display = 'none';
+  });
 }
 </script>
 <script>window.YATRI_GEO=document.body.dataset.geo;</script>
@@ -249,19 +427,12 @@ function submitReply(e, commentId) {
 </script>
 @endif
 <script>
-/**
- * Yatri location autocomplete — provider-agnostic.
- *  - google   → Google Places JS widget
- *  - else     → backend proxy /geo/suggest (photon | geoapify | nominatim)
- * onChange always receives {name, geometry:{location:{lat(),lng()}}} so callers are uniform.
- */
 function attachPlaces(input, opts){
   opts = opts||{};
   if(!input || input.dataset.placesAttached) return;
   input.dataset.placesAttached='1';
   input.removeAttribute('list');
   input.setAttribute('autocomplete','off');
-
   if(window.YATRI_GEO==='google' && window.google && window.google.maps && window.google.maps.places){
     var ac = new google.maps.places.Autocomplete(input, {types:['(cities)'], fields:['name','geometry']});
     ac.addListener('place_changed', function(){
@@ -309,7 +480,6 @@ function customAutocomplete(input, opts){
 function initYatriPlaces(){
   document.querySelectorAll('[data-places]').forEach(function(el){ attachPlaces(el); });
 }
-// Google calls initYatriPlaces via callback; for proxy providers init on load.
 if(window.YATRI_GEO!=='google'){
   if(document.readyState!=='loading') initYatriPlaces();
   else document.addEventListener('DOMContentLoaded', initYatriPlaces);

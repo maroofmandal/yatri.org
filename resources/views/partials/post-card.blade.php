@@ -8,7 +8,7 @@
       </div>
     </a>
     @if($post->location)
-      <span class="pcard-location">📍 {{ $post->location }}</span>
+      <span class="pcard-location"><span class="material-symbols-outlined md-14">location_on</span> {{ $post->location }}</span>
     @endif
   </div>
 
@@ -51,23 +51,25 @@
   @if($post->trip)
     <div class="pcard-trip">
       <a href="{{ route('trip.show', $post->trip) }}">
-        🗺️ {{ $post->trip->title }} ({{ $post->trip->days }} days)
+        <span class="material-symbols-outlined md-16">map</span> {{ $post->trip->title }} ({{ $post->trip->days }} days)
       </a>
     </div>
   @endif
 
   <div class="pcard-foot">
-    <button class="pcard-action like-btn {{ $post->isLikedBy(auth()->user()) ? 'liked' : '' }}" 
+    <button class="pcard-action like-btn {{ $post->isLikedBy(auth()->user()) ? 'liked' : '' }}"
             data-post-id="{{ $post->id }}"
             onclick="toggleLike({{ $post->id }})">
-      <span class="like-icon">♥</span>
+      <span class="material-symbols-outlined md-20 {{ $post->isLikedBy(auth()->user()) ? 'filled' : '' }}">favorite</span>
       <span class="like-count">{{ $post->likes_count }}</span>
     </button>
     <button class="pcard-action" onclick="toggleComments({{ $post->id }})">
-      💬 <span>{{ $post->comments_count }}</span>
+      <span class="material-symbols-outlined md-20">chat_bubble</span>
+      <span>{{ $post->comments_count }}</span>
     </button>
     <button class="pcard-action">
-      🔗 Share
+      <span class="material-symbols-outlined md-20">share</span>
+      Share
     </button>
   </div>
 
@@ -77,11 +79,11 @@
         @include('partials.comment-item', ['comment' => $comment])
       @endforeach
     </div>
-    
+
     @auth
       <form class="comment-form" onsubmit="submitComment(event, {{ $post->id }})">
         <input type="text" placeholder="Add a comment..." required maxlength="1000">
-        <button type="submit" class="btn btn-accent btn-sm">Post</button>
+        <button type="submit" class="btn btn-filled btn-sm">Post</button>
       </form>
     @endauth
   </div>

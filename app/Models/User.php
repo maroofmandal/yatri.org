@@ -27,6 +27,9 @@ class User extends Authenticatable
         'total_days_traveled',
         'total_kilometers',
         'total_likes_received',
+        'default_currency',
+        'current_city',
+        'theme',
     ];
 
     protected $hidden = [

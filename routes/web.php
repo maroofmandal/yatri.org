@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReplyController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SocialController;
 use App\Models\Trip;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +68,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+
+    // ── Settings ─────────────────────────────────────────────────
+    Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar'])->name('settings.avatar');
+    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');
 });
 
 // ── Auth ────────────────────────────────────────────────────────
