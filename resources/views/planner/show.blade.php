@@ -751,8 +751,8 @@ function fmtMoney(usd) {
   return sym + Math.round(converted).toLocaleString();
 }
 function convertCurrency() {
-  const sym = CUR_SYM_MAP[curSel.value] ?? (curSel.value + ' ');
-  state.currency = curSel.value;
+  const sym = CUR_SYM_MAP[curSel?.value] ?? ((curSel?.value || state.currency) + ' ');
+  state.currency = curSel?.value || state.currency;
   document.querySelectorAll('.money[data-amt]').forEach(el => {
     const origAmt = parseFloat(el.dataset.amt);
     if (isNaN(origAmt)) return;
@@ -764,7 +764,7 @@ function convertCurrency() {
   recalcTotal();
   saveState();
 }
-curSel.addEventListener('change', async () => {
+curSel?.addEventListener('change', async () => {
   const r = await fetchFxRate(curSel.value);
   if (r !== null) { curRate = r; convertCurrency(); }
 });

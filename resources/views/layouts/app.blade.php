@@ -46,6 +46,7 @@
     </a>
   </nav>
   <div class="topbar-right">
+    @stack('nav-right')
     @auth
       <a class="btn btn-filled btn-sm" href="{{ route('planner') }}" style="display:flex;align-items:center;gap:6px">
         <span class="material-symbols-outlined md-18">add</span> Plan a trip
