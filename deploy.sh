@@ -46,8 +46,7 @@ ssh -i "$SSH_KEY" "$REMOTE" "
 
   echo \"---- Fixing permissions...\" &&
   chmod 644 public/images/*.png public/images/*.ico public/site.webmanifest &&
-  cp public/site.webmanifest site.webmanifest 2>/dev/null; chmod 644 site.webmanifest 2>/dev/null &&
-  chmod 644 favicon.ico 2>/dev/null || true &&
+  cp public/site.webmanifest site.webmanifest 2>/dev/null; chmod 644 site.webmanifest 2>/dev/null; chmod 644 favicon.ico 2>/dev/null; mkdir -p storage/app/public/images && cp public/images/*.png public/images/*.ico storage/app/public/images/ 2>/dev/null; chmod 644 storage/app/public/images/* 2>/dev/null; true &&
 
   echo \"---- Rebuilding caches...\" &&
   php artisan route:cache &&

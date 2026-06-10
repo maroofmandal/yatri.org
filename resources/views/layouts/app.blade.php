@@ -10,20 +10,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-<link rel="icon" href="{{ asset('images/favicon.ico') }}" sizes="any">
-<link rel="icon" href="{{ asset('images/favicon-32x32.png') }}" sizes="32x32" type="image/png">
-<link rel="icon" href="{{ asset('images/favicon-16x16.png') }}" sizes="16x16" type="image/png">
-<link rel="apple-touch-icon" href="{{ asset('images/apple-touch-icon.png') }}" sizes="180x180">
-<link rel="manifest" href="{{ asset('site.webmanifest') }}">
+<link rel="icon" href="{{ asset('storage/images/favicon.ico') }}?v={{ config('app.version') }}" sizes="any">
+<link rel="icon" href="{{ asset('storage/images/favicon-32x32.png') }}?v={{ config('app.version') }}" sizes="32x32" type="image/png">
+<link rel="icon" href="{{ asset('storage/images/favicon-16x16.png') }}?v={{ config('app.version') }}" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="{{ asset('storage/images/apple-touch-icon.png') }}?v={{ config('app.version') }}" sizes="180x180">
+<link rel="manifest" href="{{ asset('site.webmanifest') }}?v={{ config('app.version') }}">
 <meta name="theme-color" content="#0f6dfc">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Yatri">
-<meta property="og:image" content="{{ asset('images/yatri-icon.png') }}">
+<meta property="og:image" content="{{ asset('storage/images/yatri-icon.png') }}?v={{ config('app.version') }}">
 <meta property="og:image:width" content="256">
 <meta property="og:image:height" content="256">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="{{ asset('images/yatri-icon.png') }}">
+<meta name="twitter:image" content="{{ asset('storage/images/yatri-icon.png') }}?v={{ config('app.version') }}">
 @stack('head')
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}?v={{ config('app.version') }}">
 </head>
@@ -128,7 +128,7 @@
   <div class="nav-drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
   <div class="nav-drawer-panel">
     <div class="nav-drawer-header">
-    <a class="topbar-brand" href="{{ route('home') }}"><img src="{{ asset('images/yatri-logo.png') }}" alt="Yatri" height="28"></a>
+    <a class="topbar-brand" href="{{ route('home') }}"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" height="28"></a>
       <button class="nav-drawer-close" aria-label="Close" onclick="document.querySelector('.nav-drawer').classList.remove('open')">
         <span class="material-symbols-outlined">close</span>
       </button>
