@@ -77,10 +77,18 @@
     @endif
 
     @if($post->trip)
-      <div class="pcard-trip" style="margin-bottom:24px">
-        <a href="{{ route('trip.show', $post->trip) }}">
+      <div class="pcard-trip" style="margin-bottom:24px; display:flex; flex-direction:column; gap:8px">
+        <a href="{{ route('trip.show', $post->trip) }}" style="display:flex; align-items:center; gap:6px; font-weight:600">
           <x-icon name="map" :size="16" /> {{ $post->trip->title }} ({{ $post->trip->days }} days)
         </a>
+        <div style="display:flex; gap:16px; font-size:12px; margin-top:2px">
+          <a href="{{ route('trip.show', [$post->trip, 'tab' => 'media']) }}" style="display:inline-flex; align-items:center; gap:4px; color:var(--md-primary); font-weight:600">
+            <x-icon name="add_a_photo" :size="16" /> Add post media
+          </a>
+          <a href="{{ route('trip.show', [$post->trip, 'tab' => 'reviews']) }}" style="display:inline-flex; align-items:center; gap:4px; color:var(--md-primary); font-weight:600">
+            <x-icon name="rate_review" :size="16" /> Write a review
+          </a>
+        </div>
       </div>
     @endif
 

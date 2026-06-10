@@ -177,6 +177,39 @@ class LiveTravelDataTest extends TestCase
             ->assertSee('Log in to leave a review');
     }
 
+    public function test_post_page_renders_add_media_and_review_links_if_has_trip(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $user->id,
+            'title' => 'Delhi sample',
+            'origin' => 'Mumbai',
+            'destinations' => [['name' => 'Delhi', 'lat' => 28.6139, 'lng' => 77.2090, 'nights' => 1]],
+            'days' => 1,
+            'travelers' => 2,
+            'budget_total' => 1000,
+            'currency' => 'USD',
+            'style' => 'mid',
+            'status' => 'ready',
+        ]);
+
+        $post = \App\Models\Post::create([
+            'user_id' => $user->id,
+            'trip_id' => $trip->id,
+            'title' => 'Test Post Title',
+            'body' => 'Test Post Body',
+            'type' => 'text',
+            'is_public' => true,
+        ]);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee('Add post media')
+            ->assertSee('Write a review')
+            ->assertSee('tab=media')
+            ->assertSee('tab=reviews');
+    }
+
     private function llm(): LlmClient
     {
         return new LlmClient(new GeminiClient, new SearchProvider);

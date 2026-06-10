@@ -688,6 +688,7 @@
         <a class="btn btn-primary" href="{{ route('home') }}">+ New trip</a>
       </div>
     </div>
+  </div>
   </div> {{-- End tab-trips --}}
 
   {{-- Posts Tab --}}
@@ -1358,6 +1359,15 @@ window.showTab = function(tab, btn) {
     if (targetBtn) targetBtn.classList.add('active');
   }
 };
+
+/* Check for tab query param on load */
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('tab');
+  if (activeTab && ['trips', 'posts', 'media', 'reviews'].includes(activeTab)) {
+    window.showTab(activeTab);
+  }
+})();
 
 window.handlePostMediaSelect = function(input) {
   const countSpan = document.getElementById('media-selected-count');
