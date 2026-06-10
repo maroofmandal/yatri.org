@@ -28,7 +28,7 @@
         @if($post->media->first()->isVideo())
           <video controls class="pcard-video" src="{{ $post->media->first()->url }}"></video>
         @else
-          <img src="{{ $post->media->first()->url }}" alt="" class="pcard-image">
+          <img src="{{ $post->media->first()->url }}" alt="" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer">
         @endif
       @else
         <div class="photo-carousel">
@@ -38,7 +38,7 @@
                 <video controls style="width:100%;height:100%;object-fit:cover" src="{{ $m->url }}"></video>
               </div>
             @else
-              <div class="c-item" style="background-image:url('{{ $m->url }}')">
+              <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})">
                 <img src="{{ $m->url }}" alt="" style="width:100%;height:100%;object-fit:cover">
               </div>
             @endif

@@ -27,7 +27,7 @@
           @if($post->media->first()->isVideo())
             <video controls style="width:100%;border-radius:var(--md-shape-md)" src="{{ $post->media->first()->url }}"></video>
           @else
-            <img src="{{ $post->media->first()->url }}" alt="{{ $post->title }}" style="width:100%;border-radius:var(--md-shape-md)">
+            <img src="{{ $post->media->first()->url }}" alt="{{ $post->title }}" style="width:100%;border-radius:var(--md-shape-md);cursor:pointer" onclick="openPostViewer({{ $post->id }})">
           @endif
         @else
           <div class="photo-carousel">
@@ -35,7 +35,7 @@
               @if($m->isVideo())
                 <div class="c-item" style="background:#000"><video controls style="width:100%;height:100%;object-fit:cover" src="{{ $m->url }}"></video></div>
               @else
-                <div class="c-item" style="background-image:url('{{ $m->url }}')"><img src="{{ $m->url }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+                <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})"><img src="{{ $m->url }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
               @endif
             @endforeach
           </div>

@@ -233,6 +233,43 @@
 </nav>
 @endauth
 
+{{-- Post image viewer --}}
+<div class="post-viewer" id="postViewer">
+  <button class="pv-close" onclick="closePostViewer()"><span class="material-symbols-outlined">close</span></button>
+  <div class="pv-body">
+    <div class="pv-image-panel">
+      <button class="pv-nav-btn pv-nav-prev" onclick="pvNav(-1)"><span class="material-symbols-outlined">chevron_left</span></button>
+      <div class="pv-image-wrap" id="pvImageWrap">
+        <img id="pvImage" src="" alt="">
+      </div>
+      <button class="pv-nav-btn pv-nav-next" onclick="pvNav(1)"><span class="material-symbols-outlined">chevron_right</span></button>
+      <div class="pv-counter" id="pvCounter"></div>
+      <div class="pv-zoom-controls">
+        <button class="pv-zoom-btn" onclick="pvZoom(-.25)" title="Zoom out"><span class="material-symbols-outlined" style="font-size:18px">zoom_out</span></button>
+        <button class="pv-zoom-btn" onclick="pvZoom(.25)" title="Zoom in"><span class="material-symbols-outlined" style="font-size:18px">zoom_in</span></button>
+        <button class="pv-zoom-btn" onclick="pvReset()" title="Reset"><span class="material-symbols-outlined" style="font-size:16px">aspect_ratio</span></button>
+      </div>
+      <div class="pv-zoom-level" id="pvZoomLevel">100%</div>
+    </div>
+    <div class="pv-sidebar" id="pvSidebar">
+      <div class="pv-sidebar-head" id="pvSidebarHead"></div>
+      <div class="pv-comments" id="pvComments">
+        <div class="pv-loading"><div class="spinner"></div></div>
+      </div>
+      <div class="pv-sidebar-foot" id="pvSidebarFoot">
+        <button class="pv-like-btn" id="pvLikeBtn" onclick="pvToggleLike()">
+          <span class="material-symbols-outlined">favorite</span>
+          <span id="pvLikeCount">0</span>
+        </button>
+        <div class="pv-comment-form">
+          <input type="text" id="pvCommentInput" placeholder="Write a comment..." maxlength="1000">
+          <button class="btn btn-filled btn-sm" onclick="pvSubmitComment()">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 @stack('scripts')
 <script>
 // ── Theme Management ──
@@ -486,6 +523,236 @@ if(window.YATRI_GEO!=='google'){
 }else if(window.google && window.google.maps && window.google.maps.places){
   initYatriPlaces();
 }
+</script>
+
+{{-- Post viewer JS --}}
+<script>
+let pvData = null, pvIndex = 0, pvZoomLvl = 1, pvPanX = 0, pvPanY = 0, pvIsDragging = false, pvDragStart = {x:0,y:0};
+
+function openPostViewer(postId) {
+  const viewer = document.getElementById('postViewer');
+  viewer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pvComments').innerHTML = '<div class="pv-loading"><div class="spinner"></div></div>';
+  document.getElementById('pvSidebarHead').innerHTML = '';
+  document.getElementById('pvLikeBtn').classList.remove('liked');
+  pvReset();
+
+  fetch('/posts/' + postId + '/viewer')
+    .then(r => r.json())
+    .then(data => {
+      pvData = data;
+      pvIndex = 0;
+      renderViewer();
+    })
+    .catch(() => {
+      document.getElementById('pvComments').innerHTML = '<div class="pv-comments-empty">Failed to load post.</div>';
+    });
+}
+
+function closePostViewer() {
+  document.getElementById('postViewer').classList.remove('open');
+  document.body.style.overflow = '';
+  pvData = null;
+}
+
+function renderViewer() {
+  if (!pvData || !pvData.images.length) return;
+  const img = pvData.images[pvIndex];
+  document.getElementById('pvImage').src = img.url;
+  document.getElementById('pvCounter').textContent = (pvIndex + 1) + ' / ' + pvData.images.length;
+
+  /* Show/hide nav buttons */
+  document.querySelectorAll('.pv-nav-btn').forEach(b => b.style.display = pvData.images.length > 1 ? '' : 'none');
+
+  /* Sidebar head */
+  document.getElementById('pvSidebarHead').innerHTML = '<img src="' + pvData.author.avatar + '" alt=""><a href="' + pvData.author.url + '">' + pvData.author.name + '</a>';
+
+  /* Like */
+  const likeBtn = document.getElementById('pvLikeBtn');
+  likeBtn.classList.toggle('liked', pvData.liked);
+  document.getElementById('pvLikeCount').textContent = pvData.likes_count;
+
+  /* Comment input visibility */
+  document.getElementById('pvCommentInput').disabled = !pvData.can_comment;
+  document.getElementById('pvCommentInput').placeholder = pvData.can_comment ? 'Write a comment...' : 'Log in to comment';
+
+  /* Comments */
+  renderComments();
+}
+
+function renderComments() {
+  const el = document.getElementById('pvComments');
+  if (!pvData.comments.length) {
+    el.innerHTML = '<div class="pv-comments-empty">No comments yet. Be the first.</div>';
+    return;
+  }
+  el.innerHTML = pvData.comments.map(c =>
+    '<div class="pv-comment">' +
+      '<img src="' + c.user.avatar + '" alt="">' +
+      '<div class="pv-comment-body">' +
+        '<a class="pv-comment-author" href="/u/' + c.user.name + '">' + c.user.name + '</a>' +
+        '<div class="pv-comment-text">' + c.body.replace(/</g, '&lt;') + '</div>' +
+        '<div class="pv-comment-time">' + c.created_at + '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function pvNav(dir) {
+  if (!pvData || !pvData.images.length) return;
+  pvIndex = (pvIndex + dir + pvData.images.length) % pvData.images.length;
+  pvReset();
+  renderViewer();
+}
+
+/* Zoom */
+function pvZoom(delta) {
+  pvZoomLvl = Math.max(0.25, Math.min(5, pvZoomLvl + delta));
+  applyZoom();
+}
+
+function pvReset() {
+  pvZoomLvl = 1; pvPanX = 0; pvPanY = 0;
+  applyZoom();
+}
+
+function applyZoom() {
+  const img = document.getElementById('pvImage');
+  img.style.transform = 'scale(' + pvZoomLvl + ') translate(' + pvPanX + 'px, ' + pvPanY + 'px)';
+  document.getElementById('pvZoomLevel').textContent = Math.round(pvZoomLvl * 100) + '%';
+}
+
+/* Pan */
+const wrap = document.getElementById('pvImageWrap');
+wrap.addEventListener('mousedown', function(e) {
+  if (pvZoomLvl <= 1) return;
+  pvIsDragging = true;
+  pvDragStart = {x: e.clientX - pvPanX, y: e.clientY - pvPanY};
+  wrap.classList.add('dragging');
+  e.preventDefault();
+});
+document.addEventListener('mousemove', function(e) {
+  if (!pvIsDragging) return;
+  pvPanX = e.clientX - pvDragStart.x;
+  pvPanY = e.clientY - pvDragStart.y;
+  applyZoom();
+});
+document.addEventListener('mouseup', function() {
+  pvIsDragging = false;
+  wrap.classList.remove('dragging');
+});
+
+/* Scroll to zoom */
+wrap.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  pvZoom(e.deltaY > 0 ? -0.1 : 0.1);
+}, {passive: false});
+
+/* Double-click to zoom toggle */
+wrap.addEventListener('dblclick', function(e) {
+  if (pvZoomLvl > 1.5) { pvReset(); }
+  else { pvZoom(1); }
+});
+
+/* Touch support */
+let pvTouchDist = 0;
+wrap.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 2) {
+    pvTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }
+}, {passive: true});
+wrap.addEventListener('touchmove', function(e) {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const delta = (dist - pvTouchDist) * 0.01;
+    pvZoom(delta);
+    pvTouchDist = dist;
+  }
+}, {passive: false});
+
+/* Keyboard */
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('postViewer').classList.contains('open')) return;
+  if (e.key === 'Escape') closePostViewer();
+  if (e.key === 'ArrowLeft') pvNav(-1);
+  if (e.key === 'ArrowRight') pvNav(1);
+});
+
+/* Like */
+function pvToggleLike() {
+  if (!pvData) return;
+  fetch('/posts/' + pvData.id + '/like', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    pvData.liked = data.liked;
+    pvData.likes_count = data.count;
+    document.getElementById('pvLikeBtn').classList.toggle('liked', data.liked);
+    document.getElementById('pvLikeCount').textContent = data.count;
+    /* Also update the card's like button if present */
+    const cardBtn = document.querySelector('[data-post-id="' + pvData.id + '"]');
+    if (cardBtn) {
+      const icon = cardBtn.querySelector('.material-symbols-outlined');
+      const countEl = cardBtn.querySelector('.like-count');
+      cardBtn.classList.toggle('liked', data.liked);
+      if (icon) icon.classList.toggle('filled', data.liked);
+      if (countEl) countEl.textContent = data.count;
+    }
+  });
+}
+
+/* Comment */
+function pvSubmitComment() {
+  const input = document.getElementById('pvCommentInput');
+  const body = input.value.trim();
+  if (!body || !pvData) return;
+  fetch('/posts/' + pvData.id + '/comment', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => {
+    pvData.comments.push({
+      id: data.comment.id,
+      body: data.comment.body,
+      created_at: 'just now',
+      user: {
+        name: data.comment.user.name,
+        avatar: data.comment.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.comment.user.name)
+      }
+    });
+    pvData.comments_count++;
+    renderComments();
+    input.value = '';
+    /* Also update the card comment count */
+    const cardBtn = document.querySelector('[data-post-id="' + pvData.id + '"]');
+    if (cardBtn) {
+      const parent = cardBtn.closest('.pcard');
+      if (parent) {
+        const cc = parent.querySelector('.pcard-action:nth-child(2) span:last-child');
+        if (cc) cc.textContent = pvData.comments_count;
+      }
+    }
+  })
+  .catch(() => {});
+}
+
+/* Enter to submit comment */
+document.getElementById('pvCommentInput')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); pvSubmitComment(); }
+});
 </script>
 </body>
 </html>

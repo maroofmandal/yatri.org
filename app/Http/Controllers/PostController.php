@@ -84,6 +84,43 @@ class PostController extends Controller
         return view('posts.show', compact('post'));
     }
 
+    public function viewer(Post $post)
+    {
+        $post->load(['user', 'media', 'comments.user', 'likes']);
+        $post->loadCount(['likes', 'comments']);
+
+        $images = $post->media->where('type', 'photo')->values()->map(fn($m) => [
+            'url' => $m->url,
+            'id' => $m->id,
+        ]);
+
+        $comments = $post->comments->map(fn($c) => [
+            'id' => $c->id,
+            'body' => $c->body,
+            'created_at' => $c->created_at->diffForHumans(),
+            'user' => [
+                'name' => $c->user->name,
+                'avatar' => $c->user->avatar(),
+            ],
+        ]);
+
+        return response()->json([
+            'id' => $post->id,
+            'title' => $post->title,
+            'author' => [
+                'name' => $post->user->name,
+                'avatar' => $post->user->avatar(),
+                'url' => route('profile', $post->user),
+            ],
+            'images' => $images,
+            'liked' => auth()->check() ? $post->isLikedBy(auth()->user()) : false,
+            'likes_count' => $post->likes_count,
+            'comments_count' => $post->comments_count,
+            'comments' => $comments,
+            'can_comment' => auth()->check(),
+        ]);
+    }
+
     public function destroy(Post $post)
     {
         if ($post->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
