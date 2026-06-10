@@ -36,7 +36,7 @@
   $useGoogle = $geoProvider === 'google' && $yatriMapsKey;
   $unreadCount = auth()->check() ? auth()->user()->getUnreadNotificationsCount() : 0;
 @endphp
-<body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}" class="@auth has-bottom-nav @endauth" @auth @if(auth()->user()->theme === 'dark' || (auth()->user()->theme === 'auto' && request()->cookie('theme-pref') === 'dark')) style="background:var(--md-surface)" @endif @endauth>
+<body data-geo="{{ $geoProvider }}" data-geo-url="{{ route('geo.suggest') }}" class="has-bottom-nav" @auth @if(auth()->user()->theme === 'dark' || (auth()->user()->theme === 'auto' && request()->cookie('theme-pref') === 'dark')) style="background:var(--md-surface)" @endif @endauth>
 @php $currentPage = request()->route()->getName(); @endphp
 
 {{-- ═══ TOP APP BAR ═══ --}}
@@ -216,7 +216,6 @@
 </footer>
 
 {{-- ═══ BOTTOM NAVIGATION BAR (Mobile M3) ═══ --}}
-@auth
 <nav class="bottom-nav" id="bottom-nav">
   <div class="bottom-nav-inner">
     <a class="bottom-nav-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
@@ -238,13 +237,12 @@
       @if($unreadCount > 0)<span class="nav-badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
       <span>Alerts</span>
     </a>
-    <a class="bottom-nav-item @if($currentPage === 'profile') active @endif" href="{{ route('profile', auth()->user()) }}">
+    <a class="bottom-nav-item @if($currentPage === 'profile') active @endif" href="{{ auth()->check() ? route('profile', auth()->user()) : route('login') }}">
       <span class="material-symbols-outlined">person</span>
       <span>Profile</span>
     </a>
   </div>
 </nav>
-@endauth
 
 {{-- Post image viewer --}}
 <div class="post-viewer" id="postViewer">
