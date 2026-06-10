@@ -45,7 +45,7 @@
           </div>
         </a>
         @if($post->location)
-          <span class="muted" style="margin-left:auto;display:flex;align-items:center;gap:4px"><span class="material-symbols-outlined md-16">location_on</span> {{ $post->location }}</span>
+          <span class="muted" style="margin-left:auto;display:flex;align-items:center;gap:4px"><x-icon name="location_on" :size="16" /> {{ $post->location }}</span>
         @endif
       </div>
     </header>
@@ -79,7 +79,7 @@
     @if($post->trip)
       <div class="pcard-trip" style="margin-bottom:24px">
         <a href="{{ route('trip.show', $post->trip) }}">
-          <span class="material-symbols-outlined md-16">map</span> {{ $post->trip->title }} ({{ $post->trip->days }} days)
+          <x-icon name="map" :size="16" /> {{ $post->trip->title }} ({{ $post->trip->days }} days)
         </a>
       </div>
     @endif
@@ -87,15 +87,15 @@
     <div class="pcard-foot" style="border-top:1px solid var(--md-outline-variant);padding-top:16px">
       <button class="pcard-action like-btn {{ $post->isLikedBy(auth()->user()) ? 'liked' : '' }}"
               data-post-id="{{ $post->id }}" onclick="toggleLike({{ $post->id }})">
-        <span class="material-symbols-outlined md-20 {{ $post->isLikedBy(auth()->user()) ? 'filled' : '' }}">favorite</span>
+        <x-icon name="favorite" :size="20" />
         <span class="like-count">{{ $post->likes_count }}</span>
       </button>
       <button class="pcard-action" onclick="toggleComments({{ $post->id }})">
-        <span class="material-symbols-outlined md-20">chat_bubble</span>
+        <x-icon name="chat_bubble" :size="20" />
         <span>{{ $post->comments_count }}</span>
       </button>
       <button class="pcard-action">
-        <span class="material-symbols-outlined md-20">share</span> Share
+        <x-icon name="share" :size="20" /> Share
       </button>
     </div>
 
@@ -120,7 +120,7 @@
       <form method="POST" action="{{ route('posts.destroy', $post) }}" style="margin-top:24px" onsubmit="return confirm('Delete this post?')">
         @csrf @method('DELETE')
         <button type="submit" class="btn btn-outlined btn-sm" style="color:var(--md-error)">
-          <span class="material-symbols-outlined md-18">delete</span> Delete Post
+          <x-icon name="delete" :size="18" /> Delete Post
         </button>
       </form>
     @endif

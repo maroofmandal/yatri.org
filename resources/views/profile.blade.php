@@ -20,15 +20,15 @@
     @auth
       @if(auth()->id() !== $user->id)
         @if(auth()->user()->isFollowing($user))
-          <form method="POST" action="{{ route('profile.unfollow',$user) }}">@csrf @method('DELETE')<button class="btn btn-ghost"><span class="material-symbols-outlined md-18">check</span> Following</button></form>
+          <form method="POST" action="{{ route('profile.unfollow',$user) }}">@csrf @method('DELETE')<button class="btn btn-ghost"><x-icon name="check" :size="18" /> Following</button></form>
         @else
-          <form method="POST" action="{{ route('profile.follow',$user) }}">@csrf<button class="btn btn-filled"><span class="material-symbols-outlined md-18">person_add</span> Follow</button></form>
+          <form method="POST" action="{{ route('profile.follow',$user) }}">@csrf<button class="btn btn-filled"><x-icon name="person_add" :size="18" /> Follow</button></form>
         @endif
       @else
-        <a class="btn btn-ghost" href="{{ route('settings') }}"><span class="material-symbols-outlined md-18">settings</span> Settings</a>
+        <a class="btn btn-ghost" href="{{ route('settings') }}"><x-icon name="settings" :size="18" /> Settings</a>
       @endif
     @else
-      <a class="btn btn-filled" href="{{ route('register') }}"><span class="material-symbols-outlined md-18">person_add</span> Follow on Yatri</a>
+      <a class="btn btn-filled" href="{{ route('register') }}"><x-icon name="person_add" :size="18" /> Follow on Yatri</a>
     @endauth
   </div>
 </div></header>
@@ -36,16 +36,16 @@
 <div class="wrap">
   <div class="profile-tabs">
     <button class="profile-tab active" onclick="showTab('trips')">
-      <span class="material-symbols-outlined">map</span> Trips <span class="tab-count">{{ $stats['trips'] }}</span>
+      <x-icon name="map" /> Trips <span class="tab-count">{{ $stats['trips'] }}</span>
     </button>
     <button class="profile-tab" onclick="showTab('posts')">
-      <span class="material-symbols-outlined">article</span> Posts <span class="tab-count">{{ $posts->count() }}</span>
+      <x-icon name="article" /> Posts <span class="tab-count">{{ $posts->count() }}</span>
     </button>
     <button class="profile-tab" onclick="showTab('media')">
-      <span class="material-symbols-outlined">photo_library</span> Media <span class="tab-count">{{ $stats['total_media'] }}</span>
+      <x-icon name="photo_library" /> Media <span class="tab-count">{{ $stats['total_media'] }}</span>
     </button>
     <button class="profile-tab" onclick="showTab('reviews')">
-      <span class="material-symbols-outlined">star</span> Reviews <span class="tab-count">{{ $reviews->count() }}</span>
+      <x-icon name="star" /> Reviews <span class="tab-count">{{ $reviews->count() }}</span>
     </button>
   </div>
 
@@ -55,7 +55,7 @@
         @foreach($trips as $trip)@include('partials.trip-card')@endforeach
       </div>
     @else
-      <div class="block center"><span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">map</span><p class="lead">No public trips yet.</p></div>
+      <div class="block center"><x-icon name="map" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No public trips yet.</p></div>
     @endif
   </div>
 
@@ -65,7 +65,7 @@
         @foreach($posts as $post)@include('partials.post-card')@endforeach
       </div>
     @else
-      <div class="block center"><span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">article</span><p class="lead">No posts yet.</p></div>
+      <div class="block center"><x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No posts yet.</p></div>
     @endif
   </div>
 
@@ -76,7 +76,7 @@
           <div class="media-item" style="cursor:pointer" onclick="openPostViewer({{ $m->mediable_id }})">
             @if($m->isVideo())
               <video src="{{ $m->url }}" muted></video>
-              <span class="media-play"><span class="material-symbols-outlined md-32">play_arrow</span></span>
+              <span class="media-play"><x-icon name="play_arrow" :size="32" /></span>
             @else
               <img src="{{ $m->url }}" alt="Travel photo">
             @endif
@@ -84,7 +84,7 @@
         @endforeach
       </div>
     @else
-      <div class="block center"><span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">photo_library</span><p class="lead">No media uploaded yet.</p></div>
+      <div class="block center"><x-icon name="photo_library" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No media uploaded yet.</p></div>
     @endif
   </div>
 
@@ -96,7 +96,7 @@
             <div class="review-header">
               <div class="place-stars">
                 @for($i = 1; $i <= 5; $i++)
-                  <span class="material-symbols-outlined md-18" style="color:{{ $i <= $review->rating ? 'var(--md-primary)' : 'var(--md-outline-variant)' }}">star</span>
+                  <x-icon name="rating ? 'var(--md-primary)' : 'var(--md-outline-variant)' }}">star" :size="18" style="color:{{ $i <= $review- />
                 @endfor
                 <strong style="margin-left:6px">{{ $review->rating }}/5</strong>
               </div>
@@ -112,7 +112,7 @@
         @endforeach
       </div>
     @else
-      <div class="block center"><span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">star</span><p class="lead">No reviews yet.</p></div>
+      <div class="block center"><x-icon name="star" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No reviews yet.</p></div>
     @endif
   </div>
 </div>

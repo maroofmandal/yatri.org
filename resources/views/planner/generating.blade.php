@@ -8,7 +8,7 @@
   <p class="lead" id="msg">Researching live prices, hotels and routes with Gemini + Google Maps…</p>
   <p class="hint" id="sub">This usually takes 10–30 seconds. Keep this tab open.</p>
   <a href="{{ route('home') }}" class="btn btn-ghost btn-sm mt2" id="retry" style="display:none">
-    <span class="material-symbols-outlined md-18">arrow_back</span> Start over
+    <x-icon name="arrow_back" :size="18" /> Start over
   </a>
 </div>
 

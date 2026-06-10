@@ -123,8 +123,8 @@
 
   @if(!empty($plan['demo']))
     <div class="flash flash-err" style="margin-top:20px">
-      @if($trip->error)<span class="material-symbols-outlined md-18" style="vertical-align:middle">warning</span> Live AI unavailable — showing a budget-fit sample. Set a Gemini key in Admin → Settings → AI.
-      @else<span class="material-symbols-outlined md-18" style="vertical-align:middle">info</span> Sample plan (no AI key). Add a Gemini key in Admin → Settings → AI for a live itinerary.
+      @if($trip->error)<x-icon name="warning" :size="18" /> Live AI unavailable — showing a budget-fit sample. Set a Gemini key in Admin → Settings → AI.
+      @else<x-icon name="info" :size="18" /> Sample plan (no AI key). Add a Gemini key in Admin → Settings → AI for a live itinerary.
       @endif
     </div>
   @endif
@@ -183,9 +183,9 @@
     <h2>Budget — fits your {!! $money($trip->budget_total) !!}</h2>
     @php $fitClass = 'fit-'.($trip->fit_status ?? 'fit'); @endphp
     <div class="fit-banner {{ $fitClass }}" id="fitBanner">
-      @if($trip->fit_status==='over') <span class="material-symbols-outlined md-20">warning</span> Realistic costs run over your cap.
-      @elseif($trip->fit_status==='under') <span class="material-symbols-outlined md-20" style="color:var(--md-primary)">check_circle</span> Comes in under budget — room to upgrade.
-      @else <span class="material-symbols-outlined md-20" style="color:var(--md-primary)">check_circle</span> Planned to fit your budget.
+      @if($trip->fit_status==='over') <x-icon name="warning" :size="20" /> Realistic costs run over your cap.
+      @elseif($trip->fit_status==='under') <x-icon name="check_circle" :size="20" style="color:var(--md-primary)" /> Comes in under budget — room to upgrade.
+      @else <x-icon name="check_circle" :size="20" style="color:var(--md-primary)" /> Planned to fit your budget.
       @endif
       <strong style="margin-left:auto" id="fitAmount">{!! $money($total) !!} / {!! $money($trip->budget_total) !!}</strong>
     </div>
@@ -195,7 +195,7 @@
       <div class="bbar">
         <div class="bbar-header">
           <div class="lbl">
-            <span class="material-symbols-outlined">{{ $catIcons[$key] ?? 'sell' }}</span>
+            <x-icon name="{{ $catIcons[$key] ?? 'sell' }}" />
             {{ $lbl }}
           </div>
           <div class="amt">{!! $money($val) !!}</div>
@@ -386,7 +386,7 @@
                     <span class="place-rating">★ {{ number_format($placesData[$it['place_key']]['rating'], 1) }}{{ !empty($placesData[$it['place_key']]['reviews_count']) ? ' ('.number_format($placesData[$it['place_key']]['reviews_count']).')' : '' }}</span>
                   @endif
                   @if(!empty($it['note']))<div class="note">{{ $it['note'] }}</div>@endif
-                  @if(!empty($it['map_query']))<a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($it['map_query']) }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Map</a>@endif
+                  @if(!empty($it['map_query']))<a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($it['map_query']) }}"><x-icon name="location_on" :size="14" /> Map</a>@endif
                   @if(isset($it['cost']) || !empty($it['entry_fee_status']))
                     <span class="fee-badge {{ ($it['entry_fee_status'] ?? '') === 'free' ? 'fee-free' : '' }}">{{ $statusText($it['entry_fee_status'] ?? (((float)($it['cost'] ?? 0)) <= 0 ? 'free' : 'estimated')) }}</span>
                   @endif
@@ -429,7 +429,7 @@
             <h3>{{ $cityName }}</h3>
             <div class="nights">{{ $cityNights }} night{{ $cityNights != 1 ? 's' : '' }}</div>
           </div>
-          <button class="city-map-btn" onclick="flyCity({{ $cityIdx }})"><span class="material-symbols-outlined md-16" style="vertical-align:middle">location_on</span> Show on map</button>
+          <button class="city-map-btn" onclick="flyCity({{ $cityIdx }})"><x-icon name="location_on" :size="16" /> Show on map</button>
         </div>
         <div class="city-body">
           {{-- Cost chips --}}
@@ -509,9 +509,9 @@
                 <div class="spot-review"><b>From the reviews —</b> {{ \Illuminate\Support\Str::limit($spot['reviews'][0]['text'], 160) }}</div>
               @endif
               @if(!empty($spot['maps_url']))
-                <a class="mlink" target="_blank" rel="noopener" href="{{ $spot['maps_url'] }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Maps &amp; live reviews</a>
+                <a class="mlink" target="_blank" rel="noopener" href="{{ $spot['maps_url'] }}"><x-icon name="location_on" :size="14" /> Maps &amp; live reviews</a>
               @elseif(!empty($spotItem['map_query']))
-                <a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($spotItem['map_query']) }}"><span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span> Open in Google Maps</a>
+                <a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($spotItem['map_query']) }}"><x-icon name="location_on" :size="14" /> Open in Google Maps</a>
               @endif
             </div>
           @endforeach
@@ -615,7 +615,7 @@
     <p class="lead">Live references the AI used to ground this plan.</p>
     <div class="source-list">
       @foreach($trip->grounding as $g)
-        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{!! $g['type']==='maps' ? '<span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span>' : '<span class="material-symbols-outlined md-14" style="vertical-align:middle">link</span>' !!} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
+        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{!! $g['type']==='maps' ? view('components.icon', ['name' => 'location_on', 'size' => 14])->render() : view('components.icon', ['name' => 'link', 'size' => 14])->render() !!} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
       @endforeach
     </div>
   </div>
@@ -625,9 +625,9 @@
   <div class="block reveal" id="comments">
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <button class="btn {{ $trip->isLikedBy(auth()->user())?'btn-accent':'btn-ghost' }}" id="likeBtn" {{ auth()->check()?'':'disabled' }}>
-        <span id="likeIcon" class="material-symbols-outlined md-20" style="font-variation-settings:{{ $trip->isLikedBy(auth()->user()) ? "'FILL' 1" : "'FILL' 0" }};vertical-align:middle">favorite</span> <span id="likeCount">{{ $trip->likes()->count() }}</span>
+        <x-icon name="favorite" :size="20" id="likeIcon" /> <span id="likeCount">{{ $trip->likes()->count() }}</span>
       </button>
-      <span class="muted"><span class="material-symbols-outlined md-16" style="vertical-align:middle">chat_bubble</span> {{ $trip->comments()->count() }} comments</span>
+      <span class="muted"><x-icon name="chat_bubble" :size="16" /> {{ $trip->comments()->count() }} comments</span>
       @guest<span class="muted" style="font-size:13px">· <a href="{{ route('login') }}">Log in</a> to like &amp; comment</span>@endguest
     </div>
     <h2 style="margin-top:20px">Comments</h2>
@@ -689,11 +689,11 @@
   <div class="est-bar-content">
     <div class="wrap">
       <div class="est-items" id="estItems">
-        <div class="est-item"><span class="material-symbols-outlined">hotel</span> <b id="estAccom">—</b></div>
-        <div class="est-item"><span class="material-symbols-outlined">restaurant</span> <b id="estFood">—</b></div>
-        <div class="est-item"><span class="material-symbols-outlined">confirmation_number</span> <b id="estAct">—</b></div>
-        <div class="est-item"><span class="material-symbols-outlined">train</span> <b id="estTrans">—</b></div>
-        <div class="est-item"><span class="material-symbols-outlined">flight</span> <b id="estFlight">—</b></div>
+        <div class="est-item"><x-icon name="hotel" /> <b id="estAccom">—</b></div>
+        <div class="est-item"><x-icon name="restaurant" /> <b id="estFood">—</b></div>
+        <div class="est-item"><x-icon name="confirmation_number" /> <b id="estAct">—</b></div>
+        <div class="est-item"><x-icon name="train" /> <b id="estTrans">—</b></div>
+        <div class="est-item"><x-icon name="flight" /> <b id="estFlight">—</b></div>
       </div>
       <div class="est-total">
         <span id="estGrand">—</span>
@@ -1145,8 +1145,7 @@ if (likeBtn && !likeBtn.disabled) {
       const r = await fetch(_pd.likeUrl, {method:'POST', headers:{'X-CSRF-TOKEN':CSRF, 'Accept':'application/json'}});
       const d = await r.json();
       document.getElementById('likeCount').textContent = d.count;
-      document.getElementById('likeIcon').style.fontVariationSettings = d.liked ? "'FILL' 1" : "'FILL' 0";
-      likeBtn.classList.toggle('btn-accent', d.liked);
+            likeBtn.classList.toggle('btn-accent', d.liked);
       likeBtn.classList.toggle('btn-ghost', !d.liked);
     } catch(e) {}
   });

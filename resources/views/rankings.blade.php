@@ -34,13 +34,13 @@
             <div style="font-weight:600;font-size:15px">{{ $traveler->name }}</div>
             <div style="font-size:12px;color:var(--md-on-surface-variant)">{{ $traveler->trips_count ?? 0 }} trips · {{ $traveler->followers_count ?? 0 }} followers</div>
           </div>
-          <span class="material-symbols-outlined" style="color:var(--md-on-surface-variant)">chevron_right</span>
+          <x-icon name="chevron_right" style="color:var(--md-on-surface-variant)" />
         </a>
       @endforeach
     </div>
   @else
     <div class="block center">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">leaderboard</span>
+      <x-icon name="leaderboard" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
       <p class="lead">No rankings available yet. Be the first to plan a trip!</p>
       <a class="btn btn-filled" href="{{ route('planner') }}">Plan a trip</a>
     </div>

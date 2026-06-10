@@ -6,7 +6,7 @@
 <div class="wrap-sm" style="padding:56px 24px">
   <div class="settings-section" style="padding:32px">
     <div style="text-align:center;margin-bottom:24px">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-primary);display:block;margin:0 auto 12px">login</span>
+      <x-icon name="login" :size="36" style="color:var(--md-primary);display:block;margin:0 auto 12px" />
       <h2 style="margin:0">Welcome back</h2>
       <p class="lead" style="margin:6px 0 0">Log in to save and manage your trips.</p>
     </div>
@@ -25,7 +25,7 @@
         <input type="checkbox" name="remember" style="width:auto;accent-color:var(--md-primary)"> Remember me
       </label>
       <button class="btn btn-filled btn-block mt" style="margin-top:20px">
-        <span class="material-symbols-outlined md-18">login</span> Log in
+        <x-icon name="login" :size="18" /> Log in
       </button>
     </form>
     <p class="hint center" style="margin-top:16px">No account yet? <a href="{{ route('register') }}">Create one</a></p>

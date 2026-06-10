@@ -4,7 +4,7 @@
 @section('content')
 <div class="wrap" style="max-width:640px;padding-top:36px;padding-bottom:100px">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-    <a href="{{ route('home') }}" class="icon-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <a href="{{ route('home') }}" class="icon-btn"><x-icon name="arrow_back" /></a>
     <h2 style="margin:0">Create a post</h2>
   </div>
 
@@ -23,15 +23,15 @@
     <div class="field">
       <label>Post Type</label>
       <div class="chips">
-        <label class="chip-toggle"><input type="radio" name="type" value="text" {{ old('type') === 'text' ? 'checked' : '' }}><span><span class="material-symbols-outlined md-18" style="vertical-align:middle">article</span> Text</span></label>
-        <label class="chip-toggle"><input type="radio" name="type" value="photo" {{ old('type', 'photo') === 'photo' ? 'checked' : '' }}><span><span class="material-symbols-outlined md-18" style="vertical-align:middle">photo_camera</span> Photo</span></label>
-        <label class="chip-toggle"><input type="radio" name="type" value="video" {{ old('type') === 'video' ? 'checked' : '' }}><span><span class="material-symbols-outlined md-18" style="vertical-align:middle">videocam</span> Video</span></label>
+        <label class="chip-toggle"><input type="radio" name="type" value="text" {{ old('type') === 'text' ? 'checked' : '' }}><span><x-icon name="article" :size="18" /> Text</span></label>
+        <label class="chip-toggle"><input type="radio" name="type" value="photo" {{ old('type', 'photo') === 'photo' ? 'checked' : '' }}><span><x-icon name="photo_camera" :size="18" /> Photo</span></label>
+        <label class="chip-toggle"><input type="radio" name="type" value="video" {{ old('type') === 'video' ? 'checked' : '' }}><span><x-icon name="videocam" :size="18" /> Video</span></label>
       </div>
     </div>
     <div class="field">
       <label>Media (optional)</label>
       <div id="media-dropzone" style="border:2px dashed var(--md-outline-variant);border-radius:var(--md-shape-md);padding:32px;text-align:center;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--md-primary)';this.style.background='var(--md-primary-container)'" onmouseout="this.style.borderColor='var(--md-outline-variant)';this.style.background='transparent'">
-        <span class="material-symbols-outlined md-32" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 8px">cloud_upload</span>
+        <x-icon name="cloud_upload" :size="32" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 8px" />
         <p style="color:var(--md-on-surface-variant);margin:0">Drag & drop photos or videos here</p>
         <p style="color:var(--md-on-surface-variant);margin:4px 0 0;font-size:13px">or click to browse</p>
         <input type="file" name="media[]" id="media-input" multiple accept="image/*,video/*" style="display:none">
@@ -57,7 +57,7 @@
       <input type="hidden" name="location_lng" value="{{ old('location_lng') }}">
     </div>
     <button type="submit" class="btn btn-filled btn-block">
-      <span class="material-symbols-outlined md-18">send</span> Share Post
+      <x-icon name="send" :size="18" /> Share Post
     </button>
   </form>
 </div>
@@ -99,7 +99,7 @@ function renderPreview(file, index) {
   }
   const btn = document.createElement('button');
   btn.className = 'remove';
-  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">close</span>';
+  btn.innerHTML = '<svg class="icon" width="16" height="16" viewBox="0 -960 960 960" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/><\/svg>';
   btn.onclick = () => { files.splice(index, 1); div.remove(); };
   div.appendChild(btn);
   preview.appendChild(div);

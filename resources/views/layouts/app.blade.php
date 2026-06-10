@@ -12,7 +12,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ asset('storage/images/favicon.ico') }}?v={{ config('app.version') }}" sizes="any">
 <link rel="icon" href="{{ asset('storage/images/favicon-32x32.png') }}?v={{ config('app.version') }}" sizes="32x32" type="image/png">
 <link rel="icon" href="{{ asset('storage/images/favicon-16x16.png') }}?v={{ config('app.version') }}" sizes="16x16" type="image/png">
@@ -82,29 +81,29 @@
 <header class="topbar"><div class="wrap">
   <div class="topbar-left">
     <button class="icon-btn" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')" style="display:none" id="menu-btn">
-      <span class="material-symbols-outlined">menu</span>
+      <x-icon name="menu" />
     </button>
     <a class="topbar-brand" href="{{ route('home') }}"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" height="28"></a>
   </div>
   <nav class="topbar-nav">
     <a href="{{ route('home') }}" @if($currentPage === 'home') style="color:var(--md-primary)" @endif>
-      <span class="material-symbols-outlined md-20">explore</span> Explore
+      <x-icon name="explore" :size="20" /> Explore
     </a>
     <a href="{{ route('rankings') }}" @if($currentPage === 'rankings') style="color:var(--md-primary)" @endif>
-      <span class="material-symbols-outlined md-20">leaderboard</span> Rankings
+      <x-icon name="leaderboard" :size="20" /> Rankings
     </a>
     <a href="{{ route('pricing') }}" @if($currentPage === 'pricing') style="color:var(--md-primary)" @endif>
-      <span class="material-symbols-outlined md-20">payments</span> Pricing
+      <x-icon name="payments" :size="20" /> Pricing
     </a>
   </nav>
   <div class="topbar-right">
     @stack('nav-right')
     @auth
       <a class="btn btn-filled btn-sm" href="{{ route('planner') }}" style="display:flex;align-items:center;gap:6px">
-        <span class="material-symbols-outlined md-18">add</span> Plan a trip
+        <x-icon name="add" :size="18" /> Plan a trip
       </a>
       <a class="icon-btn" href="{{ route('notifications.index') }}" aria-label="Notifications">
-        <span class="material-symbols-outlined">notifications</span>
+        <x-icon name="notifications" />
         @if($unreadCount > 0)<span class="badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
       </a>
       <div class="profile-dropdown-wrap" id="profile-dropdown-wrap">
@@ -118,17 +117,17 @@
             </div>
           </div>
           <a class="profile-dropdown-item" href="{{ route('profile', auth()->user()) }}">
-            <span class="material-symbols-outlined">person</span> My profile
+            <x-icon name="person" /> My profile
           </a>
           <a class="profile-dropdown-item" href="{{ route('dashboard') }}">
-            <span class="material-symbols-outlined">dashboard</span> Dashboard
+            <x-icon name="dashboard" /> Dashboard
           </a>
           <a class="profile-dropdown-item" href="{{ route('settings') }}">
-            <span class="material-symbols-outlined">settings</span> Settings
+            <x-icon name="settings" /> Settings
           </a>
           @if(auth()->user()->isAdmin())
           <a class="profile-dropdown-item" href="{{ route('admin.dashboard') }}">
-            <span class="material-symbols-outlined">admin_panel_settings</span> Admin
+            <x-icon name="admin_panel_settings" /> Admin
           </a>
           @endif
           <div class="profile-dropdown-divider"></div>
@@ -136,13 +135,13 @@
             <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Theme</div>
             <div class="theme-options" style="display:flex;gap:4px">
               <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'light' ? 'active' : '' }}" onclick="setTheme('light')" title="Light" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">light_mode</span>
+                <x-icon name="light_mode" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
               <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'dark' ? 'active' : '' }}" onclick="setTheme('dark')" title="Dark" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">dark_mode</span>
+                <x-icon name="dark_mode" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
               <button class="theme-option-btn {{ (auth()->user()->theme ?? 'auto') === 'auto' ? 'active' : '' }}" onclick="setTheme('auto')" title="Auto" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">contrast</span>
+                <x-icon name="contrast" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
             </div>
           </div>
@@ -150,7 +149,7 @@
           <form method="post" action="{{ route('logout') }}" style="margin:0">
             @csrf
             <button type="submit" class="profile-dropdown-item">
-              <span class="material-symbols-outlined">logout</span> Log out
+              <x-icon name="logout" /> Log out
             </button>
           </form>
         </div>
@@ -158,27 +157,27 @@
     @else
       <div class="profile-dropdown-wrap" id="profile-dropdown-wrap">
         <button class="icon-btn topbar-guest-avatar" onclick="toggleProfileDropdown()" id="profile-avatar-btn" aria-label="Account">
-          <span class="material-symbols-outlined">account_circle</span>
+          <x-icon name="account_circle" />
         </button>
         <div class="profile-dropdown" id="profile-dropdown">
           <a class="profile-dropdown-item" href="{{ route('login') }}">
-            <span class="material-symbols-outlined">login</span> Log in
+            <x-icon name="login" /> Log in
           </a>
           <a class="profile-dropdown-item" href="{{ route('register') }}">
-            <span class="material-symbols-outlined">person_add</span> Sign up
+            <x-icon name="person_add" /> Sign up
           </a>
           <div class="profile-dropdown-divider"></div>
           <div style="padding:6px 12px">
             <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Theme</div>
             <div class="theme-options" style="display:flex;gap:4px">
               <button class="theme-option-btn active" onclick="setTheme('light')" title="Light" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">light_mode</span>
+                <x-icon name="light_mode" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
               <button class="theme-option-btn" onclick="setTheme('dark')" title="Dark" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">dark_mode</span>
+                <x-icon name="dark_mode" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
               <button class="theme-option-btn" onclick="setTheme('auto')" title="Auto" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
-                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">contrast</span>
+                <x-icon name="contrast" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
             </div>
           </div>
@@ -195,7 +194,7 @@
     <div class="nav-drawer-header">
     <a class="topbar-brand" href="{{ route('home') }}"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" height="28"></a>
       <button class="nav-drawer-close" aria-label="Close" onclick="document.querySelector('.nav-drawer').classList.remove('open')">
-        <span class="material-symbols-outlined">close</span>
+        <x-icon name="close" />
       </button>
     </div>
     <div class="nav-drawer-links">
@@ -211,66 +210,66 @@
       @endauth
 
       <a class="nav-drawer-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
-        <span class="material-symbols-outlined">explore</span> Explore
+        <x-icon name="explore" /> Explore
       </a>
       <a class="nav-drawer-item @if($currentPage === 'rankings') active @endif" href="{{ route('rankings') }}">
-        <span class="material-symbols-outlined">leaderboard</span> Rankings
+        <x-icon name="leaderboard" /> Rankings
       </a>
       <a class="nav-drawer-item @if($currentPage === 'pricing') active @endif" href="{{ route('pricing') }}">
-        <span class="material-symbols-outlined">payments</span> Pricing
+        <x-icon name="payments" /> Pricing
       </a>
       <a class="nav-drawer-item" href="{{ route('planner') }}">
-        <span class="material-symbols-outlined">route</span> Plan a trip
+        <x-icon name="route" /> Plan a trip
       </a>
 
       @auth
         <div class="nav-drawer-divider"></div>
         <a class="nav-drawer-item" href="{{ route('posts.create') }}">
-          <span class="material-symbols-outlined">add_circle</span> Create Post
+          <x-icon name="add_circle" /> Create Post
         </a>
         <a class="nav-drawer-item @if($currentPage === 'dashboard') active @endif" href="{{ route('dashboard') }}">
-          <span class="material-symbols-outlined">dashboard</span> My trips
+          <x-icon name="dashboard" /> My trips
         </a>
         <a class="nav-drawer-item @if($currentPage === 'profile') active @endif" href="{{ route('profile', auth()->user()) }}">
-          <span class="material-symbols-outlined">person</span> Profile
+          <x-icon name="person" /> Profile
         </a>
         <a class="nav-drawer-item @if($currentPage === 'notifications.index') active @endif" href="{{ route('notifications.index') }}">
-          <span class="material-symbols-outlined">notifications</span> Notifications
+          <x-icon name="notifications" /> Notifications
           @if($unreadCount > 0)<span style="margin-left:auto;background:var(--md-error);color:var(--md-on-error);font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--md-shape-full)">{{ $unreadCount }}</span>@endif
         </a>
         @if(auth()->user()->isAdmin())
         <a class="nav-drawer-item" href="{{ route('admin.dashboard') }}">
-          <span class="material-symbols-outlined">admin_panel_settings</span> Admin
+          <x-icon name="admin_panel_settings" /> Admin
         </a>
         @endif
         <div class="nav-drawer-divider"></div>
         <a class="nav-drawer-item" href="{{ route('settings') }}">
-          <span class="material-symbols-outlined">settings</span> Settings
+          <x-icon name="settings" /> Settings
         </a>
 
         <div class="nav-drawer-footer">
           <form method="post" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="nav-drawer-item" style="width:100%;color:var(--md-error)">
-              <span class="material-symbols-outlined">logout</span> Log out
+              <x-icon name="logout" /> Log out
             </button>
           </form>
         </div>
       @else
         <div class="nav-drawer-divider"></div>
         <a class="nav-drawer-item" href="{{ route('login') }}">
-          <span class="material-symbols-outlined">login</span> Log in
+          <x-icon name="login" /> Log in
         </a>
         <a class="nav-drawer-item" href="{{ route('register') }}">
-          <span class="material-symbols-outlined">person_add</span> Sign up
+          <x-icon name="person_add" /> Sign up
         </a>
       @endauth
     </div>
   </div>
 </div>
 
-@if(session('ok'))<div class="wrap"><div class="flash flash-ok"><span class="material-symbols-outlined md-20">check_circle</span> {{ session('ok') }}</div></div>@endif
-@if(session('error'))<div class="wrap"><div class="flash flash-err"><span class="material-symbols-outlined md-20">error</span> {{ session('error') }}</div></div>@endif
+@if(session('ok'))<div class="wrap"><div class="flash flash-ok"><x-icon name="check_circle" :size="20" /> {{ session('ok') }}</div></div>@endif
+@if(session('error'))<div class="wrap"><div class="flash flash-err"><x-icon name="error" :size="20" /> {{ session('error') }}</div></div>@endif
 
 @yield('content')
 
@@ -284,26 +283,26 @@
 <nav class="bottom-nav" id="bottom-nav">
   <div class="bottom-nav-inner">
     <a class="bottom-nav-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
-      <span class="material-symbols-outlined">home</span>
+      <x-icon name="home" />
       <span>Home</span>
     </a>
     <a class="bottom-nav-item @if(in_array($currentPage, ['dashboard','trip.show'])) active @endif" href="{{ route('dashboard') }}">
-      <span class="material-symbols-outlined">map</span>
+      <x-icon name="map" />
       <span>Trips</span>
     </a>
     <a class="bottom-nav-fab" href="{{ route('planner') }}">
       <div class="fab-circle">
-        <span class="material-symbols-outlined">add</span>
+        <x-icon name="add" />
       </div>
       <span>Plan</span>
     </a>
     <a class="bottom-nav-item @if($currentPage === 'notifications.index') active @endif" href="{{ route('notifications.index') }}">
-      <span class="material-symbols-outlined">notifications</span>
+      <x-icon name="notifications" />
       @if($unreadCount > 0)<span class="nav-badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
       <span>Alerts</span>
     </a>
     <a class="bottom-nav-item @if($currentPage === 'profile') active @endif" href="{{ auth()->check() ? route('profile', auth()->user()) : route('login') }}">
-      <span class="material-symbols-outlined">person</span>
+      <x-icon name="person" />
       <span>Profile</span>
     </a>
   </div>
@@ -311,19 +310,19 @@
 
 {{-- Post image viewer --}}
 <div class="post-viewer" id="postViewer">
-  <button class="pv-close" onclick="closePostViewer()"><span class="material-symbols-outlined">close</span></button>
+  <button class="pv-close" onclick="closePostViewer()"><x-icon name="close" /></button>
   <div class="pv-body">
     <div class="pv-image-panel">
-      <button class="pv-nav-btn pv-nav-prev" onclick="pvNav(-1)"><span class="material-symbols-outlined">chevron_left</span></button>
+      <button class="pv-nav-btn pv-nav-prev" onclick="pvNav(-1)"><x-icon name="chevron_left" /></button>
       <div class="pv-image-wrap" id="pvImageWrap">
         <img id="pvImage" src="" alt="">
       </div>
-      <button class="pv-nav-btn pv-nav-next" onclick="pvNav(1)"><span class="material-symbols-outlined">chevron_right</span></button>
+      <button class="pv-nav-btn pv-nav-next" onclick="pvNav(1)"><x-icon name="chevron_right" /></button>
       <div class="pv-counter" id="pvCounter"></div>
       <div class="pv-zoom-controls">
-        <button class="pv-zoom-btn" onclick="pvZoom(-.25)" title="Zoom out"><span class="material-symbols-outlined" style="font-size:18px">zoom_out</span></button>
-        <button class="pv-zoom-btn" onclick="pvZoom(.25)" title="Zoom in"><span class="material-symbols-outlined" style="font-size:18px">zoom_in</span></button>
-        <button class="pv-zoom-btn" onclick="pvReset()" title="Reset"><span class="material-symbols-outlined" style="font-size:16px">aspect_ratio</span></button>
+        <button class="pv-zoom-btn" onclick="pvZoom(-.25)" title="Zoom out"><x-icon name="zoom_out" :size="18" /></button>
+        <button class="pv-zoom-btn" onclick="pvZoom(.25)" title="Zoom in"><x-icon name="zoom_in" :size="18" /></button>
+        <button class="pv-zoom-btn" onclick="pvReset()" title="Reset"><x-icon name="aspect_ratio" :size="16" /></button>
       </div>
       <div class="pv-zoom-level" id="pvZoomLevel">100%</div>
     </div>
@@ -334,7 +333,7 @@
       </div>
       <div class="pv-sidebar-foot" id="pvSidebarFoot">
         <button class="pv-like-btn" id="pvLikeBtn" onclick="pvToggleLike()">
-          <span class="material-symbols-outlined">favorite</span>
+          <x-icon name="favorite" />
           <span id="pvLikeCount">0</span>
         </button>
         <div class="pv-comment-form">
@@ -359,7 +358,7 @@ function applyTheme(theme) {
   document.querySelectorAll('.theme-option-btn').forEach(btn => {
     btn.style.borderColor = '';
     btn.style.background = '';
-    const icon = btn.querySelector('.material-symbols-outlined');
+    const icon = btn.querySelector('.icon');
     if (icon) icon.style.color = '';
   });
   document.querySelectorAll('.theme-option-btn').forEach(btn => {
@@ -367,7 +366,7 @@ function applyTheme(theme) {
     if (title === theme) {
       btn.style.borderColor = 'var(--md-primary)';
       btn.style.background = 'var(--md-primary-container)';
-      const icon = btn.querySelector('.material-symbols-outlined');
+      const icon = btn.querySelector('.icon');
       if (icon) icon.style.color = 'var(--md-on-primary-container)';
     }
   });
@@ -457,7 +456,7 @@ function sharePost(url, title) {
     navigator.clipboard.writeText(url).then(() => {
       const btn = event.target.closest('.pcard-action') || event.target;
       const orig = btn.innerHTML;
-      btn.innerHTML = '<span class="material-symbols-outlined md-20">check</span> Copied';
+      btn.innerHTML = '<svg class="icon" width="20" height="20" viewBox="0 -960 960 960" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/><\/svg> Copied';
       setTimeout(() => btn.innerHTML = orig, 2000);
     }).catch(() => {});
   }
@@ -475,14 +474,12 @@ function toggleLike(postId) {
     if (!data) return;
     const btn = document.querySelector('[data-post-id="' + postId + '"]');
     const countEl = btn.querySelector('.like-count');
-    const icon = btn.querySelector('.material-symbols-outlined');
+    const icon = btn.querySelector('.icon');
     if (data.liked) {
       btn.classList.add('liked');
-      if (icon) icon.classList.add('filled');
-    } else {
+          } else {
       btn.classList.remove('liked');
-      if (icon) icon.classList.remove('filled');
-    }
+          }
     countEl.textContent = data.count;
   })
   .catch(() => {});
@@ -802,11 +799,10 @@ function pvToggleLike() {
     /* Also update the card's like button if present */
     const cardBtn = document.querySelector('[data-post-id="' + pvData.id + '"]');
     if (cardBtn) {
-      const icon = cardBtn.querySelector('.material-symbols-outlined');
+      const icon = cardBtn.querySelector('.icon');
       const countEl = cardBtn.querySelector('.like-count');
       cardBtn.classList.toggle('liked', data.liked);
-      if (icon) icon.classList.toggle('filled', data.liked);
-      if (countEl) countEl.textContent = data.count;
+            if (countEl) countEl.textContent = data.count;
     }
   })
   .catch(() => {});

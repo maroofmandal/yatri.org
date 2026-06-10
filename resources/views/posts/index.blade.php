@@ -8,7 +8,7 @@
     <h2 style="margin:0">Latest Posts</h2>
     @auth
       <a class="btn btn-filled btn-sm" href="{{ route('posts.create') }}">
-        <span class="material-symbols-outlined md-18">add</span> Create Post
+        <x-icon name="add" :size="18" /> Create Post
       </a>
     @endauth
   </div>
@@ -21,19 +21,19 @@
     </div>
     @if($posts->hasPages())
       <div class="pager mt2" style="display:flex;gap:8px;align-items:center;justify-content:center">
-        @if($posts->onFirstPage())<span class="btn btn-ghost btn-sm" style="opacity:.5"><span class="material-symbols-outlined md-18">chevron_left</span> Prev</span>@else<a class="btn btn-ghost btn-sm" href="{{ $posts->previousPageUrl() }}"><span class="material-symbols-outlined md-18">chevron_left</span> Prev</a>@endif
+        @if($posts->onFirstPage())<span class="btn btn-ghost btn-sm" style="opacity:.5"><x-icon name="chevron_left" :size="18" /> Prev</span>@else<a class="btn btn-ghost btn-sm" href="{{ $posts->previousPageUrl() }}"><x-icon name="chevron_left" :size="18" /> Prev</a>@endif
         <span class="muted" style="font-size:13px">Page {{ $posts->currentPage() }} / {{ $posts->lastPage() }}</span>
-        @if($posts->hasMorePages())<a class="btn btn-ghost btn-sm" href="{{ $posts->nextPageUrl() }}">Next <span class="material-symbols-outlined md-18">chevron_right</span></a>@else<span class="btn btn-ghost btn-sm" style="opacity:.5">Next <span class="material-symbols-outlined md-18">chevron_right</span></span>@endif
+        @if($posts->hasMorePages())<a class="btn btn-ghost btn-sm" href="{{ $posts->nextPageUrl() }}">Next <x-icon name="chevron_right" :size="18" /></a>@else<span class="btn btn-ghost btn-sm" style="opacity:.5">Next <x-icon name="chevron_right" :size="18" /></span>@endif
       </div>
     @endif
   @else
     <div class="block center">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">article</span>
+      <x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
       <p class="lead">No posts yet. Be the first to share your travel story!</p>
       @auth
-        <a class="btn btn-filled" href="{{ route('posts.create') }}"><span class="material-symbols-outlined md-18">add</span> Create Post</a>
+        <a class="btn btn-filled" href="{{ route('posts.create') }}"><x-icon name="add" :size="18" /> Create Post</a>
       @else
-        <a class="btn btn-filled" href="{{ route('register') }}"><span class="material-symbols-outlined md-18">person_add</span> Sign up to post</a>
+        <a class="btn btn-filled" href="{{ route('register') }}"><x-icon name="person_add" :size="18" /> Sign up to post</a>
       @endauth
     </div>
   @endif

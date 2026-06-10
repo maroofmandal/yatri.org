@@ -10,7 +10,7 @@
   </h1>
   <div style="margin-top:28px">
     <a class="btn btn-filled btn-lg" href="{{ route('planner') }}">
-      <span class="material-symbols-outlined md-20">route</span> Plan a trip
+      <x-icon name="route" :size="20" /> Plan a trip
     </a>
   </div>
 </div></header>
@@ -21,7 +21,7 @@
   <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
     <h2 style="margin:0">Latest posts</h2>
     <a class="btn btn-text btn-sm" href="{{ route('posts.index') }}">
-      View all posts <span class="material-symbols-outlined md-18">arrow_forward</span>
+      View all posts <x-icon name="arrow_forward" :size="18" />
     </a>
   </div>
 
@@ -33,12 +33,12 @@
     </div>
   @else
     <div class="block center">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">article</span>
+      <x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
       <p class="lead">No posts yet. Be the first to share your travel story!</p>
       @auth
-        <a class="btn btn-filled" href="{{ route('posts.create') }}"><span class="material-symbols-outlined md-18">add</span> Create Post</a>
+        <a class="btn btn-filled" href="{{ route('posts.create') }}"><x-icon name="add" :size="18" /> Create Post</a>
       @else
-        <a class="btn btn-filled" href="{{ route('register') }}"><span class="material-symbols-outlined md-18">person_add</span> Sign up to post</a>
+        <a class="btn btn-filled" href="{{ route('register') }}"><x-icon name="person_add" :size="18" /> Sign up to post</a>
       @endauth
     </div>
   @endif
@@ -64,12 +64,12 @@
     </div>
     <div style="text-align:center;margin-top:16px">
       <a class="btn btn-text" href="{{ route('trips.explore') }}">
-        View all trips <span class="material-symbols-outlined md-18">arrow_forward</span>
+        View all trips <x-icon name="arrow_forward" :size="18" />
       </a>
     </div>
   @else
     <div class="block center">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">explore</span>
+      <x-icon name="explore" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
       <p class="lead">No public trips yet — be the first to share one.</p>
       <a class="btn btn-filled" href="{{ route('planner') }}">Plan a trip</a>
     </div>
@@ -81,7 +81,7 @@
     <h2 style="margin:0 0 12px">Popular destinations</h2>
     <div class="chips">
       @foreach($destinations as $d)
-        <span class="chip"><span class="material-symbols-outlined md-18">location_on</span> {{ $d->name }}</span>
+        <span class="chip"><x-icon name="location_on" :size="18" /> {{ $d->name }}</span>
       @endforeach
     </div>
   </div>

@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><span class="material-symbols-outlined md-20">auto_awesome</span> Generate my plan</button>
+    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> Generate my plan</button>
     <p class="hint center mt">Free to try — no account needed. You'll get a shareable link.</p>
   </form>
 

@@ -10,7 +10,7 @@
     <p class="comment-body">{{ $comment->body }}</p>
     @auth
       <button class="comment-reply-btn" onclick="toggleReplyForm({{ $comment->id }})">
-        <span class="material-symbols-outlined md-14" style="vertical-align:middle">reply</span> Reply
+        <x-icon name="reply" :size="14" /> Reply
       </button>
     @endauth
 

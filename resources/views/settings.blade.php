@@ -5,7 +5,7 @@
 <div class="settings-page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px">
     <a href="{{ route('profile', auth()->user()) }}" class="icon-btn">
-      <span class="material-symbols-outlined">arrow_back</span>
+      <x-icon name="arrow_back" />
     </a>
     <div>
       <h2 style="margin:0">Settings</h2>
@@ -15,14 +15,14 @@
 
   {{-- Profile Photo --}}
   <div class="settings-section">
-    <h3><span class="material-symbols-outlined">photo_camera</span> Profile Photo</h3>
+    <h3><x-icon name="photo_camera" /> Profile Photo</h3>
     <form method="POST" action="{{ route('settings.avatar') }}" enctype="multipart/form-data">
       @csrf
       <div class="avatar-upload">
         <img src="{{ $user->avatar() }}" alt="{{ $user->name }}" id="avatar-preview">
         <div class="avatar-actions">
           <label class="btn btn-outlined btn-sm" style="cursor:pointer">
-            <span class="material-symbols-outlined md-18">upload</span> Choose photo
+            <x-icon name="upload" :size="18" /> Choose photo
             <input type="file" name="avatar" accept="image/*" style="display:none" onchange="previewAvatar(this)">
           </label>
           <button type="submit" class="btn btn-filled btn-sm">Upload</button>
@@ -34,7 +34,7 @@
 
   {{-- Profile Details --}}
   <div class="settings-section">
-    <h3><span class="material-symbols-outlined">person</span> Profile Details</h3>
+    <h3><x-icon name="person" /> Profile Details</h3>
     <form method="POST" action="{{ route('settings.profile') }}">
       @csrf @method('PUT')
       <div class="settings-row">
@@ -71,26 +71,26 @@
         </div>
       </div>
       <button type="submit" class="btn btn-filled">
-        <span class="material-symbols-outlined md-18">save</span> Save changes
+        <x-icon name="save" :size="18" /> Save changes
       </button>
     </form>
   </div>
 
   {{-- Theme --}}
   <div class="settings-section">
-    <h3><span class="material-symbols-outlined">palette</span> Appearance</h3>
+    <h3><x-icon name="palette" /> Appearance</h3>
     <p style="color:var(--md-on-surface-variant);font-size:14px;margin:0 0 16px">Choose how Yatri looks on this device.</p>
     <div class="theme-options" id="settings-theme-options">
       <button class="theme-option {{ $user->theme === 'light' ? 'active' : '' }}" onclick="setThemeFromSettings('light')">
-        <span class="material-symbols-outlined">light_mode</span>
+        <x-icon name="light_mode" />
         <span>Light</span>
       </button>
       <button class="theme-option {{ $user->theme === 'dark' ? 'active' : '' }}" onclick="setThemeFromSettings('dark')">
-        <span class="material-symbols-outlined">dark_mode</span>
+        <x-icon name="dark_mode" />
         <span>Dark</span>
       </button>
       <button class="theme-option {{ $user->theme === 'auto' ? 'active' : '' }}" onclick="setThemeFromSettings('auto')">
-        <span class="material-symbols-outlined">contrast</span>
+        <x-icon name="contrast" />
         <span>Auto</span>
       </button>
     </div>
@@ -98,7 +98,7 @@
 
   {{-- Change Password --}}
   <div class="settings-section">
-    <h3><span class="material-symbols-outlined">lock</span> Change Password</h3>
+    <h3><x-icon name="lock" /> Change Password</h3>
     <form method="POST" action="{{ route('settings.password') }}">
       @csrf @method('PUT')
       <div class="field">
@@ -106,7 +106,7 @@
         <div style="position:relative">
           <input type="password" name="current_password" id="current-password" required style="padding-right:44px">
           <button type="button" class="icon-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%)" onclick="togglePasswordVisibility('current-password', this)">
-            <span class="material-symbols-outlined md-20">visibility</span>
+            <x-icon name="visibility" :size="20" />
           </button>
         </div>
         @error('current_password')<div class="err">{{ $message }}</div>@enderror
@@ -117,7 +117,7 @@
           <div style="position:relative">
             <input type="password" name="password" id="new-password" required minlength="8" style="padding-right:44px">
             <button type="button" class="icon-btn" style="position:absolute;right:4px;top:50%;transform:translateY(-50%)" onclick="togglePasswordVisibility('new-password', this)">
-              <span class="material-symbols-outlined md-20">visibility</span>
+              <x-icon name="visibility" :size="20" />
             </button>
           </div>
           @error('password')<div class="err">{{ $message }}</div>@enderror
@@ -128,7 +128,7 @@
         </div>
       </div>
       <button type="submit" class="btn btn-filled">
-        <span class="material-symbols-outlined md-18">lock_reset</span> Update password
+        <x-icon name="lock_reset" :size="18" /> Update password
       </button>
     </form>
   </div>
@@ -148,7 +148,7 @@ function previewAvatar(input) {
 
 function togglePasswordVisibility(inputId, btn) {
   const input = document.getElementById(inputId);
-  const icon = btn.querySelector('.material-symbols-outlined');
+  const icon = btn.querySelector('.icon');
   if (input.type === 'password') {
     input.type = 'text';
     icon.textContent = 'visibility_off';

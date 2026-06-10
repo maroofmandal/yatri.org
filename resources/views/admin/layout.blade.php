@@ -7,7 +7,6 @@
 <title>@yield('title','Admin') · Yatri</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
 <style>
@@ -18,7 +17,7 @@
 .adm-side a{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.7);padding:11px 22px;font-size:14px;font-weight:500;border-left:3px solid transparent;text-decoration:none;transition:all .15s}
 .adm-side a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
 .adm-side a.on{color:#fff;border-left-color:var(--md-inverse-primary);background:rgba(255,255,255,.1)}
-.adm-side a .material-symbols-outlined{font-size:20px}
+.adm-side a .icon{font-size:20px}
 .adm-side .sep{border-top:1px solid rgba(255,255,255,.12);margin:12px 0}
 .adm-main{flex:1;padding:28px 32px;overflow:auto;background:var(--md-surface)}
 .adm-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px}
@@ -45,19 +44,19 @@ table.t tr:last-child td{border-bottom:none}
   <aside class="adm-side">
     <div class="b"><span class="dot"></span> Yatri Admin</div>
     @php $is = fn($p) => request()->routeIs($p) ? 'on' : ''; @endphp
-    <a class="{{ $is('admin.dashboard') }}" href="{{ route('admin.dashboard') }}"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
-    <a class="{{ $is('admin.trips.*') }}" href="{{ route('admin.trips.index') }}"><span class="material-symbols-outlined">map</span> Trips</a>
-    <a class="{{ $is('admin.users.*') }}" href="{{ route('admin.users.index') }}"><span class="material-symbols-outlined">people</span> Users</a>
-    <a class="{{ $is('admin.destinations.*') }}" href="{{ route('admin.destinations.index') }}"><span class="material-symbols-outlined">location_on</span> Destinations</a>
-    <a class="{{ $is('admin.gemini.*') }}" href="{{ route('admin.gemini.index') }}"><span class="material-symbols-outlined">smart_toy</span> Gemini usage</a>
-    <a class="{{ $is('admin.settings.*') }}" href="{{ route('admin.settings.edit') }}"><span class="material-symbols-outlined">settings</span> Settings</a>
+    <a class="{{ $is('admin.dashboard') }}" href="{{ route('admin.dashboard') }}"><x-icon name="dashboard" /> Dashboard</a>
+    <a class="{{ $is('admin.trips.*') }}" href="{{ route('admin.trips.index') }}"><x-icon name="map" /> Trips</a>
+    <a class="{{ $is('admin.users.*') }}" href="{{ route('admin.users.index') }}"><x-icon name="people" /> Users</a>
+    <a class="{{ $is('admin.destinations.*') }}" href="{{ route('admin.destinations.index') }}"><x-icon name="location_on" /> Destinations</a>
+    <a class="{{ $is('admin.gemini.*') }}" href="{{ route('admin.gemini.index') }}"><x-icon name="smart_toy" /> Gemini usage</a>
+    <a class="{{ $is('admin.settings.*') }}" href="{{ route('admin.settings.edit') }}"><x-icon name="settings" /> Settings</a>
     <div class="sep"></div>
-    <a href="{{ route('home') }}"><span class="material-symbols-outlined">open_in_new</span> View site</a>
-    <form method="post" action="{{ route('logout') }}">@csrf<a href="#" onclick="this.closest('form').submit();return false"><span class="material-symbols-outlined">logout</span> Log out</a></form>
+    <a href="{{ route('home') }}"><x-icon name="open_in_new" /> View site</a>
+    <form method="post" action="{{ route('logout') }}">@csrf<a href="#" onclick="this.closest('form').submit();return false"><x-icon name="logout" /> Log out</a></form>
   </aside>
   <main class="adm-main">
-    @if(session('ok'))<div class="flash flash-ok"><span class="material-symbols-outlined md-20">check_circle</span> {{ session('ok') }}</div>@endif
-    @if(session('error'))<div class="flash flash-err"><span class="material-symbols-outlined md-20">error</span> {{ session('error') }}</div>@endif
+    @if(session('ok'))<div class="flash flash-ok"><x-icon name="check_circle" :size="20" /> {{ session('ok') }}</div>@endif
+    @if(session('error'))<div class="flash flash-err"><x-icon name="error" :size="20" /> {{ session('error') }}</div>@endif
     @yield('admin')
   </main>
 </div>

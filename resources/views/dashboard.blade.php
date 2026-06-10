@@ -10,27 +10,27 @@
     </div>
     <div style="display:flex;gap:8px">
       <a class="btn btn-outlined" href="{{ route('posts.create') }}">
-        <span class="material-symbols-outlined md-18">add</span> Post
+        <x-icon name="add" :size="18" /> Post
       </a>
       <a class="btn btn-filled" href="{{ route('planner') }}">
-        <span class="material-symbols-outlined md-18">add</span> New trip
+        <x-icon name="add" :size="18" /> New trip
       </a>
     </div>
   </div>
 
   <div class="profile-tabs" style="margin-top:32px">
     <button class="profile-tab active" onclick="showDashboardTab('trips')">
-      <span class="material-symbols-outlined">map</span> Trips <span class="tab-count">{{ $trips->count() }}</span>
+      <x-icon name="map" /> Trips <span class="tab-count">{{ $trips->count() }}</span>
     </button>
     <button class="profile-tab" onclick="showDashboardTab('posts')">
-      <span class="material-symbols-outlined">article</span> Posts <span class="tab-count">{{ $posts->count() }}</span>
+      <x-icon name="article" /> Posts <span class="tab-count">{{ $posts->count() }}</span>
     </button>
   </div>
 
   <div class="tab-content" id="dash-tab-trips">
     @if($trips->isEmpty())
       <div class="block center">
-        <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">map</span>
+        <x-icon name="map" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
         <p class="lead">No trips yet.</p>
         <a class="btn btn-filled" href="{{ route('planner') }}">Plan your first trip</a>
       </div>
@@ -53,7 +53,7 @@
   <div class="tab-content" id="dash-tab-posts" style="display:none">
     @if($posts->isEmpty())
       <div class="block center">
-        <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">article</span>
+        <x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
         <p class="lead">No posts yet.</p>
         <a class="btn btn-filled" href="{{ route('posts.create') }}">Create your first post</a>
       </div>

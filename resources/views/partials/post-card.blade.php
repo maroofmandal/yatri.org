@@ -8,7 +8,7 @@
       </div>
     </a>
     @if($post->location)
-      <span class="pcard-location"><span class="material-symbols-outlined md-14">location_on</span> {{ $post->location }}</span>
+      <span class="pcard-location"><x-icon name="location_on" :size="14" /> {{ $post->location }}</span>
     @endif
   </div>
 
@@ -51,7 +51,7 @@
   @if($post->trip)
     <div class="pcard-trip">
       <a href="{{ route('trip.show', $post->trip) }}">
-        <span class="material-symbols-outlined md-16">map</span> {{ $post->trip->title }} ({{ $post->trip->days }} days)
+        <x-icon name="map" :size="16" /> {{ $post->trip->title }} ({{ $post->trip->days }} days)
       </a>
     </div>
   @endif
@@ -60,15 +60,15 @@
     <button class="pcard-action like-btn {{ $post->isLikedBy(auth()->user()) ? 'liked' : '' }}"
             data-post-id="{{ $post->id }}"
             onclick="toggleLike({{ $post->id }})">
-      <span class="material-symbols-outlined md-20 {{ $post->isLikedBy(auth()->user()) ? 'filled' : '' }}">favorite</span>
+      <x-icon name="favorite" :size="20" />
       <span class="like-count">{{ $post->likes_count }}</span>
     </button>
     <button class="pcard-action" onclick="toggleComments({{ $post->id }})">
-      <span class="material-symbols-outlined md-20">chat_bubble</span>
+      <x-icon name="chat_bubble" :size="20" />
       <span>{{ $post->comments_count }}</span>
     </button>
     <button class="pcard-action" onclick="sharePost('{{ route('posts.show', $post) }}', '{{ $post->title }}')">
-      <span class="material-symbols-outlined md-20">share</span>
+      <x-icon name="share" :size="20" />
       Share
     </button>
   </div>

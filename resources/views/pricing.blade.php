@@ -25,7 +25,7 @@
         </div>
         <ul class="pricing-features">
           @foreach($plan['features'] as $feature)
-            <li><span class="material-symbols-outlined md-18">check_circle</span> {{ $feature }}</li>
+            <li><x-icon name="check_circle" :size="18" /> {{ $feature }}</li>
           @endforeach
         </ul>
         <div style="margin-top:auto;padding-top:16px">

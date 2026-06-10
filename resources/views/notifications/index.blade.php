@@ -10,7 +10,7 @@
     </div>
     @if($notifications->count())
       <button onclick="markAllRead()" class="btn btn-text btn-sm">
-        <span class="material-symbols-outlined md-18">done_all</span> Mark all read
+        <x-icon name="done_all" :size="18" /> Mark all read
       </button>
     @endif
   </div>
@@ -29,7 +29,7 @@
             @elseif(isset($notification->data['replier_avatar']))
               <img src="{{ $notification->data['replier_avatar'] }}" alt="">
             @else
-              <div class="notification-icon"><span class="material-symbols-outlined">notifications</span></div>
+              <div class="notification-icon"><x-icon name="notifications" /></div>
             @endif
           </div>
           <div class="notification-content">
@@ -50,7 +50,7 @@
           </div>
           @if(is_null($notification->read_at))
             <button onclick="markAsRead('{{ $notification->id }}')" class="notification-read-btn">
-              <span class="material-symbols-outlined md-16">check</span>
+              <x-icon name="check" :size="16" />
             </button>
           @endif
         </div>
@@ -59,10 +59,10 @@
     {{ $notifications->links() }}
   @else
     <div class="block center">
-      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">notifications_none</span>
+      <x-icon name="notifications_none" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
       <p class="lead">No notifications yet. Start following travelers and engaging with their content!</p>
       <a class="btn btn-filled" href="{{ route('home') }}">
-        <span class="material-symbols-outlined md-18">explore</span> Explore
+        <x-icon name="explore" :size="18" /> Explore
       </a>
     </div>
   @endif
