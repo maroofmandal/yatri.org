@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -41,12 +42,18 @@ class SettingsController extends Controller
         $user = auth()->user();
 
         if ($user->avatar_url && str_starts_with($user->avatar_url, Storage::disk('public')->url('avatars'))) {
-            $oldPath = str_replace(Storage::disk('public')->url('avatars') . '/', '', $user->avatar_url);
-            Storage::disk('public')->delete('avatars/' . $oldPath);
+            $oldUrl = $user->avatar_url;
+            $prefix = Storage::disk('public')->url('avatars') . '/';
+            $oldPath = 'avatars/' . substr($oldUrl, strlen($prefix));
+            Storage::disk('public')->delete($oldPath);
+            $legacy = preg_replace('/\.webp$/', '.png', $oldPath);
+            if ($legacy !== $oldPath) Storage::disk('public')->delete($legacy);
+            $legacyJpg = preg_replace('/\.webp$/', '.jpg', $oldPath);
+            if ($legacyJpg !== $oldPath) Storage::disk('public')->delete($legacyJpg);
         }
 
         $file = $request->file('avatar');
-        $path = $file->store('avatars', 'public');
+        $path = ImageOptimizer::optimizeAvatar($file);
         $url = Storage::disk('public')->url($path);
 
         $user->avatar_url = $url;

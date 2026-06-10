@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ImageOptimizer;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Trip;
@@ -60,8 +61,10 @@ class PostController extends Controller
 
         if ($request->hasFile('media')) {
             foreach ($request->file('media') as $index => $file) {
-                $path = $file->store('posts', 'public');
                 $type = str_starts_with($file->getMimeType(), 'video/') ? 'video' : 'photo';
+                $path = $type === 'video'
+                    ? $file->store('posts', 'public')
+                    : ImageOptimizer::optimizePostImage($file);
                 
                 $post->media()->create([
                     'type' => $type,

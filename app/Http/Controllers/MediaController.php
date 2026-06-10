@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ImageOptimizer;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Review;
@@ -38,8 +39,10 @@ class MediaController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('media', 'public');
         $type = str_starts_with($file->getMimeType(), 'video/') ? 'video' : 'photo';
+        $path = $type === 'video'
+            ? $file->store('media', 'public')
+            : ImageOptimizer::optimizeGeneric($file, 'media');
 
         $media = Media::create([
             'mediable_type' => $mediableType,
@@ -64,6 +67,10 @@ class MediaController extends Controller
             abort(403);
         }
 
+        $legacy = preg_replace('/\.webp$/', '.jpg', $media->path);
+        if ($legacy !== $media->path) Storage::disk('public')->delete($legacy);
+        $legacyPng = preg_replace('/\.webp$/', '.png', $media->path);
+        if ($legacyPng !== $media->path) Storage::disk('public')->delete($legacyPng);
         Storage::disk('public')->delete($media->path);
         $media->delete();
 
