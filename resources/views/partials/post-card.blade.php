@@ -28,7 +28,7 @@
         @if($post->media->first()->isVideo())
           <video controls class="pcard-video" src="{{ $post->media->first()->url }}"></video>
         @else
-          <img src="{{ $post->media->first()->thumb_url }}" alt="{{ $post->title }}" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer" width="400" height="267" loading="lazy">
+          <img src="{{ $post->media->first()->thumb_url }}" alt="{{ $post->title }}" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer" width="400" height="267" loading="lazy" srcset="{{ $post->media->first()->thumb_sm_url }} 200w, {{ $post->media->first()->thumb_url }} 400w" sizes="(max-width: 480px) 100vw, 400px">
         @endif
       @else
         <div class="photo-carousel">
@@ -39,7 +39,7 @@
               </div>
             @else
               <div class="c-item" style="background-image:url('{{ $m->thumb_url }}')" onclick="openPostViewer({{ $post->id }})">
-                <img src="{{ $m->thumb_url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover" width="400" height="267" loading="lazy">
+                <img src="{{ $m->thumb_sm_url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover" width="400" height="267" loading="lazy" srcset="{{ $m->thumb_sm_url }} 200w, {{ $m->thumb_url }} 400w" sizes="180px">
               </div>
             @endif
           @endforeach

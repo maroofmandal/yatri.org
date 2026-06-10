@@ -43,6 +43,14 @@ class Media extends Model
             : $this->url;
     }
 
+    public function getThumbSmUrlAttribute(): string
+    {
+        $smPath = dirname($this->path) . '/thumbs/sm/' . basename($this->path);
+        return Storage::disk('public')->exists($smPath)
+            ? Storage::disk('public')->url($smPath)
+            : $this->thumb_url;
+    }
+
     public function isVideo(): bool
     {
         return $this->type === 'video';

@@ -44,6 +44,8 @@ class OptimizeImages extends Command
                 if (str_ends_with($file, '.webp')) {
                     $thumb = ImageOptimizer::generateThumb($file);
                     if ($thumb) $this->info("  thumb: $thumb");
+                    $sm = ImageOptimizer::generateThumbSm($file);
+                    if ($sm) $this->info("  thumb_sm: $sm");
                     continue;
                 }
                 $this->info("Optimizing: $file");
@@ -53,6 +55,8 @@ class OptimizeImages extends Command
                     Media::where('path', $file)->each(fn($m) => $m->update(['path' => $result]));
                     $thumb = ImageOptimizer::generateThumb($result);
                     if ($thumb) $this->info("  thumb: $thumb");
+                    $sm = ImageOptimizer::generateThumbSm($result);
+                    if ($sm) $this->info("  thumb_sm: $sm");
                     $count++;
                     $this->info("  -> $result");
                 }

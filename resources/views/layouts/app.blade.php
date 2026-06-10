@@ -86,7 +86,7 @@
     <button class="icon-btn" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')" style="display:none" id="menu-btn">
       <x-icon name="menu" />
     </button>
-    <a class="topbar-brand" href="{{ route('home') }}"><picture><source srcset="{{ asset('storage/images/yatri-logo.webp') }}?v={{ config('app.version') }}" type="image/webp"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" width="289" height="84" style="height:28px"></picture></a>
+    <a class="topbar-brand" href="{{ route('home') }}"><picture><source srcset="{{ asset('storage/images/yatri-logo.webp') }}?v={{ config('app.version') }} 1x, {{ asset('storage/images/yatri-logo-2x.webp') }}?v={{ config('app.version') }} 2x" type="image/webp"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" width="96" height="28" style="height:28px"></picture></a>
   </div>
   <nav class="topbar-nav">
     <a href="{{ route('home') }}" @if($currentPage === 'home') style="color:var(--md-primary)" @endif>
@@ -195,7 +195,7 @@
   <div class="nav-drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
   <div class="nav-drawer-panel">
     <div class="nav-drawer-header">
-    <a class="topbar-brand" href="{{ route('home') }}"><picture><source srcset="{{ asset('storage/images/yatri-logo.webp') }}?v={{ config('app.version') }}" type="image/webp"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" width="289" height="84" style="height:28px"></picture></a>
+    <a class="topbar-brand" href="{{ route('home') }}"><picture><source srcset="{{ asset('storage/images/yatri-logo.webp') }}?v={{ config('app.version') }} 1x, {{ asset('storage/images/yatri-logo-2x.webp') }}?v={{ config('app.version') }} 2x" type="image/webp"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" width="96" height="28" style="height:28px"></picture></a>
       <button class="nav-drawer-close" aria-label="Close" onclick="document.querySelector('.nav-drawer').classList.remove('open')">
         <x-icon name="close" />
       </button>

@@ -10,7 +10,9 @@ class ImageOptimizer
     const AVATAR_SIZE = 200;
     const POST_MAX_WIDTH = 1200;
     const THUMB_MAX_WIDTH = 400;
-    const QUALITY = 85;
+    const THUMB_SM_MAX_WIDTH = 200;
+    const QUALITY = 75;
+    const THUMB_QUALITY = 60;
 
     public static function optimizeAvatar(UploadedFile $file, string $disk = 'public'): string
     {
@@ -41,14 +43,22 @@ class ImageOptimizer
             $h = (int)($h * $ratio);
             $img = imagescale($img, self::POST_MAX_WIDTH, $h);
         }
-        Storage::disk($disk)->put($filename, self::encodeWebp($img));
+        Storage::disk($disk)->put($filename, self::encodeWebp($img, self::QUALITY));
 
-        // Generate thumbnail
+        // Generate thumbnail (400px, Q60)
         $thumbRatio = min(self::THUMB_MAX_WIDTH / $w, 1);
         if ($thumbRatio < 1) {
             $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $thumbRatio));
-            Storage::disk($disk)->put('posts/thumbs/' . basename($filename), self::encodeWebp($thumb));
+            Storage::disk($disk)->put('posts/thumbs/' . basename($filename), self::encodeWebp($thumb, self::THUMB_QUALITY));
             imagedestroy($thumb);
+        }
+
+        // Generate small thumbnail (200px, Q60) for carousel
+        $smRatio = min(self::THUMB_SM_MAX_WIDTH / $w, 1);
+        if ($smRatio < 1) {
+            $thumbSm = imagescale($img, self::THUMB_SM_MAX_WIDTH, (int)($h * $smRatio));
+            Storage::disk($disk)->put('posts/thumbs/sm/' . basename($filename), self::encodeWebp($thumbSm, self::THUMB_QUALITY));
+            imagedestroy($thumbSm);
         }
 
         imagedestroy($img);
@@ -70,13 +80,20 @@ class ImageOptimizer
             $h = (int)($h * $ratio);
             $img = imagescale($img, self::POST_MAX_WIDTH, $h);
         }
-        Storage::disk($disk)->put($filename, self::encodeWebp($img));
+        Storage::disk($disk)->put($filename, self::encodeWebp($img, self::QUALITY));
 
         $thumbRatio = min(self::THUMB_MAX_WIDTH / $w, 1);
         if ($thumbRatio < 1) {
             $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $thumbRatio));
-            Storage::disk($disk)->put(trim($subdir, '/') . '/thumbs/' . basename($filename), self::encodeWebp($thumb));
+            Storage::disk($disk)->put(trim($subdir, '/') . '/thumbs/' . basename($filename), self::encodeWebp($thumb, self::THUMB_QUALITY));
             imagedestroy($thumb);
+        }
+
+        $smRatio = min(self::THUMB_SM_MAX_WIDTH / $w, 1);
+        if ($smRatio < 1) {
+            $thumbSm = imagescale($img, self::THUMB_SM_MAX_WIDTH, (int)($h * $smRatio));
+            Storage::disk($disk)->put(trim($subdir, '/') . '/thumbs/sm/' . basename($filename), self::encodeWebp($thumbSm, self::THUMB_QUALITY));
+            imagedestroy($thumbSm);
         }
 
         imagedestroy($img);
@@ -100,7 +117,7 @@ class ImageOptimizer
             }
         }
         $webpPath = pathinfo($sourcePath, PATHINFO_DIRNAME) . '/' . pathinfo($sourcePath, PATHINFO_FILENAME) . '.webp';
-        Storage::disk($disk)->put($webpPath, self::encodeWebp($img));
+        Storage::disk($disk)->put($webpPath, self::encodeWebp($img, self::QUALITY));
         imagedestroy($img);
         return $webpPath;
     }
@@ -116,14 +133,55 @@ class ImageOptimizer
         $ratio = min(self::THUMB_MAX_WIDTH / $w, 1);
         if ($ratio >= 1) {
             imagedestroy($img);
+            // Still generate thumb_sm if original > 200px
+            $smRatio = min(self::THUMB_SM_MAX_WIDTH / $w, 1);
+            if ($smRatio >= 1) {
+                return $sourcePath;
+            }
+            $thumbSm = imagescale($img, self::THUMB_SM_MAX_WIDTH, (int)($h * $smRatio));
+            Storage::disk($disk)->put(dirname($sourcePath) . '/thumbs/sm/' . basename($sourcePath), self::encodeWebp($thumbSm, self::THUMB_QUALITY));
+            imagedestroy($thumbSm);
             return $sourcePath;
         }
         $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $ratio));
-        imagedestroy($img);
-        $thumbPath = dirname($sourcePath) . '/thumbs/' . basename($sourcePath);
-        Storage::disk($disk)->put($thumbPath, self::encodeWebp($thumb));
+        Storage::disk($disk)->put(dirname($sourcePath) . '/thumbs/' . basename($sourcePath), self::encodeWebp($thumb, self::THUMB_QUALITY));
         imagedestroy($thumb);
-        return $thumbPath;
+        imagedestroy($img);
+
+        // Generate thumb_sm from original
+        $smRatio = min(self::THUMB_SM_MAX_WIDTH / $w, 1);
+        if ($smRatio < 1) {
+            $img2 = self::createFromFile($fullPath);
+            if ($img2) {
+                $thumbSm = imagescale($img2, self::THUMB_SM_MAX_WIDTH, (int)($h * $smRatio));
+                Storage::disk($disk)->put(dirname($sourcePath) . '/thumbs/sm/' . basename($sourcePath), self::encodeWebp($thumbSm, self::THUMB_QUALITY));
+                imagedestroy($thumbSm);
+                imagedestroy($img2);
+            }
+        }
+
+        return dirname($sourcePath) . '/thumbs/' . basename($sourcePath);
+    }
+
+    public static function generateThumbSm(string $sourcePath, string $disk = 'public'): ?string
+    {
+        $fullPath = Storage::disk($disk)->path($sourcePath);
+        if (!file_exists($fullPath)) return null;
+        $img = self::createFromFile($fullPath);
+        if (!$img) return null;
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $ratio = min(self::THUMB_SM_MAX_WIDTH / $w, 1);
+        if ($ratio >= 1) {
+            imagedestroy($img);
+            return $sourcePath;
+        }
+        $thumbSm = imagescale($img, self::THUMB_SM_MAX_WIDTH, (int)($h * $ratio));
+        imagedestroy($img);
+        $smPath = dirname($sourcePath) . '/thumbs/sm/' . basename($sourcePath);
+        Storage::disk($disk)->put($smPath, self::encodeWebp($thumbSm, self::THUMB_QUALITY));
+        imagedestroy($thumbSm);
+        return $smPath;
     }
 
     private static function createFromFile(string $path): ?\GdImage
@@ -139,10 +197,10 @@ class ImageOptimizer
         };
     }
 
-    private static function encodeWebp(\GdImage $img): string
+    private static function encodeWebp(\GdImage $img, int $quality = null): string
     {
         ob_start();
-        imagewebp($img, null, self::QUALITY);
+        imagewebp($img, null, $quality ?? self::QUALITY);
         return ob_get_clean();
     }
 }
