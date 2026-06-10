@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 
 // ── Social home / discovery ─────────────────────────────────────
 Route::get('/', [FeedController::class, 'index'])->name('home');
+Route::get('/explore/trips', [FeedController::class, 'trips'])->name('trips.explore');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/geo/suggest', [GeocodeController::class, 'suggest'])->name('geo.suggest');
 Route::get('/api/fx', [FxController::class, 'all'])->name('fx.all');

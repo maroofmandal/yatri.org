@@ -16,15 +16,43 @@
 
 <div class="wrap">
 
-  {{-- Feed --}}
+  {{-- Posts --}}
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
+    <h2 style="margin:0">Latest posts</h2>
+    <a class="btn btn-text btn-sm" href="{{ route('posts.index') }}">
+      View all posts <span class="material-symbols-outlined md-18">arrow_forward</span>
+    </a>
+  </div>
+
+  @if($posts->count())
+    <div class="posts-feed">
+      @foreach($posts as $post)
+        @include('partials.post-card')
+      @endforeach
+    </div>
+  @else
+    <div class="block center">
+      <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">article</span>
+      <p class="lead">No posts yet. Be the first to share your travel story!</p>
+      @auth
+        <a class="btn btn-filled" href="{{ route('posts.create') }}"><span class="material-symbols-outlined md-18">add</span> Create Post</a>
+      @else
+        <a class="btn btn-filled" href="{{ route('register') }}"><span class="material-symbols-outlined md-18">person_add</span> Sign up to post</a>
+      @endauth
+    </div>
+  @endif
+
+  {{-- Trips --}}
   <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
     <h2 style="margin:0">Trending trips</h2>
-    @auth
-      <div class="seg">
-        <label><input type="radio" name="feedfilter" {{ request('filter')!=='following'?'checked':'' }} onclick="location='{{ route('home') }}'"><span>For you</span></label>
-        <label><input type="radio" name="feedfilter" {{ request('filter')==='following'?'checked':'' }} onclick="location='{{ route('home', ['filter'=>'following']) }}'"><span>Following</span></label>
-      </div>
-    @endauth
+    <div style="display:flex;align-items:center;gap:10px">
+      @auth
+        <div class="seg">
+          <label><input type="radio" name="feedfilter" {{ request('filter')!=='following'?'checked':'' }} onclick="location='{{ route('home') }}'"><span>For you</span></label>
+          <label><input type="radio" name="feedfilter" {{ request('filter')==='following'?'checked':'' }} onclick="location='{{ route('home', ['filter'=>'following']) }}'"><span>Following</span></label>
+        </div>
+      @endauth
+    </div>
   </div>
 
   @if($trips->count())
@@ -33,13 +61,11 @@
         @include('partials.trip-card')
       @endforeach
     </div>
-    @if($trips->hasPages())
-    <div class="pager mt2" style="display:flex;gap:8px;align-items:center;justify-content:center">
-      @if($trips->onFirstPage())<span class="btn btn-ghost btn-sm" style="opacity:.5"><span class="material-symbols-outlined md-18">chevron_left</span> Prev</span>@else<a class="btn btn-ghost btn-sm" href="{{ $trips->previousPageUrl() }}"><span class="material-symbols-outlined md-18">chevron_left</span> Prev</a>@endif
-      <span class="muted" style="font-size:13px">Page {{ $trips->currentPage() }} / {{ $trips->lastPage() }}</span>
-      @if($trips->hasMorePages())<a class="btn btn-ghost btn-sm" href="{{ $trips->nextPageUrl() }}">Next <span class="material-symbols-outlined md-18">chevron_right</span></a>@else<span class="btn btn-ghost btn-sm" style="opacity:.5">Next <span class="material-symbols-outlined md-18">chevron_right</span></span>@endif
+    <div style="text-align:center;margin-top:16px">
+      <a class="btn btn-text" href="{{ route('trips.explore') }}">
+        View all trips <span class="material-symbols-outlined md-18">arrow_forward</span>
+      </a>
     </div>
-    @endif
   @else
     <div class="block center">
       <span class="material-symbols-outlined md-36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px">explore</span>
