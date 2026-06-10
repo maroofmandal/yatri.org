@@ -6,6 +6,9 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="description" content="@yield('meta_description', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI-powered travel planner and social network for travelers')">
 <title>@yield('title', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI budget trip planner')</title>
+@php $_route = request()->route() ? request()->route()->getName() : ''; $_noindex = in_array($_route, ['login', 'register', 'notifications.index', 'settings', 'dashboard']); @endphp
+<meta name="robots" content="{{ $_noindex ? 'noindex,nofollow' : 'index,follow' }}">
+<link rel="canonical" href="{{ url()->current() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,13 +22,49 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Yatri">
+<meta property="og:title" content="@yield('og_title', \App\Models\Setting::get('site_name', 'Yatri'))">
+<meta property="og:description" content="@yield('meta_description', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI-powered travel planner and social network for travelers')">
+<meta property="og:url" content="{{ url()->current() }}">
+<meta property="og:type" content="@yield('og_type', 'website')">
 <meta property="og:image" content="{{ asset('storage/images/yatri-icon.png') }}?v={{ config('app.version') }}">
 <meta property="og:image:width" content="256">
 <meta property="og:image:height" content="256">
+<meta property="og:site_name" content="Yatri">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="@yield('title', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI budget trip planner')">
+<meta name="twitter:description" content="@yield('meta_description', \App\Models\Setting::get('site_name', 'Yatri') . ' — AI-powered travel planner and social network for travelers')">
 <meta name="twitter:image" content="{{ asset('storage/images/yatri-icon.png') }}?v={{ config('app.version') }}">
 @stack('head')
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}?v={{ config('app.version') }}">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Yatri",
+  "url": "{{ url('/') }}",
+  "logo": "{{ asset('storage/images/yatri-icon.png') }}",
+  "description": "AI-powered travel planner and social network for travelers",
+  "sameAs": []
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Yatri",
+  "url": "{{ url('/') }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ url('/') }}?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 </head>
 @php
   $geoProvider = \App\Models\Setting::get('geocode_provider', config('providers.geocode', 'photon'));
@@ -69,10 +108,10 @@
         @if($unreadCount > 0)<span class="badge" data-count="{{ $unreadCount }}">{{ $unreadCount }}</span>@endif
       </a>
       <div class="profile-dropdown-wrap" id="profile-dropdown-wrap">
-        <img src="{{ auth()->user()->avatar() }}" alt="" class="topbar-avatar" onclick="toggleProfileDropdown()" id="profile-avatar-btn">
+        <img src="{{ auth()->user()->avatar() }}" alt="{{ auth()->user()->name }}" class="topbar-avatar" onclick="toggleProfileDropdown()" id="profile-avatar-btn">
         <div class="profile-dropdown" id="profile-dropdown">
           <div class="profile-dropdown-user">
-            <img src="{{ auth()->user()->avatar() }}" alt="">
+            <img src="{{ auth()->user()->avatar() }}" alt="{{ auth()->user()->name }}">
             <div>
               <div class="name">{{ auth()->user()->name }}</div>
               <div class="email">{{ auth()->user()->email }}</div>
@@ -162,7 +201,7 @@
     <div class="nav-drawer-links">
       @auth
         <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:8px">
-          <img src="{{ auth()->user()->avatar() }}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+          <img src="{{ auth()->user()->avatar() }}" alt="{{ auth()->user()->name }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
           <div>
             <div style="font-weight:600;font-size:14px">{{ auth()->user()->name }}</div>
             <div style="font-size:12px;color:var(--md-on-surface-variant)">{{ auth()->user()->email }}</div>

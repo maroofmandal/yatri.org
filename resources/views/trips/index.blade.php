@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Explore trips — Yatri')
+@section('meta_description', 'Browse AI-planned trips from travelers worldwide. See budgets, itineraries, and real costs for destinations across the globe.')
 
 @section('content')
 <div class="wrap" style="padding-top:36px;padding-bottom:100px">

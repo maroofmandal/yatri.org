@@ -1,6 +1,35 @@
 @extends('layouts.app')
 @section('title', $post->title.' — Yatri')
 @section('meta_description', $post->meta_description)
+@section('og_type', 'article')
+@section('og_title', $post->title)
+
+@push('head')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ $post->title }}",
+  "description": "{{ $post->meta_description }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ $post->user->name }}",
+    "url": "{{ route('profile', $post->user) }}"
+  },
+  "datePublished": "{{ $post->created_at->toIso8601String() }}",
+  "dateModified": "{{ $post->updated_at->toIso8601String() }}",
+  "image": "{{ $post->media->first() ? $post->media->first()->url : '' }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Yatri"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ url()->current() }}"
+  }
+}
+</script>
+@endpush
 
 @section('content')
 <div class="wrap" style="max-width:640px;padding-top:40px;padding-bottom:100px">
@@ -9,7 +38,7 @@
       <h1 style="font-size:clamp(24px,4vw,32px)">{{ $post->title }}</h1>
       <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
         <a href="{{ route('profile', $post->user) }}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-          <img src="{{ $post->user->avatar() }}" alt="" style="width:40px;height:40px;border-radius:50%">
+          <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" style="width:40px;height:40px;border-radius:50%">
           <div>
             <strong>{{ $post->user->name }}</strong>
             <span class="muted" style="font-size:12px;display:block">{{ $post->created_at->diffForHumans() }}</span>
@@ -35,7 +64,7 @@
               @if($m->isVideo())
                 <div class="c-item" style="background:#000"><video controls style="width:100%;height:100%;object-fit:cover" src="{{ $m->url }}"></video></div>
               @else
-                <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})"><img src="{{ $m->url }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+                <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})"><img src="{{ $m->url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover"></div>
               @endif
             @endforeach
           </div>
@@ -86,13 +115,15 @@
     </div>
   </article>
 
-  @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
-    <form method="POST" action="{{ route('posts.destroy', $post) }}" style="margin-top:24px" onsubmit="return confirm('Delete this post?')">
-      @csrf @method('DELETE')
-      <button type="submit" class="btn btn-outlined btn-sm" style="color:var(--md-error)">
-        <span class="material-symbols-outlined md-18">delete</span> Delete Post
-      </button>
-    </form>
-  @endif
+  @auth
+    @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
+      <form method="POST" action="{{ route('posts.destroy', $post) }}" style="margin-top:24px" onsubmit="return confirm('Delete this post?')">
+        @csrf @method('DELETE')
+        <button type="submit" class="btn btn-outlined btn-sm" style="color:var(--md-error)">
+          <span class="material-symbols-outlined md-18">delete</span> Delete Post
+        </button>
+      </form>
+    @endif
+  @endauth
 </div>
 @endsection

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Posts — Yatri')
+@section('meta_description', 'Read travel posts from the Yatri community — real trip reports, destination guides, and budget breakdowns from travelers worldwide.')
 
 @section('content')
 <div class="wrap" style="padding-top:36px;padding-bottom:100px">

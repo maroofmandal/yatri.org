@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', \App\Models\Setting::get('site_name','Yatri').' — discover trips & plan with AI')
+@section('meta_description', 'Discover real, costed trips from travelers. Plan your perfect budget trip with AI — hotels, transport, and activities that fit your budget.')
 
 @section('content')
 <header class="hero"><div class="wrap">

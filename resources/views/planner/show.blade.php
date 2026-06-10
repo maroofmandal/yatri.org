@@ -257,7 +257,7 @@
               <span>{{ $w['city'] ?? '' }}{{ !empty($w['date']) ? ' · '.\Illuminate\Support\Carbon::parse($w['date'])->format('d M') : '' }}</span>
             </div>
             @if(!empty($w['icon']))
-              <img src="{{ $w['icon'] }}.svg" alt="" loading="lazy">
+              <img src="{{ $w['icon'] }}.svg" alt="{{ $w['summary'] ?? 'Weather' }}" loading="lazy">
             @endif
           </div>
           <p>{{ $w['summary'] ?? 'Weather data unavailable.' }}</p>
@@ -371,7 +371,7 @@
             <div class="photo-carousel">
               @foreach($dayPhotoList as $phIdx => $phUrl)
                 <div class="c-item" onclick="openLightbox({{ $dIdx }}, {{ $phIdx }})">
-                  <img src="{{ $phUrl }}" alt="" loading="lazy" onerror="this.style.display='none'">
+                  <img src="{{ $phUrl }}" alt="Trip photo" loading="lazy" onerror="this.style.display='none'">
                 </div>
               @endforeach
             </div>
@@ -638,7 +638,7 @@
     @endauth
     @forelse($trip->comments()->with('user')->latest()->get() as $c)
       <div style="display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)">
-        <img src="{{ $c->user->avatar() }}" alt="" style="width:34px;height:34px;border-radius:50%">
+        <img src="{{ $c->user->avatar() }}" alt="{{ $c->user->name }}" style="width:34px;height:34px;border-radius:50%">
         <div>
           <a href="{{ route('profile',$c->user) }}" style="font-weight:600;font-size:14px">{{ $c->user->name }}</a>
           <span class="muted" style="font-size:12px">· {{ $c->created_at->diffForHumans() }}</span>
@@ -678,7 +678,7 @@
 <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
   <div class="lightbox-close" onclick="closeLightbox(event)">&times;</div>
   <button class="lightbox-nav lightbox-prev" onclick="lightboxPrev(event)">&#10094;</button>
-  <img id="lightboxImg" class="lightbox-img" src="" alt="">
+  <img id="lightboxImg" class="lightbox-img" src="" alt="Trip photo">
   <button class="lightbox-nav lightbox-next" onclick="lightboxNext(event)">&#10095;</button>
   <div id="lightboxCount" class="lightbox-count"></div>
 </div>

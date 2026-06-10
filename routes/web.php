@@ -14,11 +14,15 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReplyController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SocialController;
 use App\Models\Trip;
 use Illuminate\Support\Facades\Route;
+
+// ── Sitemap ───────────────────────────────────────────────────────
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 // ── Social home / discovery ─────────────────────────────────────
 Route::get('/', [FeedController::class, 'index'])->name('home');

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Pricing — Yatri')
+@section('meta_description', 'Choose the right Yatri plan — from free Explorer to Legend for creators. AI trip planning, offline itineraries, and group collaboration.')
 
 @section('content')
 <header class="hero" style="padding:48px 0 40px"><div class="wrap" style="text-align:center">

@@ -1,7 +1,7 @@
 <div class="pcard">
   <div class="pcard-head">
     <a href="{{ route('profile', $post->user) }}" class="pcard-author">
-      <img src="{{ $post->user->avatar() }}" alt="" class="pcard-avatar">
+      <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" class="pcard-avatar">
       <div>
         <strong>{{ $post->user->name }}</strong>
         <span class="muted" style="font-size:12px">{{ $post->created_at->diffForHumans() }}</span>
@@ -28,7 +28,7 @@
         @if($post->media->first()->isVideo())
           <video controls class="pcard-video" src="{{ $post->media->first()->url }}"></video>
         @else
-          <img src="{{ $post->media->first()->url }}" alt="" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer">
+          <img src="{{ $post->media->first()->url }}" alt="{{ $post->title }}" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer">
         @endif
       @else
         <div class="photo-carousel">
@@ -39,7 +39,7 @@
               </div>
             @else
               <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})">
-                <img src="{{ $m->url }}" alt="" style="width:100%;height:100%;object-fit:cover">
+                <img src="{{ $m->url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover">
               </div>
             @endif
           @endforeach

@@ -1,6 +1,6 @@
 <div class="comment-item">
   <a href="{{ route('profile', $comment->user) }}">
-    <img src="{{ $comment->user->avatar() }}" alt="" class="comment-avatar">
+    <img src="{{ $comment->user->avatar() }}" alt="{{ $comment->user->name }}" class="comment-avatar">
   </a>
   <div class="comment-content">
     <div class="comment-header">
@@ -19,7 +19,7 @@
         @foreach($comment->childReplies as $reply)
           <div class="reply-item">
             <a href="{{ route('profile', $reply->user) }}">
-              <img src="{{ $reply->user->avatar() }}" alt="" class="reply-avatar">
+              <img src="{{ $reply->user->avatar() }}" alt="{{ $reply->user->name }}" class="reply-avatar">
             </a>
             <div class="reply-content">
               <div class="reply-header">

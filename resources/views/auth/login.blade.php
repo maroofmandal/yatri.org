@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Log in — Yatri')
+@section('meta_description', 'Log in to Yatri to plan AI-powered trips, share travel posts, and connect with the traveler community.')
 
 @section('content')
 <div class="wrap-sm" style="padding:56px 24px">
