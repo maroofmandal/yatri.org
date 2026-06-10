@@ -96,7 +96,7 @@
             <div class="review-header">
               <div class="place-stars">
                 @for($i = 1; $i <= 5; $i++)
-                  <x-icon name="rating ? 'var(--md-primary)' : 'var(--md-outline-variant)' }}">star" :size="18" style="color:{{ $i <= $review- />
+                  <x-icon name="star" :size="18" style="color:{{ $i <= $review->rating ? 'var(--md-primary)' : 'var(--md-outline-variant)' }}" />
                 @endfor
                 <strong style="margin-left:6px">{{ $review->rating }}/5</strong>
               </div>
