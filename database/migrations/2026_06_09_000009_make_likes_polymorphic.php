@@ -8,6 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::dropIfExists('likes');
+            Schema::create('likes', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->string('likeable_type');
+                $table->unsignedBigInteger('likeable_id');
+                $table->timestamps();
+                $table->index(['likeable_type', 'likeable_id']);
+                $table->unique(['user_id', 'likeable_type', 'likeable_id']);
+            });
+            return;
+        }
+
         $hasLikeableType = Schema::hasColumn('likes', 'likeable_type');
 
         if (!$hasLikeableType) {

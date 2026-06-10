@@ -108,7 +108,9 @@ class NotificationService
             return;
         }
 
-        // Reviews are typically for destinations/hotels, not user content
-        // So we might not need to notify anyone unless there's an owner
+        // Send notification if reviewed a trip owned by another user
+        if ($reviewable instanceof Trip && $reviewable->user_id && $reviewable->user_id !== $reviewer->id) {
+            $reviewable->user->notify(new ReviewNotification($reviewer, $review));
+        }
     }
 }

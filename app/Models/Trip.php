@@ -84,6 +84,11 @@ class Trip extends Model
         return $this->hasMany(Post::class);
     }
 
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
     public function isLikedBy(?User $user): bool
     {
         return $user && $this->likes()->where('user_id', $user->id)->exists();

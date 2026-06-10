@@ -18,6 +18,8 @@ class Media extends Model
         'order',
     ];
 
+    protected $appends = ['url'];
+
     protected $casts = [
         'size' => 'integer',
         'order' => 'integer',

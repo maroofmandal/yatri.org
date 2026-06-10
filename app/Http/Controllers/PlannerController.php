@@ -66,7 +66,34 @@ class PlannerController extends Controller
         if ($trip->isReady()) {
             $trip->increment('views');
 
-            return view('planner.show', compact('trip'));
+            $posts = $trip->posts()
+                ->where('is_public', true)
+                ->with(['user', 'media', 'likes', 'comments'])
+                ->withCount(['likes', 'comments'])
+                ->latest()
+                ->get();
+
+            $reviews = $trip->reviews()
+                ->with('user')
+                ->withCount(['likes'])
+                ->latest()
+                ->get();
+
+            $postsMediaIds = $posts->pluck('id');
+            $media = \App\Models\Media::query()
+                ->where(function($q) use ($trip, $postsMediaIds) {
+                    $q->where(function($q2) use ($trip) {
+                        $q2->where('mediable_type', \App\Models\Trip::class)
+                           ->where('mediable_id', $trip->id);
+                    })->orWhere(function($q2) use ($postsMediaIds) {
+                        $q2->where('mediable_type', \App\Models\Post::class)
+                           ->whereIn('mediable_id', $postsMediaIds);
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return view('planner.show', compact('trip', 'posts', 'reviews', 'media'));
         }
 
         return view('planner.generating', compact('trip'));

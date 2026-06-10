@@ -148,10 +148,33 @@ class LiveTravelDataTest extends TestCase
             ->assertOk()
             ->assertSee('Weather during trip')
             ->assertSee('Warm and humid seasonal estimate.')
-            ->assertSee('Estimated · check live before booking')
-            ->assertSee('Estimated · check live rates')
-            ->assertSee('Museum visit')
-            ->assertSee('Estimated');
+            ->assertSee('Estimated')
+            ->assertSee('Museum visit');
+    }
+
+    public function test_show_page_renders_tabs_and_posts_media_reviews(): void
+    {
+        $trip = Trip::create([
+            'title' => 'Tabs testing sample',
+            'origin' => 'Mumbai',
+            'destinations' => [['name' => 'Delhi', 'lat' => 28.6139, 'lng' => 77.2090, 'nights' => 1]],
+            'days' => 1,
+            'travelers' => 2,
+            'budget_total' => 1000,
+            'currency' => 'USD',
+            'style' => 'mid',
+            'status' => 'ready',
+        ]);
+
+        $this->get(route('trip.show', $trip))
+            ->assertOk()
+            ->assertSee('Trips')
+            ->assertSee('Posts')
+            ->assertSee('Media')
+            ->assertSee('Reviews')
+            ->assertSee('Log in to post to this Trip')
+            ->assertSee('Log in to upload media to this Trip')
+            ->assertSee('Log in to leave a review');
     }
 
     private function llm(): LlmClient

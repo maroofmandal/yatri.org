@@ -121,6 +121,24 @@
 
 <div class="wrap">
 
+  {{-- Profile-style tabs --}}
+  <div class="profile-tabs" style="margin-bottom: 24px;">
+    <button class="profile-tab active" onclick="showTab('trips', this)">
+      <x-icon name="map" /> Trips <span class="tab-count">1</span>
+    </button>
+    <button class="profile-tab" onclick="showTab('posts', this)">
+      <x-icon name="article" /> Posts <span class="tab-count">{{ $posts->count() }}</span>
+    </button>
+    <button class="profile-tab" onclick="showTab('media', this)">
+      <x-icon name="photo_library" /> Media <span id="media-count-badge" class="tab-count">{{ $media->count() }}</span>
+    </button>
+    <button class="profile-tab" onclick="showTab('reviews', this)">
+      <x-icon name="star" /> Reviews <span class="tab-count">{{ $reviews->count() }}</span>
+    </button>
+  </div>
+
+  <div class="tab-content" id="tab-trips">
+
   @if(!empty($plan['demo']))
     <div class="flash flash-err" style="margin-top:20px">
       @if($trip->error)<x-icon name="warning" :size="18" /> Live AI unavailable — showing a budget-fit sample. Set a Gemini key in Admin → Settings → AI.
@@ -243,11 +261,11 @@
   @endif
 
   {{-- Weather --}}
-  @php $hasLiveWeather = $weatherDays->contains(fn($w) => ($w['source'] ?? '') === 'google_weather'); @endphp
-  @if($hasLiveWeather)
+  @php $hasWeather = $weatherDays->isNotEmpty(); @endphp
+  @if($hasWeather)
   <div class="block reveal">
     <h2>Weather during trip</h2>
-    <p class="lead">Live Google Weather daily forecast for your trip dates.</p>
+    <p class="lead">@if($weatherDays->contains(fn($w) => ($w['source'] ?? '') === 'google_weather')) Live Google Weather daily forecast for your trip dates. @else Seasonal weather estimates for your trip. @endif</p>
     <div class="weather-grid">
       @foreach($weatherDays as $w)
         <div class="weather-card weather-live">
@@ -269,7 +287,7 @@
               <span>{{ round($w['precipitation_probability']) }}% rain</span>
             @endif
           </div>
-          <span class="data-badge">Live Google forecast</span>
+          <span class="data-badge">{{ ($w['source'] ?? '') === 'google_weather' ? 'Live Google forecast' : 'Seasonal estimate' }}</span>
         </div>
       @endforeach
     </div>
@@ -669,6 +687,168 @@
         @endif
         <a class="btn btn-primary" href="{{ route('home') }}">+ New trip</a>
       </div>
+    </div>
+  </div> {{-- End tab-trips --}}
+
+  {{-- Posts Tab --}}
+  <div class="tab-content" id="tab-posts" style="display:none">
+    @auth
+      <div class="block" style="margin-bottom:20px;padding:24px">
+        <h3 style="margin-top:0">Post to this Trip</h3>
+        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="post-create-form">
+          @csrf
+          <input type="hidden" name="trip_id" value="{{ $trip->id }}">
+          <input type="hidden" name="type" id="post_type" value="text">
+          
+          <div class="field" style="margin-bottom:14px">
+            <label for="post_title" style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Post Title</label>
+            <input type="text" name="title" id="post_title" placeholder="Title (e.g. Day 1 at Fushimi Inari!)" required minlength="6" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--md-outline-variant)">
+          </div>
+          
+          <div class="field" style="margin-bottom:14px">
+            <label for="post_body" style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Details</label>
+            <textarea name="body" id="post_body" rows="3" placeholder="Share your experience..." style="width:100%;resize:vertical;padding:10px;border-radius:6px;border:1px solid var(--md-outline-variant)"></textarea>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label for="post_location" style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Location (optional)</label>
+            <input type="text" name="location" id="post_location" placeholder="e.g. Kyoto, Japan" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--md-outline-variant)">
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:0">
+                <x-icon name="photo_camera" :size="18" />
+                <span>Add Photos/Videos</span>
+                <input type="file" name="media[]" multiple accept="image/*,video/*" style="display:none" onchange="handlePostMediaSelect(this)">
+              </label>
+              <span id="media-selected-count" class="muted" style="font-size:13px">No files selected</span>
+            </div>
+            <button type="submit" class="btn btn-primary">Publish Post</button>
+          </div>
+        </form>
+      </div>
+    @else
+      <div class="block center" style="margin-bottom:20px;padding:24px">
+        <x-icon name="lock" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
+        <p class="lead" style="margin:0 0 8px">Log in to post to this Trip</p>
+        <a class="btn btn-primary btn-sm" href="{{ route('login') }}">Log In / Register</a>
+      </div>
+    @endauth
+
+    <div class="posts-feed mt" id="posts-feed-container">
+      @forelse($posts as $post)
+        @include('partials.post-card', ['post' => $post])
+      @empty
+        <div class="block center"><x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No posts yet.</p></div>
+      @endforelse
+    </div>
+  </div>
+
+  {{-- Media Tab --}}
+  <div class="tab-content" id="tab-media" style="display:none">
+    @auth
+      <div class="block" style="margin-bottom:20px;padding:24px">
+        <h3 style="margin-top:0">Upload Media to this Trip</h3>
+        <form id="media-upload-form" class="media-upload-form" style="border: 2px dashed var(--md-outline-variant); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s;" ondragover="event.preventDefault(); this.style.borderColor='var(--md-primary)';" ondragleave="this.style.borderColor='var(--md-outline-variant)';" ondrop="handleMediaDrop(event)">
+          @csrf
+          <input type="hidden" name="mediable_type" value="trip">
+          <input type="hidden" name="mediable_id" value="{{ $trip->id }}">
+          <x-icon name="cloud_upload" :size="36" style="color:var(--md-primary);margin-bottom:12px;display:block;margin:0 auto 12px" />
+          <p class="lead" style="margin:0 0 4px">Drag and drop images or videos here</p>
+          <p class="muted" style="font-size:13px;margin:0 0 16px">or click to browse from your device</p>
+          <input type="file" name="file" id="media-file-input" accept="image/*,video/*" style="display:none" onchange="uploadMediaFile(this.files[0])">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('media-file-input').click()">Select File</button>
+          <div id="upload-status" class="muted" style="font-size:13px;margin-top:12px;display:none">Uploading...</div>
+        </form>
+      </div>
+    @else
+      <div class="block center" style="margin-bottom:20px;padding:24px">
+        <x-icon name="lock" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
+        <p class="lead" style="margin:0 0 8px">Log in to upload media to this Trip</p>
+        <a class="btn btn-primary btn-sm" href="{{ route('login') }}">Log In / Register</a>
+      </div>
+    @endauth
+
+    <div class="media-grid mt" id="media-grid-container">
+      @forelse($media as $m)
+        <div class="media-item" style="cursor:pointer" onclick="{{ $m->mediable_type === 'App\Models\Post' ? 'openPostViewer('.$m->mediable_id.')' : 'openMediaLightbox(\''.$m->url.'\')' }}">
+          @if($m->isVideo())
+            <video src="{{ $m->url }}" muted></video>
+            <span class="media-play"><x-icon name="play_arrow" :size="32" /></span>
+          @else
+            <img src="{{ $m->url }}" alt="Travel photo">
+          @endif
+        </div>
+      @empty
+        <div class="block center" id="no-media-message"><x-icon name="photo_library" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No media uploaded yet.</p></div>
+      @endforelse
+    </div>
+  </div>
+
+  {{-- Reviews Tab --}}
+  <div class="tab-content" id="tab-reviews" style="display:none">
+    @auth
+      <div class="block" style="margin-bottom:20px;padding:24px">
+        <h3 style="margin-top:0">Write a Review</h3>
+        <form action="{{ route('reviews.store') }}" method="POST" class="review-create-form">
+          @csrf
+          <input type="hidden" name="reviewable_type" value="trip">
+          <input type="hidden" name="reviewable_id" value="{{ $trip->id }}">
+          
+          <div class="field" style="margin-bottom:14px">
+            <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Rating</label>
+            <div class="rating-stars" style="display:flex;gap:6px;font-size:28px;">
+              <input type="hidden" name="rating" id="review_rating" value="5">
+              @for($i = 1; $i <= 5; $i++)
+                <span class="star-btn" data-val="{{ $i }}" style="cursor:pointer;color:var(--md-primary);transition:color 0.15s;" onclick="setRating({{ $i }})">★</span>
+              @endfor
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label for="review_title" style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Review Title (optional)</label>
+            <input type="text" name="title" id="review_title" placeholder="e.g. Best itinerary ever!" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--md-outline-variant)">
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label for="review_body" style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Review Body</label>
+            <textarea name="body" id="review_body" rows="4" placeholder="How was your trip? What did you think of the pacing and spots?..." required style="width:100%;resize:vertical;padding:10px;border-radius:6px;border:1px solid var(--md-outline-variant)"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </form>
+      </div>
+    @else
+      <div class="block center" style="margin-bottom:20px;padding:24px">
+        <x-icon name="lock" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
+        <p class="lead" style="margin:0 0 8px">Log in to leave a review</p>
+        <a class="btn btn-primary btn-sm" href="{{ route('login') }}">Log In / Register</a>
+      </div>
+    @endauth
+
+    <div class="reviews-list">
+      @forelse($reviews as $review)
+        <div class="review-card block" style="margin-bottom:16px;padding:20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <img src="{{ $review->user->avatar() }}" alt="{{ $review->user->name }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px">{{ $review->user->name }}</div>
+              <div class="place-stars" style="display:flex;align-items:center;gap:2px">
+                @for($i = 1; $i <= 5; $i++)
+                  <x-icon name="star" :size="16" style="color:{{ $i <= $review->rating ? 'var(--md-primary)' : 'var(--md-outline-variant)' }}" />
+                @endfor
+                <strong style="margin-left:6px;font-size:13px;color:var(--md-on-surface-variant)">{{ $review->rating }}/5</strong>
+              </div>
+            </div>
+            <span class="muted" style="font-size:12px">{{ $review->created_at->diffForHumans() }}</span>
+          </div>
+          @if($review->title)<h4 style="margin:0 0 8px;font-size:16px">{{ $review->title }}</h4>@endif
+          <p style="margin:0;font-size:14px;line-height:1.5;color:var(--md-on-surface)">{{ $review->body }}</p>
+        </div>
+      @empty
+        <div class="block center" id="no-reviews-message"><x-icon name="star" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" /><p class="lead">No reviews yet. Be the first to leave one!</p></div>
+      @endforelse
     </div>
   </div>
 
@@ -1164,6 +1344,122 @@ if (likeBtn && !likeBtn.disabled) {
     recalcTotal();
   }, 300);
 })();
+
+/* ===== NEW TABS ===== */
+window.showTab = function(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.profile-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = 'block';
+  
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const targetBtn = Array.from(document.querySelectorAll('.profile-tab')).find(b => b.getAttribute('onclick')?.includes(`'${tab}'`));
+    if (targetBtn) targetBtn.classList.add('active');
+  }
+};
+
+window.handlePostMediaSelect = function(input) {
+  const countSpan = document.getElementById('media-selected-count');
+  const typeInput = document.getElementById('post_type');
+  if (input.files && input.files.length > 0) {
+    countSpan.textContent = input.files.length + ' file(s) selected';
+    let hasVideo = false;
+    for (let i = 0; i < input.files.length; i++) {
+      if (input.files[i].type.startsWith('video/')) {
+        hasVideo = true;
+        break;
+      }
+    }
+    typeInput.value = hasVideo ? 'video' : 'photo';
+  } else {
+    countSpan.textContent = 'No files selected';
+    typeInput.value = 'text';
+  }
+};
+
+window.handleMediaDrop = function(e) {
+  e.preventDefault();
+  const form = document.getElementById('media-upload-form');
+  if (form) form.style.borderColor = 'var(--md-outline-variant)';
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    uploadMediaFile(e.dataTransfer.files[0]);
+  }
+};
+
+window.uploadMediaFile = async function(file) {
+  if (!file) return;
+  const status = document.getElementById('upload-status');
+  status.style.display = 'block';
+  status.textContent = 'Uploading: ' + file.name + '...';
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('mediable_type', 'trip');
+  formData.append('mediable_id', '{{ $trip->id }}');
+  formData.append('_token', CSRF);
+  
+  try {
+    const res = await fetch('{{ route('media.store') }}', {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    status.textContent = 'Upload complete!';
+    setTimeout(() => { status.style.display = 'none'; }, 2000);
+    
+    const grid = document.getElementById('media-grid-container');
+    const noMediaMsg = document.getElementById('no-media-message');
+    if (noMediaMsg) noMediaMsg.style.display = 'none';
+    
+    const div = document.createElement('div');
+    div.className = 'media-item';
+    div.style.cursor = 'pointer';
+    
+    const url = data.media.url;
+    if (data.media.type === 'video') {
+      div.innerHTML = `
+        <video src="${url}" muted></video>
+        <span class="media-play"><svg class="icon " width="32" height="32" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:middle;display:inline-flex;flex-shrink:0"><path d="M320-200v-560l440 280-440 280Z"/></svg></span>
+      `;
+      div.onclick = () => openMediaLightbox(url);
+    } else {
+      div.innerHTML = `<img src="${url}" alt="Travel photo">`;
+      div.onclick = () => openMediaLightbox(url);
+    }
+    
+    grid.insertBefore(div, grid.firstChild);
+    
+    const countBadge = document.getElementById('media-count-badge');
+    if (countBadge) {
+      countBadge.textContent = parseInt(countBadge.textContent || 0) + 1;
+    }
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+    status.style.color = 'var(--md-error)';
+  }
+};
+
+window.openMediaLightbox = function(url) {
+  lbImages = [url];
+  lbIndex = 0;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('on');
+  document.body.style.overflow = 'hidden';
+};
+
+window.setRating = function(rating) {
+  document.getElementById('review_rating').value = rating;
+  const stars = document.querySelectorAll('.rating-stars .star-btn');
+  stars.forEach((star, idx) => {
+    if (idx < rating) {
+      star.style.color = 'var(--md-primary)';
+    } else {
+      star.style.color = 'var(--md-outline-variant)';
+    }
+  });
+};
 </script>
 @endpush
 @endsection
