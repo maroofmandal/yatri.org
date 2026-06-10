@@ -1,7 +1,7 @@
 <div class="pcard">
   <div class="pcard-head">
     <a href="{{ route('profile', $post->user) }}" class="pcard-author">
-      <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" class="pcard-avatar">
+      <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" class="pcard-avatar" width="40" height="40">
       <div>
         <strong>{{ $post->user->name }}</strong>
         <span class="muted" style="font-size:12px">{{ $post->created_at->diffForHumans() }}</span>
