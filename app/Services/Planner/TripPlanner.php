@@ -302,8 +302,8 @@ class TripPlanner
 
         Research and report live, usable data to build a COSTED day-by-day plan that fits the budget:
         1. Best transport for every leg (origin↔stops and between stops): mode, typical 2026 price per person, duration. Compare flight vs train/bus where relevant.
-        2. 2–3 well-rated hotels per stop in a sensible area, with the current or typical nightly price for the style above. Treat hotel prices as estimates unless a source clearly confirms exact date rates.
-        3. Top attractions per stop with entry fees (say if free) and the exact Google Maps search query. Mark whether fees are free, estimated, or confirmed by source.
+        2. 2–3 well-rated REAL hotels per stop in a sensible area, with the current or typical nightly price for the style above. For every hotel, provide the exact real Google Business / Google Maps search query to retrieve real data.
+        3. Top attractions per stop with entry fees (say if free) and the exact real Google Maps search query (e.g. 'Senso-ji Temple Tokyo'). Mark whether fees are free, estimated, or confirmed by source.
         4. Typical daily food cost per person for this style.
         5. Visa, seasonal weather, live-weather availability, or closure notes for these dates.
         Use real names and real current numbers. Keep it tight.
@@ -324,6 +324,7 @@ class TripPlanner
             ."Fill lat/lng for every route stop. Make budget.total equal the sum of the category amounts.\n"
             .'Set flights[].price_status and hotels[].price_status to `estimated` because no paid live fare/rate API is connected. '
             ."Set days[].items[].entry_fee_status to one of `free`, `estimated`, or `confirmed_by_source`.\n"
+            ."CRITICAL IMAGE RULE: Always populate `place_query` for every single hotel and day item activity with the exact, real Google Business / Google Maps search query (e.g. 'Park Hyatt Tokyo', 'Senso-ji Temple Tokyo'). This is used to query the Google Places API to fetch real user review photos and ratings. Do not use generic names (like 'hotel' or 'sightseeing') or mock/unsplash/external image URLs anywhere. Every destination, hotel, and activity must map to a real place query.\n"
             .'Also populate: route_options (2 distinct routing options with pros/cons), flights (each leg with airlines, type, duration, price, booking_query), '
             .'weather (seasonal estimates per city/day if available), packing (grouped lists suited to the season/dates), culture (dos/donts per country or place), and countdown (a pre-trip timeline from ~8 weeks out to 1 week before).';
     }

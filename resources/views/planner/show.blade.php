@@ -9,9 +9,23 @@
   $money = fn($n) => '<span class="money" data-amt="'.(float)$n.'">'.$sym.number_format((float)$n).'</span>';
 
   $budget = $trip->budget_breakdown ?: ($plan['budget'] ?? []);
+  $catIcons = [
+    'accommodation'=>'hotel',
+    'food'=>'restaurant',
+    'activities'=>'confirmation_number',
+    'local_transport'=>'subway',
+    'intercity_transport'=>'train',
+    'flights'=>'flight',
+    'misc'=>'sell',
+  ];
   $cats = [
-    'accommodation'=>'🏨 Accommodation','food'=>'🍜 Food','activities'=>'🎟️ Activities',
-    'local_transport'=>'🚇 Local transport','intercity_transport'=>'🚄 Intercity','flights'=>'✈️ Flights','misc'=>'🎒 Misc',
+    'accommodation'=>'Accommodation',
+    'food'=>'Food',
+    'activities'=>'Activities',
+    'local_transport'=>'Local transport',
+    'intercity_transport'=>'Intercity',
+    'flights'=>'Flights',
+    'misc'=>'Misc',
   ];
   $total = 0; foreach(array_keys($cats) as $k){ $total += (float)($budget[$k] ?? 0); }
   if($total<=0) $total = (float)($budget['total'] ?? $trip->budget_total);
@@ -169,9 +183,9 @@
     <h2>Budget — fits your {!! $money($trip->budget_total) !!}</h2>
     @php $fitClass = 'fit-'.($trip->fit_status ?? 'fit'); @endphp
     <div class="fit-banner {{ $fitClass }}" id="fitBanner">
-      @if($trip->fit_status==='over') <span class="material-symbols-outlined md-16" style="vertical-align:middle">warning</span> Realistic costs run over your cap.
-      @elseif($trip->fit_status==='under') ✅ Comes in under budget — room to upgrade.
-      @else ✅ Planned to fit your budget.
+      @if($trip->fit_status==='over') <span class="material-symbols-outlined md-20">warning</span> Realistic costs run over your cap.
+      @elseif($trip->fit_status==='under') <span class="material-symbols-outlined md-20" style="color:var(--md-primary)">check_circle</span> Comes in under budget — room to upgrade.
+      @else <span class="material-symbols-outlined md-20" style="color:var(--md-primary)">check_circle</span> Planned to fit your budget.
       @endif
       <strong style="margin-left:auto" id="fitAmount">{!! $money($total) !!} / {!! $money($trip->budget_total) !!}</strong>
     </div>
@@ -179,9 +193,14 @@
       @php $val=(float)($budget[$key] ?? 0); @endphp
       @if($val>0)
       <div class="bbar">
-        <div class="lbl">{{ $lbl }}</div>
+        <div class="bbar-header">
+          <div class="lbl">
+            <span class="material-symbols-outlined">{{ $catIcons[$key] ?? 'sell' }}</span>
+            {{ $lbl }}
+          </div>
+          <div class="amt">{!! $money($val) !!}</div>
+        </div>
         <div class="track"><span class="bbar-fill" data-pct="{{ max(4, round($val/$maxCat*100)) }}"></span></div>
-        <div class="amt">{!! $money($val) !!}</div>
       </div>
       @endif
     @endforeach
@@ -669,11 +688,11 @@
   <button class="est-toggle-btn" id="estToggle" onclick="toggleEstBar()">▲ Estimate</button>
   <div class="wrap">
     <div class="est-items" id="estItems">
-      <div class="est-item">🏨 <b id="estAccom">—</b></div>
-      <div class="est-item">🍜 <b id="estFood">—</b></div>
-      <div class="est-item">🎟️ <b id="estAct">—</b></div>
-      <div class="est-item">🚄 <b id="estTrans">—</b></div>
-      <div class="est-item">✈️ <b id="estFlight">—</b></div>
+      <div class="est-item"><span class="material-symbols-outlined">hotel</span> <b id="estAccom">—</b></div>
+      <div class="est-item"><span class="material-symbols-outlined">restaurant</span> <b id="estFood">—</b></div>
+      <div class="est-item"><span class="material-symbols-outlined">confirmation_number</span> <b id="estAct">—</b></div>
+      <div class="est-item"><span class="material-symbols-outlined">train</span> <b id="estTrans">—</b></div>
+      <div class="est-item"><span class="material-symbols-outlined">flight</span> <b id="estFlight">—</b></div>
     </div>
     <div class="est-total">
       <span id="estGrand">—</span>
