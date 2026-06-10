@@ -18,6 +18,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SocialController;
+use App\Http\Controllers\StaticPageController;
 use App\Models\Trip;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,13 @@ Route::get('/geo/suggest', [GeocodeController::class, 'suggest'])->name('geo.sug
 Route::get('/api/fx', [FxController::class, 'all'])->name('fx.all');
 Route::get('/api/fx/{currency}', [FxController::class, 'rate'])->name('fx.rate');
 Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile');
+
+// ── Static pages ─────────────────────────────────────────────────
+Route::get('/about', [StaticPageController::class, 'about'])->name('about');
+Route::get('/privacy', [StaticPageController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [StaticPageController::class, 'terms'])->name('terms');
+Route::get('/contact', [StaticPageController::class, 'contact'])->name('contact');
+Route::post('/contact', [StaticPageController::class, 'contactStore'])->name('contact.store');
 
 // ── Rankings ─────────────────────────────────────────────────────
 Route::get('/rankings', [RankingController::class, 'index'])->name('rankings');

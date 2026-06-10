@@ -275,7 +275,14 @@
 
 <footer style="padding:32px 0 40px;color:var(--md-on-surface-variant);font-size:13px;text-align:center;border-top:1px solid var(--md-outline-variant)">
   <div class="wrap">
-    {{ \App\Models\Setting::get('site_name', 'Yatri') }} · AI budget trip planner — itineraries grounded with live Google Search &amp; Maps data via Gemini. © {{ date('Y') }}
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;margin-bottom:12px">
+      <a href="{{ route('about') }}" style="color:inherit;text-decoration:none">About</a>
+      <a href="{{ route('privacy') }}" style="color:inherit;text-decoration:none">Privacy</a>
+      <a href="{{ route('terms') }}" style="color:inherit;text-decoration:none">Terms</a>
+      <a href="{{ route('contact') }}" style="color:inherit;text-decoration:none">Contact</a>
+      <a href="{{ route('pricing') }}" style="color:inherit;text-decoration:none">Pricing</a>
+    </div>
+    <div>{{ \App\Models\Setting::get('site_name', 'Yatri') }} · AI budget trip planner — itineraries grounded with live Google Search &amp; Maps data via Gemini. © {{ date('Y') }}</div>
   </div>
 </footer>
 
