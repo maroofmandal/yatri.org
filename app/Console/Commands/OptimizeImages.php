@@ -35,17 +35,24 @@ class OptimizeImages extends Command
             }
         }
 
-        // Optimize post/media images
+        // Optimize post/media images + generate thumbs
         foreach (['posts', 'media'] as $dir) {
             $files = Storage::disk('public')->files($dir);
             foreach ($files as $file) {
                 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) continue;
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) continue;
+                if (str_ends_with($file, '.webp')) {
+                    $thumb = ImageOptimizer::generateThumb($file);
+                    if ($thumb) $this->info("  thumb: $thumb");
+                    continue;
+                }
                 $this->info("Optimizing: $file");
                 $result = ImageOptimizer::optimizeExisting($file);
                 if ($result) {
                     Storage::disk('public')->delete($file);
                     Media::where('path', $file)->each(fn($m) => $m->update(['path' => $result]));
+                    $thumb = ImageOptimizer::generateThumb($result);
+                    if ($thumb) $this->info("  thumb: $thumb");
                     $count++;
                     $this->info("  -> $result");
                 }

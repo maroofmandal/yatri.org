@@ -9,6 +9,7 @@ class ImageOptimizer
 {
     const AVATAR_SIZE = 200;
     const POST_MAX_WIDTH = 1200;
+    const THUMB_MAX_WIDTH = 400;
     const QUALITY = 85;
 
     public static function optimizeAvatar(UploadedFile $file, string $disk = 'public'): string
@@ -19,7 +20,6 @@ class ImageOptimizer
         if (!$img) {
             return $file->store('avatars', $disk);
         }
-        $size = min(imagesx($img), imagesy($img));
         $img = imagescale($img, self::AVATAR_SIZE, self::AVATAR_SIZE);
         Storage::disk($disk)->put($filename, self::encodeWebp($img));
         imagedestroy($img);
@@ -35,11 +35,22 @@ class ImageOptimizer
             return $file->store('posts', $disk);
         }
         $w = imagesx($img);
+        $h = imagesy($img);
         if ($w > self::POST_MAX_WIDTH) {
             $ratio = self::POST_MAX_WIDTH / $w;
-            $img = imagescale($img, self::POST_MAX_WIDTH, (int)(imagesy($img) * $ratio));
+            $h = (int)($h * $ratio);
+            $img = imagescale($img, self::POST_MAX_WIDTH, $h);
         }
         Storage::disk($disk)->put($filename, self::encodeWebp($img));
+
+        // Generate thumbnail
+        $thumbRatio = min(self::THUMB_MAX_WIDTH / $w, 1);
+        if ($thumbRatio < 1) {
+            $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $thumbRatio));
+            Storage::disk($disk)->put('posts/thumbs/' . basename($filename), self::encodeWebp($thumb));
+            imagedestroy($thumb);
+        }
+
         imagedestroy($img);
         return $filename;
     }
@@ -53,11 +64,21 @@ class ImageOptimizer
             return $file->store($subdir, $disk);
         }
         $w = imagesx($img);
+        $h = imagesy($img);
         if ($w > self::POST_MAX_WIDTH) {
             $ratio = self::POST_MAX_WIDTH / $w;
-            $img = imagescale($img, self::POST_MAX_WIDTH, (int)(imagesy($img) * $ratio));
+            $h = (int)($h * $ratio);
+            $img = imagescale($img, self::POST_MAX_WIDTH, $h);
         }
         Storage::disk($disk)->put($filename, self::encodeWebp($img));
+
+        $thumbRatio = min(self::THUMB_MAX_WIDTH / $w, 1);
+        if ($thumbRatio < 1) {
+            $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $thumbRatio));
+            Storage::disk($disk)->put(trim($subdir, '/') . '/thumbs/' . basename($filename), self::encodeWebp($thumb));
+            imagedestroy($thumb);
+        }
+
         imagedestroy($img);
         return $filename;
     }
@@ -70,7 +91,6 @@ class ImageOptimizer
         if (!$img) return null;
         $isAvatar = str_starts_with($sourcePath, 'avatars/');
         if ($isAvatar) {
-            $size = min(imagesx($img), imagesy($img));
             $img = imagescale($img, self::AVATAR_SIZE, self::AVATAR_SIZE);
         } else {
             $w = imagesx($img);
@@ -83,6 +103,27 @@ class ImageOptimizer
         Storage::disk($disk)->put($webpPath, self::encodeWebp($img));
         imagedestroy($img);
         return $webpPath;
+    }
+
+    public static function generateThumb(string $sourcePath, string $disk = 'public'): ?string
+    {
+        $fullPath = Storage::disk($disk)->path($sourcePath);
+        if (!file_exists($fullPath)) return null;
+        $img = self::createFromFile($fullPath);
+        if (!$img) return null;
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $ratio = min(self::THUMB_MAX_WIDTH / $w, 1);
+        if ($ratio >= 1) {
+            imagedestroy($img);
+            return $sourcePath;
+        }
+        $thumb = imagescale($img, self::THUMB_MAX_WIDTH, (int)($h * $ratio));
+        imagedestroy($img);
+        $thumbPath = dirname($sourcePath) . '/thumbs/' . basename($sourcePath);
+        Storage::disk($disk)->put($thumbPath, self::encodeWebp($thumb));
+        imagedestroy($thumb);
+        return $thumbPath;
     }
 
     private static function createFromFile(string $path): ?\GdImage

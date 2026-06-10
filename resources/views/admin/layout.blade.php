@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
-<link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
+<link rel="preload" as="style" href="{{ asset('css/yatri.css') }}" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ asset('css/yatri.css') }}"></noscript>
 <style>
 .adm{display:flex;min-height:100vh}
 .adm-side{width:240px;background:var(--md-inverse-surface);color:var(--md-inverse-on-surface);flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow:auto}
