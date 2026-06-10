@@ -38,8 +38,8 @@
                 <video controls style="width:100%;height:100%;object-fit:cover" src="{{ $m->url }}"></video>
               </div>
             @else
-              <div class="c-item" style="background-image:url('{{ $m->url }}')" onclick="openPostViewer({{ $post->id }})">
-                <img src="{{ $m->url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover">
+              <div class="c-item" style="background-image:url('{{ $m->thumb_url }}')" onclick="openPostViewer({{ $post->id }})">
+                <img src="{{ $m->thumb_url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover" width="400" height="267" loading="lazy">
               </div>
             @endif
           @endforeach
