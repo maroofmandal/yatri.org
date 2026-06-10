@@ -685,7 +685,7 @@
 
 {{-- Estimation bar --}}
 <div class="est-bar" id="estBar">
-  <button class="est-toggle-btn" id="estToggle" onclick="toggleEstBar()">▲ Estimate</button>
+  <button class="est-toggle-btn" id="estToggle">▲ Estimate</button>
   <div class="wrap">
     <div class="est-items" id="estItems">
       <div class="est-item"><span class="material-symbols-outlined">hotel</span> <b id="estAccom">—</b></div>
