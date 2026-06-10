@@ -569,25 +569,31 @@
     <h2>Culture — do's &amp; don'ts</h2>
     <div class="grid grid-2">
       @foreach($plan['culture'] as $c)
-        <div class="card">
+        <div class="card culture-card">
           <h3>{{ $c['place'] ?? '' }}</h3>
-          <div style="display:flex;gap:16px">
+          <div class="culture-cols">
             @if(!empty($c['dos']))
-            <div style="flex:1">
-              <div class="subh">Do</div>
-              <ul style="list-style:none;padding:0;margin:0">
+            <div class="culture-col">
+              <div class="subh" style="color: var(--do-text); display: flex; align-items: center; gap: 4px;">Do</div>
+              <ul class="culture-list">
                 @foreach($c['dos'] as $d)
-                <li style="margin:6px 0;font-size:14px;padding:10px 12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #22c55e">✅ {{ $d }}</li>
+                <li class="culture-item culture-item-do">
+                  <x-icon name="check_circle" :size="18" />
+                  <span>{{ $d }}</span>
+                </li>
                 @endforeach
               </ul>
             </div>
             @endif
             @if(!empty($c['donts']))
-            <div style="flex:1">
-              <div class="subh">Don't</div>
-              <ul style="list-style:none;padding:0;margin:0">
+            <div class="culture-col">
+              <div class="subh" style="color: var(--dont-text); display: flex; align-items: center; gap: 4px;">Don't</div>
+              <ul class="culture-list">
                 @foreach($c['donts'] as $d)
-                <li style="margin:6px 0;font-size:14px;padding:10px 12px;background:#fef2f2;border-radius:8px;border-left:3px solid #ef4444">⛔ {{ $d }}</li>
+                <li class="culture-item culture-item-dont">
+                  <x-icon name="cancel" :size="18" />
+                  <span>{{ $d }}</span>
+                </li>
                 @endforeach
               </ul>
             </div>
