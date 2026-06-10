@@ -149,7 +149,7 @@ h2{font-size:clamp(20px,3vw,28px)}
 h3{font-size:18px;font-weight:600}
 h4{font-size:16px;font-weight:600}
 a{color:var(--md-primary);text-decoration:none;transition:color .15s}
-a:hover{text-decoration:underline}
+a:hover{text-decoration:none}
 p{margin:0 0 12px}
 
 .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle;font-size:20px;line-height:1}
