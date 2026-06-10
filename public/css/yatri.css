@@ -4,7 +4,7 @@
 
 /* ── M3 Light Tokens ── */
 :root, [data-theme="light"] {
-  --md-primary: #0f6dfc;
+  --md-primary: #0286fe;
   --md-on-primary: #ffffff;
   --md-primary-container: #dae2ff;
   --md-on-primary-container: #001a41;
@@ -35,7 +35,7 @@
   --md-outline-variant: #c4c6cf;
   --md-inverse-surface: #2f3033;
   --md-inverse-on-surface: #f1f0f4;
-  --md-inverse-primary: #b1c5ff;
+  --md-inverse-primary: #8ed0fd;
   --md-scrim: #000000;
   --md-shadow: #000000;
 
@@ -62,7 +62,7 @@
 /* ── M3 Dark Tokens ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --md-primary: #b1c5ff;
+    --md-primary: #8ed0fd;
     --md-on-primary: #002d6f;
     --md-primary-container: #004297;
     --md-on-primary-container: #dae2ff;
@@ -93,7 +93,7 @@
     --md-outline-variant: #44474e;
     --md-inverse-surface: #e2e3e7;
     --md-inverse-on-surface: #2f3033;
-    --md-inverse-primary: #0f6dfc;
+    --md-inverse-primary: #0286fe;
     --md-scrim: #000000;
     --md-shadow: #000000;
 
@@ -101,7 +101,7 @@
   }
 }
 [data-theme="dark"] {
-  --md-primary: #b1c5ff;
+  --md-primary: #8ed0fd;
   --md-on-primary: #002d6f;
   --md-primary-container: #004297;
   --md-on-primary-container: #dae2ff;
@@ -132,7 +132,7 @@
   --md-outline-variant: #44474e;
   --md-inverse-surface: #e2e3e7;
   --md-inverse-on-surface: #2f3033;
-  --md-inverse-primary: #0f6dfc;
+  --md-inverse-primary: #0286fe;
   --md-scrim: #000000;
   --md-shadow: #000000;
 
@@ -286,7 +286,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .tag-success{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}
 
 /* ── Hero ── */
-.hero{background:linear-gradient(155deg,#026DFE 0%,#01D3F9 100%);color:#fff;padding:64px 0 56px;position:relative;overflow:hidden}
+.hero{background:linear-gradient(155deg,#0286fe 0%,#01c4fb 100%);color:#fff;padding:64px 0 56px;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 70% 0%,rgba(255,255,255,.15),transparent 65%)}
 .hero .wrap{position:relative;z-index:1}
 .hero h1,.hero h2,.hero h3{color:#fff}

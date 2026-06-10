@@ -15,7 +15,7 @@
 <link rel="icon" href="{{ asset('storage/images/favicon-16x16.png') }}?v={{ config('app.version') }}" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="{{ asset('storage/images/apple-touch-icon.png') }}?v={{ config('app.version') }}" sizes="180x180">
 <link rel="manifest" href="{{ asset('site.webmanifest') }}?v={{ config('app.version') }}">
-<meta name="theme-color" content="#0f6dfc">
+<meta name="theme-color" content="#0286fe">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Yatri">
@@ -45,7 +45,7 @@
     <button class="icon-btn" aria-label="Menu" onclick="document.querySelector('.nav-drawer').classList.add('open')" style="display:none" id="menu-btn">
       <span class="material-symbols-outlined">menu</span>
     </button>
-    <a class="topbar-brand" href="{{ route('home') }}"><span class="dot"></span>{{ \App\Models\Setting::get('site_name', 'Yatri') }}</a>
+    <a class="topbar-brand" href="{{ route('home') }}"><img src="{{ asset('storage/images/yatri-logo.png') }}?v={{ config('app.version') }}" alt="Yatri" height="28"></a>
   </div>
   <nav class="topbar-nav">
     <a href="{{ route('home') }}" @if($currentPage === 'home') style="color:var(--md-primary)" @endif>
