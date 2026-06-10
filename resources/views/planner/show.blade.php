@@ -596,7 +596,7 @@
     <p class="lead">Live references the AI used to ground this plan.</p>
     <div class="source-list">
       @foreach($trip->grounding as $g)
-        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{{ $g['type']==='maps'?'<span class=&quot;material-symbols-outlined md-14&quot; style=&quot;vertical-align:middle&quot;>location_on</span>':'<span class=&quot;material-symbols-outlined md-14&quot; style=&quot;vertical-align:middle&quot;>link</span>' }} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
+        @if(!empty($g['uri']))<a target="_blank" rel="noopener" href="{{ $g['uri'] }}">{!! $g['type']==='maps' ? '<span class="material-symbols-outlined md-14" style="vertical-align:middle">location_on</span>' : '<span class="material-symbols-outlined md-14" style="vertical-align:middle">link</span>' !!} {{ \Illuminate\Support\Str::limit($g['title'] ?: $g['uri'], 50) }}</a>@endif
       @endforeach
     </div>
   </div>
