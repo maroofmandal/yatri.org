@@ -7,8 +7,8 @@
 @push('head')
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "Article",
+  "@@context": "https://schema.org",
+  "@@type": "Article",
   "headline": "{{ $post->title }}",
   "description": "{{ $post->meta_description }}",
   "author": {

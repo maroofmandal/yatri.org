@@ -39,8 +39,8 @@
 
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "Organization",
+  "@@context": "https://schema.org",
+  "@@type": "Organization",
   "name": "Yatri",
   "url": "{{ url('/') }}",
   "logo": "{{ asset('storage/images/yatri-icon.png') }}",
@@ -51,8 +51,8 @@
 
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
+  "@@context": "https://schema.org",
+  "@@type": "WebSite",
   "name": "Yatri",
   "url": "{{ url('/') }}",
   "potentialAction": {
