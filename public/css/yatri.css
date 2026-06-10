@@ -825,6 +825,7 @@ body.has-est-bar{padding-bottom:80px}
   body.has-bottom-nav{padding-bottom:84px}
   body.has-bottom-nav.has-est-bar{padding-bottom:148px !important}
   .est-bar{bottom:80px}
+  .est-toggle-btn{position:fixed;bottom:80px;top:auto;right:0}
 
   .hero{padding:40px 0 32px}
   .hero h1{font-size:clamp(24px,7vw,36px)}
@@ -863,7 +864,7 @@ body.has-est-bar{padding-bottom:80px}
   .city-head{padding:14px 16px}
   .city-head h3{font-size:19px}
   .day-stepper button{width:32px;height:32px}
-  .theme-options{flex-direction:column}
+  .theme-options{flex-direction:row}
   footer{padding:20px 0 100px}
 
 }
