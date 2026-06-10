@@ -73,14 +73,14 @@
     @if($media->count())
       <div class="media-grid mt">
         @foreach($media as $m)
-          <a href="{{ $m->url }}" class="media-item" target="_blank">
+          <div class="media-item" style="cursor:pointer" onclick="openPostViewer({{ $m->mediable_id }})">
             @if($m->isVideo())
               <video src="{{ $m->url }}" muted></video>
               <span class="media-play"><span class="material-symbols-outlined md-32">play_arrow</span></span>
             @else
               <img src="{{ $m->url }}" alt="">
             @endif
-          </a>
+          </div>
         @endforeach
       </div>
     @else
