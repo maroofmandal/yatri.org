@@ -71,6 +71,7 @@ class SocialController extends Controller
         $comment = $post->comments()->create([
             'user_id' => auth()->id(),
             'body' => $data['body'],
+            'trip_id' => $post->trip_id,
         ]);
 
         $this->notificationService->sendCommentNotification(auth()->user(), $comment);
