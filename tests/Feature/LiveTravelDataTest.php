@@ -206,8 +206,8 @@ class LiveTravelDataTest extends TestCase
             ->assertOk()
             ->assertSee('Add post media')
             ->assertSee('Write a review')
-            ->assertSee('tab=media')
-            ->assertSee('tab=reviews');
+            ->assertSee('tab=media&open_form=1')
+            ->assertSee('tab=reviews&open_form=1');
     }
 
     private function llm(): LlmClient

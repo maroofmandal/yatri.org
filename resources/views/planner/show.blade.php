@@ -700,7 +700,12 @@
   {{-- Posts Tab --}}
   <div class="tab-content" id="tab-posts" style="display:none">
     @auth
-      <div class="block" style="margin-bottom:20px;padding:24px">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button id="toggle-post-form-btn" class="btn btn-outlined" onclick="toggleForm('post-form-block', 'toggle-post-form-btn', 'Post', 'post_add')">
+          <x-icon name="post_add" :size="18" /> New Post
+        </button>
+      </div>
+      <div class="block" id="post-form-block" style="margin-bottom:20px;padding:24px;display:none">
         <h3 style="margin-top:0">Post to this Trip</h3>
         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="post-create-form">
           @csrf
@@ -755,7 +760,12 @@
   {{-- Media Tab --}}
   <div class="tab-content" id="tab-media" style="display:none">
     @auth
-      <div class="block" style="margin-bottom:20px;padding:24px">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button id="toggle-media-form-btn" class="btn btn-outlined" onclick="toggleForm('media-form-block', 'toggle-media-form-btn', 'Media', 'cloud_upload')">
+          <x-icon name="cloud_upload" :size="18" /> Upload Media
+        </button>
+      </div>
+      <div class="block" id="media-form-block" style="margin-bottom:20px;padding:24px;display:none">
         <h3 style="margin-top:0">Upload Media to this Trip</h3>
         <form id="media-upload-form" class="media-upload-form" style="border: 2px dashed var(--md-outline-variant); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s;" ondragover="event.preventDefault(); this.style.borderColor='var(--md-primary)';" ondragleave="this.style.borderColor='var(--md-outline-variant)';" ondrop="handleMediaDrop(event)">
           @csrf
@@ -796,7 +806,12 @@
   {{-- Reviews Tab --}}
   <div class="tab-content" id="tab-reviews" style="display:none">
     @auth
-      <div class="block" style="margin-bottom:20px;padding:24px">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button id="toggle-review-form-btn" class="btn btn-outlined" onclick="toggleForm('review-form-block', 'toggle-review-form-btn', 'Review', 'rate_review')">
+          <x-icon name="rate_review" :size="18" /> Write Review
+        </button>
+      </div>
+      <div class="block" id="review-form-block" style="margin-bottom:20px;padding:24px;display:none">
         <h3 style="margin-top:0">Write a Review</h3>
         <form action="{{ route('reviews.store') }}" method="POST" class="review-create-form">
           @csrf
@@ -1372,6 +1387,18 @@ window.showTab = function(tab, btn) {
   const activeTab = urlParams.get('tab');
   if (activeTab && ['trips', 'posts', 'media', 'reviews'].includes(activeTab)) {
     window.showTab(activeTab);
+    
+    // Auto-open form if open_form parameter is set
+    const openForm = urlParams.get('open_form');
+    if (openForm === '1') {
+      if (activeTab === 'posts') {
+        window.toggleForm('post-form-block', 'toggle-post-form-btn', 'Post', 'post_add');
+      } else if (activeTab === 'media') {
+        window.toggleForm('media-form-block', 'toggle-media-form-btn', 'Media', 'cloud_upload');
+      } else if (activeTab === 'reviews') {
+        window.toggleForm('review-form-block', 'toggle-review-form-btn', 'Review', 'rate_review');
+      }
+    }
   }
 })();
 
@@ -1475,6 +1502,43 @@ window.setRating = function(rating) {
       star.style.color = 'var(--md-outline-variant)';
     }
   });
+};
+
+window.toggleForm = function(formId, btnId, typeText, defaultIcon) {
+  const formBlock = document.getElementById(formId);
+  const btn = document.getElementById(btnId);
+  if (!formBlock || !btn) return;
+
+  const isHidden = formBlock.style.display === 'none';
+  if (isHidden) {
+    formBlock.style.display = 'block';
+    let btnText = 'Cancel';
+    if (typeText === 'Post') btnText = 'Cancel Post';
+    else if (typeText === 'Media') btnText = 'Cancel Upload';
+    else if (typeText === 'Review') btnText = 'Cancel Review';
+    
+    btn.innerHTML = `<svg class="icon " width="18" height="18" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:middle;display:inline-flex;flex-shrink:0"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> ${btnText}`;
+    btn.classList.remove('btn-outlined');
+    btn.classList.add('btn-ghost');
+  } else {
+    formBlock.style.display = 'none';
+    let btnText = 'New Post';
+    if (typeText === 'Media') btnText = 'Upload Media';
+    else if (typeText === 'Review') btnText = 'Write Review';
+    
+    let iconSvg = '';
+    if (defaultIcon === 'post_add') {
+      iconSvg = `<svg class="icon " width="18" height="18" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:middle;display:inline-flex;flex-shrink:0"><path d="M720-120v-120H600v-80h120v-120h80v120h120v80H800v120h-80ZM200-160q-33 0-56.5-23.5T120-240v-560q0-33 23.5-56.5T200-880h320l80 80H200v560h440v-160h80v160q0 33-23.5 56.5T640-160H200Zm120-200v-80h200v80H320Zm0-120v-80h280v80H320Zm0-120v-80h280v80H320Z"/></svg>`;
+    } else if (defaultIcon === 'cloud_upload') {
+      iconSvg = `<svg class="icon " width="18" height="18" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:middle;display:inline-flex;flex-shrink:0"><path d="M440-200v-244L332-336l-56-56 204-204 204 204-56 56-108-108v244h-80Zm-240 80q-50 0-85-35t-35-85v-120h80v120h560v-120h80v120q0 50-35 85t-85 85H200Z"/></svg>`;
+    } else if (defaultIcon === 'rate_review') {
+      iconSvg = `<svg class="icon " width="18" height="18" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:middle;display:inline-flex;flex-shrink:0"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-8ZM160-800v545l75-75h565v-470H160Zm0 0v470-470Z"/></svg>`;
+    }
+    
+    btn.innerHTML = `${iconSvg} ${btnText}`;
+    btn.classList.remove('btn-ghost');
+    btn.classList.add('btn-outlined');
+  }
 };
 </script>
 @endpush
