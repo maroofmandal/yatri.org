@@ -538,7 +538,7 @@ function openPostViewer(postId) {
   document.getElementById('pvLikeBtn').classList.remove('liked');
   pvReset();
 
-  fetch('/posts/' + postId + '/viewer')
+  fetch('/posts/viewer/' + postId)
     .then(r => r.json())
     .then(data => {
       pvData = data;

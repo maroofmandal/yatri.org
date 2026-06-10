@@ -84,9 +84,9 @@ class PostController extends Controller
         return view('posts.show', compact('post'));
     }
 
-    public function viewer(Post $post)
+    public function viewer($postId)
     {
-        $post->load(['user', 'media', 'comments.user', 'likes']);
+        $post = Post::with(['user', 'media', 'comments.user', 'likes'])->findOrFail($postId);
         $post->loadCount(['likes', 'comments']);
 
         $images = $post->media->where('type', 'photo')->values()->map(fn($m) => [
