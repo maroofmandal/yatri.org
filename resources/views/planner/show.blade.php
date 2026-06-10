@@ -1270,7 +1270,7 @@ function recalcTotal() {
 
 /* ===== CHAT ===== */
 const log = document.getElementById('chatLog');
-function addMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
+function addMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; log.appendChild(d); requestAnimationFrame(function() { log.scrollTop = log.scrollHeight; }); return d; }
 document.getElementById('chatForm')?.addEventListener('submit', async e => {
   e.preventDefault();
   const inp = document.getElementById('chatInput'); const q = inp.value.trim(); if (!q) return;

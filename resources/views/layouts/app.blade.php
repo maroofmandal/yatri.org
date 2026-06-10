@@ -705,7 +705,7 @@ function renderComments() {
       '</div>' +
     '</div>'
   ).join('');
-  el.scrollTop = el.scrollHeight;
+  requestAnimationFrame(function() { el.scrollTop = el.scrollHeight; });
 }
 
 function pvNav(dir) {
