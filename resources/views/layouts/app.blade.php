@@ -271,7 +271,7 @@
 @if(session('ok'))<div class="wrap"><div class="flash flash-ok"><x-icon name="check_circle" :size="20" /> {{ session('ok') }}</div></div>@endif
 @if(session('error'))<div class="wrap"><div class="flash flash-err"><x-icon name="error" :size="20" /> {{ session('error') }}</div></div>@endif
 
-@yield('content')
+<main>@yield('content')</main>
 
 <footer style="padding:32px 0 40px;color:var(--md-on-surface-variant);font-size:13px;text-align:center;border-top:1px solid var(--md-outline-variant)">
   <div class="wrap">
