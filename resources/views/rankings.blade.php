@@ -29,7 +29,7 @@
       @foreach($travelers as $i => $traveler)
         <a href="{{ route('profile', $traveler) }}" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-md);text-decoration:none;color:var(--md-on-surface);transition:all .15s" onmouseover="this.style.boxShadow='var(--md-elevation-1)'" onmouseout="this.style.boxShadow='none'">
           <span style="font-family:'Outfit';font-weight:700;font-size:18px;color:var(--md-on-surface-variant);min-width:32px;text-align:center">{{ $i + 1 }}</span>
-          <img src="{{ $traveler->avatar() }}" alt="{{ $traveler->name }}" style="width:42px;height:42px;border-radius:50%;object-fit:cover">
+          <img src="{{ $traveler->avatar() }}" alt="{{ $traveler->name }}" style="width:42px;height:42px;border-radius:50%;object-fit:cover" width="42" height="42">
           <div style="flex:1">
             <div style="font-weight:600;font-size:15px">{{ $traveler->name }}</div>
             <div style="font-size:12px;color:var(--md-on-surface-variant)">{{ $traveler->trips_count ?? 0 }} trips · {{ $traveler->followers_count ?? 0 }} followers</div>

@@ -662,7 +662,7 @@
     @endauth
     @forelse($trip->comments()->with('user')->latest()->get() as $c)
       <div style="display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)">
-        <img src="{{ $c->user->avatar() }}" alt="{{ $c->user->name }}" style="width:34px;height:34px;border-radius:50%">
+        <img src="{{ $c->user->avatar() }}" alt="{{ $c->user->name }}" style="width:34px;height:34px;border-radius:50%" width="34" height="34">
         <div>
           <a href="{{ route('profile',$c->user) }}" style="font-weight:600;font-size:14px">{{ $c->user->name }}</a>
           <span class="muted" style="font-size:12px">· {{ $c->created_at->diffForHumans() }}</span>
@@ -838,7 +838,7 @@
       @forelse($reviews as $review)
         <div class="review-card block" style="margin-bottom:16px;padding:20px">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-            <img src="{{ $review->user->avatar() }}" alt="{{ $review->user->name }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+            <img src="{{ $review->user->avatar() }}" alt="{{ $review->user->name }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover" width="40" height="40">
             <div style="flex:1">
               <div style="font-weight:600;font-size:15px">{{ $review->user->name }}</div>
               <div class="place-stars" style="display:flex;align-items:center;gap:2px">

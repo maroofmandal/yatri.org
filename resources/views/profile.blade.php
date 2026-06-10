@@ -3,7 +3,7 @@
 
 @section('content')
 <header class="hero" style="padding:48px 0 36px"><div class="wrap" style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
-  <img src="{{ $user->avatar() }}" alt="{{ $user->name }}" style="width:88px;height:88px;border-radius:50%;border:3px solid rgba(255,255,255,.3);object-fit:cover">
+  <img src="{{ $user->avatar() }}" alt="{{ $user->name }}" style="width:88px;height:88px;border-radius:50%;border:3px solid rgba(255,255,255,.3);object-fit:cover" width="88" height="88">
   <div style="flex:1">
     <h1 style="font-size:clamp(24px,4vw,36px);margin:0"><strong>{{ $user->name }}</strong></h1>
     @if($user->bio)<p style="color:rgba(255,255,255,.85);margin-top:6px;max-width:520px">{{ $user->bio }}</p>@endif

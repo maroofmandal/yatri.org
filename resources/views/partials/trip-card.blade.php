@@ -10,7 +10,7 @@
   </a>
   <div class="tcard-foot">
     @if($trip->user)
-      <a href="{{ route('profile', $trip->user) }}" class="tauthor"><img src="{{ $trip->user->avatar() }}" alt="{{ $trip->user->name }}"> {{ $trip->user->name }}</a>
+      <a href="{{ route('profile', $trip->user) }}" class="tauthor"><img src="{{ $trip->user->avatar() }}" alt="{{ $trip->user->name }}" width="26" height="26"> {{ $trip->user->name }}</a>
     @else
       <span class="muted" style="font-size:12px;display:flex;align-items:center;gap:4px"><x-icon name="person_off" :size="16" /> Guest planner</span>
     @endif

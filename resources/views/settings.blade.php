@@ -19,7 +19,7 @@
     <form method="POST" action="{{ route('settings.avatar') }}" enctype="multipart/form-data">
       @csrf
       <div class="avatar-upload">
-        <img src="{{ $user->avatar() }}" alt="{{ $user->name }}" id="avatar-preview">
+        <img src="{{ $user->avatar() }}" alt="{{ $user->name }}" id="avatar-preview" width="200" height="200">
         <div class="avatar-actions">
           <label class="btn btn-outlined btn-sm" style="cursor:pointer">
             <x-icon name="upload" :size="18" /> Choose photo

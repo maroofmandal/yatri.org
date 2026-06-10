@@ -21,13 +21,13 @@
         <div class="notification-item {{ is_null($notification->read_at) ? 'unread' : '' }}" id="notification-{{ $notification->id }}">
           <div class="notification-avatar">
             @if(isset($notification->data['liker_avatar']))
-              <img src="{{ $notification->data['liker_avatar'] }}" alt="">
+              <img src="{{ $notification->data['liker_avatar'] }}" alt="" width="44" height="44">
             @elseif(isset($notification->data['follower_avatar']))
-              <img src="{{ $notification->data['follower_avatar'] }}" alt="">
+              <img src="{{ $notification->data['follower_avatar'] }}" alt="" width="44" height="44">
             @elseif(isset($notification->data['commenter_avatar']))
-              <img src="{{ $notification->data['commenter_avatar'] }}" alt="">
+              <img src="{{ $notification->data['commenter_avatar'] }}" alt="" width="44" height="44">
             @elseif(isset($notification->data['replier_avatar']))
-              <img src="{{ $notification->data['replier_avatar'] }}" alt="">
+              <img src="{{ $notification->data['replier_avatar'] }}" alt="" width="44" height="44">
             @else
               <div class="notification-icon"><x-icon name="notifications" /></div>
             @endif

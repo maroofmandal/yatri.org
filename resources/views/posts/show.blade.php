@@ -38,7 +38,7 @@
       <h1 style="font-size:clamp(24px,4vw,32px)">{{ $post->title }}</h1>
       <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
         <a href="{{ route('profile', $post->user) }}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-          <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" style="width:40px;height:40px;border-radius:50%">
+          <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" style="width:40px;height:40px;border-radius:50%" width="40" height="40">
           <div>
             <strong>{{ $post->user->name }}</strong>
             <span class="muted" style="font-size:12px;display:block">{{ $post->created_at->diffForHumans() }}</span>
