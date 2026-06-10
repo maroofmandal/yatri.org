@@ -31,8 +31,9 @@ class SocialController extends Controller
         return response()->json(['liked' => $liked, 'count' => $trip->likes()->count()]);
     }
 
-    public function likePost(Post $post)
+    public function likePost($postId)
     {
+        $post = Post::findOrFail($postId);
         $user = auth()->user();
         $existing = $post->likes()->where('user_id', $user->id)->first();
 
@@ -62,8 +63,9 @@ class SocialController extends Controller
         return back()->withFragment('comments');
     }
 
-    public function commentPost(Request $request, Post $post)
+    public function commentPost(Request $request, $postId)
     {
+        $post = Post::findOrFail($postId);
         $data = $request->validate(['body' => ['required', 'string', 'max:1000']]);
 
         $comment = $post->comments()->create([

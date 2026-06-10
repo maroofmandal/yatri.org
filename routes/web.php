@@ -56,8 +56,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/t/{trip}/like', [SocialController::class, 'like'])->name('trip.like');
     Route::post('/t/{trip}/comment', [SocialController::class, 'comment'])->name('trip.comment');
     
-    Route::post('/posts/{post}/like', [SocialController::class, 'likePost'])->name('post.like');
-    Route::post('/posts/{post}/comment', [SocialController::class, 'commentPost'])->name('post.comment');
+    Route::post('/posts/{postId}/like', [SocialController::class, 'likePost'])->name('post.like');
+    Route::post('/posts/{postId}/comment', [SocialController::class, 'commentPost'])->name('post.comment');
     Route::post('/comments/{comment}/reply', [SocialController::class, 'reply'])->name('comment.reply');
     
     Route::post('/media', [MediaController::class, 'store'])->name('media.store');
