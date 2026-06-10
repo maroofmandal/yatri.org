@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 /* ── M3 Light Tokens ── */
 :root, [data-theme="light"] {
-  --md-primary: #0286fe;
+  --md-primary: #005cbb;
   --md-on-primary: #ffffff;
   --md-primary-container: #dae2ff;
   --md-on-primary-container: #001a41;
