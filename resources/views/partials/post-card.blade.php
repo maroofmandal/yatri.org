@@ -67,7 +67,7 @@
       <span class="material-symbols-outlined md-20">chat_bubble</span>
       <span>{{ $post->comments_count }}</span>
     </button>
-    <button class="pcard-action">
+    <button class="pcard-action" onclick="sharePost('{{ route('posts.show', $post) }}', '{{ $post->title }}')">
       <span class="material-symbols-outlined md-20">share</span>
       Share
     </button>

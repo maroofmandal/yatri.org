@@ -365,6 +365,18 @@ setInterval(checkNotifications, 30000);
 </script>
 <script>
 // ── Social Interaction Functions ──
+function sharePost(url, title) {
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = event.target.closest('.pcard-action') || event.target;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined md-20">check</span> Copied';
+      setTimeout(() => btn.innerHTML = orig, 2000);
+    }).catch(() => {});
+  }
+}
 function toggleLike(postId) {
   fetch('/posts/' + postId + '/like', {
     method: 'POST',
