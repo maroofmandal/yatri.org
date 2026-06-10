@@ -373,8 +373,9 @@ function toggleLike(postId) {
       'Content-Type': 'application/json'
     }
   })
-  .then(r => r.json())
+  .then(r => { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
   .then(data => {
+    if (!data) return;
     const btn = document.querySelector('[data-post-id="' + postId + '"]');
     const countEl = btn.querySelector('.like-count');
     const icon = btn.querySelector('.material-symbols-outlined');
@@ -386,7 +387,8 @@ function toggleLike(postId) {
       if (icon) icon.classList.remove('filled');
     }
     countEl.textContent = data.count;
-  });
+  })
+  .catch(() => {});
 }
 
 function toggleComments(postId) {
@@ -408,13 +410,15 @@ function submitComment(e, postId) {
     },
     body: JSON.stringify({ body })
   })
-  .then(r => r.json())
+  .then(r => { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
   .then(data => {
+    if (!data) return;
     const list = document.getElementById('comment-list-' + postId);
     const html = '<div class="comment-item"><a href="/u/' + data.comment.user.name + '"><img src="' + (data.comment.user.avatar_url || 'https://ui-avatars.com/api/?background=c2412c&color=fff&name=' + encodeURIComponent(data.comment.user.name)) + '" alt="" class="comment-avatar"></a><div class="comment-content"><div class="comment-header"><a href="/u/' + data.comment.user.name + '"><strong>' + data.comment.user.name + '</strong></a><span class="muted" style="font-size:11px">just now</span></div><p class="comment-body">' + data.comment.body + '</p></div></div>';
     list.insertAdjacentHTML('beforeend', html);
     input.value = '';
-  });
+  })
+  .catch(() => {});
 }
 
 function toggleReplyForm(commentId) {
@@ -691,8 +695,9 @@ function pvToggleLike() {
       'Content-Type': 'application/json'
     }
   })
-  .then(r => r.json())
+  .then(r => { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
   .then(data => {
+    if (!data) return;
     pvData.liked = data.liked;
     pvData.likes_count = data.count;
     document.getElementById('pvLikeBtn').classList.toggle('liked', data.liked);
@@ -706,7 +711,8 @@ function pvToggleLike() {
       if (icon) icon.classList.toggle('filled', data.liked);
       if (countEl) countEl.textContent = data.count;
     }
-  });
+  })
+  .catch(() => {});
 }
 
 /* Comment */
@@ -722,7 +728,7 @@ function pvSubmitComment() {
     },
     body: JSON.stringify({ body })
   })
-  .then(r => r.json())
+  .then(r => { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
   .then(data => {
     pvData.comments.push({
       id: data.comment.id,
