@@ -686,17 +686,19 @@
 {{-- Estimation bar --}}
 <div class="est-bar" id="estBar">
   <button class="est-toggle-btn" id="estToggle">▲ Estimate</button>
-  <div class="wrap">
-    <div class="est-items" id="estItems">
-      <div class="est-item"><span class="material-symbols-outlined">hotel</span> <b id="estAccom">—</b></div>
-      <div class="est-item"><span class="material-symbols-outlined">restaurant</span> <b id="estFood">—</b></div>
-      <div class="est-item"><span class="material-symbols-outlined">confirmation_number</span> <b id="estAct">—</b></div>
-      <div class="est-item"><span class="material-symbols-outlined">train</span> <b id="estTrans">—</b></div>
-      <div class="est-item"><span class="material-symbols-outlined">flight</span> <b id="estFlight">—</b></div>
-    </div>
-    <div class="est-total">
-      <span id="estGrand">—</span>
-      <span class="est-fit ok" id="estFit">Within budget</span>
+  <div class="est-bar-content">
+    <div class="wrap">
+      <div class="est-items" id="estItems">
+        <div class="est-item"><span class="material-symbols-outlined">hotel</span> <b id="estAccom">—</b></div>
+        <div class="est-item"><span class="material-symbols-outlined">restaurant</span> <b id="estFood">—</b></div>
+        <div class="est-item"><span class="material-symbols-outlined">confirmation_number</span> <b id="estAct">—</b></div>
+        <div class="est-item"><span class="material-symbols-outlined">train</span> <b id="estTrans">—</b></div>
+        <div class="est-item"><span class="material-symbols-outlined">flight</span> <b id="estFlight">—</b></div>
+      </div>
+      <div class="est-total">
+        <span id="estGrand">—</span>
+        <span class="est-fit ok" id="estFit">Within budget</span>
+      </div>
     </div>
   </div>
 </div>

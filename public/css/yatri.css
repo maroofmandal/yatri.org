@@ -209,6 +209,9 @@ p{margin:0 0 12px}
 .profile-dropdown-item:hover{background:var(--md-state-hover)}
 .profile-dropdown-item .material-symbols-outlined{font-size:20px;color:var(--md-on-surface-variant)}
 .profile-dropdown-divider{height:1px;background:var(--md-outline-variant);margin:4px 0}
+.topbar-guest-avatar{font-size:28px;color:var(--md-on-surface-variant);padding:4px;border:none;background:none;cursor:pointer;border-radius:50%;transition:background .15s,color .15s}
+.topbar-guest-avatar:hover{background:var(--md-state-hover);color:var(--md-primary)}
+.topbar-guest-avatar .material-symbols-outlined{font-size:32px}
 
 /* ── Buttons ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;padding:10px 24px;border-radius:var(--md-shape-full);transition:all .15s cubic-bezier(.2,0,0,1);text-decoration:none;white-space:nowrap;line-height:1.4}
@@ -726,8 +729,9 @@ input[list]::-webkit-list-button{display:none!important}
 .route-tab-btn button.on{background:var(--md-secondary-container);color:var(--md-on-secondary-container);box-shadow:var(--md-elevation-1)}
 
 /* ── Sticky estimation bar ── */
-.est-bar{position:fixed;bottom:0;left:0;right:0;z-index:1050;background:var(--md-surface-container);border-top:1px solid var(--md-outline-variant);box-shadow:0 -2px 12px rgba(0,0,0,.08);padding:12px 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,0,0,1);backdrop-filter:blur(20px)}
-.est-bar.visible{transform:translateY(0)}
+.est-bar{position:fixed;bottom:0;left:0;right:0;z-index:1050;overflow:visible}
+.est-bar .est-bar-content{background:var(--md-surface-container);border-top:1px solid var(--md-outline-variant);box-shadow:0 -2px 12px rgba(0,0,0,.08);padding:12px 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,0,0,1);backdrop-filter:blur(20px)}
+.est-bar.visible .est-bar-content{transform:translateY(0)}
 .est-bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .est-bar .est-items{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .est-bar .est-item{font-size:12px;color:var(--md-on-surface-variant);display:flex;align-items:center;gap:4px}
@@ -737,7 +741,7 @@ input[list]::-webkit-list-button{display:none!important}
 .est-bar .est-fit{font-size:12px;font-weight:700;padding:4px 12px;border-radius:var(--md-shape-full)}
 .est-bar .est-fit.ok{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}
 .est-bar .est-fit.over{background:var(--md-error-container);color:var(--md-on-error-container)}
-.est-toggle-btn{position:absolute;height:28px;top:-28px;right:24px;display:flex;align-items:center;background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);border-bottom:none;border-radius:var(--md-shape-sm) var(--md-shape-sm) 0 0;padding:0 12px;font-size:11px;font-weight:700;color:var(--md-on-surface-variant);cursor:pointer;font-family:'Outfit'}
+.est-toggle-btn{position:absolute;height:32px;top:-32px;right:0;display:flex;align-items:center;background:var(--md-surface-container);border:1px solid var(--md-outline-variant);border-bottom:none;border-radius:var(--md-shape-sm) var(--md-shape-sm) 0 0;padding:0 14px;font-size:11px;font-weight:700;color:var(--md-on-surface-variant);cursor:pointer;font-family:'Outfit';z-index:1051;gap:4px}
 
 /* ── Scroll reveal ── */
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .5s cubic-bezier(.2,0,0,1),transform .5s cubic-bezier(.2,0,0,1);animation:revealFallback 0s 1.5s forwards}
@@ -840,8 +844,14 @@ body.has-est-bar{padding-bottom:80px}
   .chat-input input{min-width:0}
   .bbar{margin:12px 0}
   .fit-banner{flex-wrap:wrap;gap:8px}
-  .controls-panel{flex-direction:column}
-  .ctrl-card{min-width:0}
+  .controls-panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .controls-panel .ctrl-card:first-child{grid-column:1/-1}
+  .controls-panel .ctrl-card:nth-child(5){grid-column:1/-1;flex:unset}
+  .ctrl-card{min-width:0;padding:12px 14px}
+  .ctrl-card label{font-size:11px}
+  .ctrl-card .ctrl-value{font-size:20px}
+  .day-stepper .step-val{min-width:30px;font-size:14px;padding:5px 2px}
+  .day-stepper button{width:28px;height:28px;font-size:15px}
   .cost-chips{gap:6px}
   .cost-chip{padding:6px 10px;font-size:12px}
   .spot-gallery{grid-template-columns:1fr 1fr}
@@ -856,8 +866,6 @@ body.has-est-bar{padding-bottom:80px}
   .theme-options{flex-direction:column}
   footer{padding:20px 0 100px}
 
-  /* hide desktop nav on mobile */
-  .topbar .topbar-right .topbar-avatar-wrap{display:none}
 }
 
 @media(max-width:600px){

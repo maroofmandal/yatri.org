@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ auth()->check() ? auth()->user()->theme : 'auto' }}">
+<html lang="en" data-theme="{{ auth()->check() ? auth()->user()->theme : 'light' }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,8 +117,34 @@
         </div>
       </div>
     @else
-      <a class="btn btn-text btn-sm" href="{{ route('login') }}">Log in</a>
-      <a class="btn btn-filled btn-sm" href="{{ route('register') }}">Sign up</a>
+      <div class="profile-dropdown-wrap" id="profile-dropdown-wrap">
+        <button class="icon-btn topbar-guest-avatar" onclick="toggleProfileDropdown()" id="profile-avatar-btn" aria-label="Account">
+          <span class="material-symbols-outlined">account_circle</span>
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <a class="profile-dropdown-item" href="{{ route('login') }}">
+            <span class="material-symbols-outlined">login</span> Log in
+          </a>
+          <a class="profile-dropdown-item" href="{{ route('register') }}">
+            <span class="material-symbols-outlined">person_add</span> Sign up
+          </a>
+          <div class="profile-dropdown-divider"></div>
+          <div style="padding:6px 12px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Theme</div>
+            <div class="theme-options" style="display:flex;gap:4px">
+              <button class="theme-option-btn active" onclick="setTheme('light')" title="Light" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">light_mode</span>
+              </button>
+              <button class="theme-option-btn" onclick="setTheme('dark')" title="Dark" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">dark_mode</span>
+              </button>
+              <button class="theme-option-btn" onclick="setTheme('auto')" title="Auto" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);cursor:pointer;transition:all .15s">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--md-on-surface-variant)">contrast</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     @endauth
   </div>
 </div></header>
@@ -319,8 +345,17 @@ function setTheme(theme) {
     },
     body: JSON.stringify({ theme: theme })
   });
+  @else
+  try { localStorage.setItem('yatri-theme', theme); } catch(e) {}
   @endauth
 }
+@guest
+/* Restore guest theme on load */
+try {
+  const savedTheme = localStorage.getItem('yatri-theme');
+  if (savedTheme) applyTheme(savedTheme);
+} catch(e) {}
+@endguest
 
 // ── Profile Dropdown ──
 function toggleProfileDropdown() {
