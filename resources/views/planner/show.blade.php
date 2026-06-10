@@ -854,7 +854,7 @@ function initMap() {
       }).filter(Boolean);
       if (seqPts.length > 1) {
         const poly = L.polyline(seqPts, {
-          color: idx === state.selectedRoute ? '#c2412c' : '#a8a29e',
+          color: idx === state.selectedRoute ? '#0f6dfc' : '#a8a29e',
           weight: idx === state.selectedRoute ? 4 : 2.5,
           opacity: idx === state.selectedRoute ? 1 : 0.5
         }).addTo(map);
@@ -862,7 +862,7 @@ function initMap() {
       } else { routePolylines.push(null); }
     });
   } else {
-    L.polyline(pts, {color:'#c2412c', weight:3.5}).addTo(map);
+    L.polyline(pts, {color:'#0f6dfc', weight:3.5}).addTo(map);
   }
   map.fitBounds(L.latLngBounds(pts).pad(0.25));
 }
@@ -902,7 +902,7 @@ function selectRoute(idx) {
   /* Update map polylines */
   routePolylines.forEach((poly, i) => {
     if (!poly) return;
-    if (i === idx) { poly.setStyle({color:'#c2412c', weight:4, opacity:1}); poly.bringToFront(); }
+    if (i === idx) { poly.setStyle({color:'#0f6dfc', weight:4, opacity:1}); poly.bringToFront(); }
     else { poly.setStyle({color:'#a8a29e', weight:2.5, opacity:0.5}); }
   });
   saveState();
