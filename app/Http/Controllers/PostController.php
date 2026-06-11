@@ -83,6 +83,7 @@ class PostController extends Controller
     {
         $post->load(['user', 'media', 'trip', 'comments.user', 'likes']);
         $post->loadCount(['likes', 'comments']);
+        $post->increment('views');
 
         return view('posts.show', compact('post'));
     }
@@ -91,6 +92,7 @@ class PostController extends Controller
     {
         $post = Post::with(['user', 'media', 'comments.user', 'likes'])->findOrFail($postId);
         $post->loadCount(['likes', 'comments']);
+        $post->increment('views');
 
         $images = $post->media->where('type', 'photo')->values()->map(fn($m) => [
             'url' => $m->url,

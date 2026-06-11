@@ -188,12 +188,12 @@ class PlannerController extends Controller
 
         $totalDays = array_sum(array_map(fn ($d) => (int) ($d['days'] ?? 3), $dests));
 
-        return max(1, $totalDays);
+        return max(0, $totalDays);
     }
 
     protected function computeNights(array $dests): int
     {
-        return max(1, array_sum(array_map(fn ($d) => (int) ($d['nights'] ?? 2), $dests)));
+        return max(0, array_sum(array_map(fn ($d) => (int) ($d['nights'] ?? 2), $dests)));
     }
 
     protected function defaultTitle(string $origin, array $dests): string

@@ -9,10 +9,8 @@
 @php $_route = request()->route() ? request()->route()->getName() : ''; $_noindex = in_array($_route, ['login', 'register', 'notifications.index', 'settings', 'dashboard']); @endphp
 <meta name="robots" content="{{ $_noindex ? 'noindex,nofollow' : 'index,follow' }}">
 <link rel="canonical" href="{{ url()->current() }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=optional"></noscript>
+<link rel="preload" as="style" href="{{ asset('fonts/fonts.css') }}?v={{ config('app.version') }}" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ asset('fonts/fonts.css') }}?v={{ config('app.version') }}"></noscript>
 <link rel="icon" href="{{ asset('storage/images/favicon.ico') }}?v={{ config('app.version') }}" sizes="any">
 <link rel="icon" href="{{ asset('storage/images/favicon-32x32.png') }}?v={{ config('app.version') }}" sizes="32x32" type="image/png">
 <link rel="icon" href="{{ asset('storage/images/favicon-16x16.png') }}?v={{ config('app.version') }}" sizes="16x16" type="image/png">
@@ -149,6 +147,19 @@
             </div>
           </div>
           <div class="profile-dropdown-divider"></div>
+          <div style="padding:6px 12px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Currency</div>
+            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif">
+              <option value="USD">$ USD</option>
+              <option value="INR">₹ INR</option>
+              <option value="EUR">€ EUR</option>
+              <option value="GBP">£ GBP</option>
+              <option value="AED">AED</option>
+              <option value="SGD">S$ SGD</option>
+              <option value="JPY">¥ JPY</option>
+            </select>
+          </div>
+          <div class="profile-dropdown-divider"></div>
           <form method="post" action="{{ route('logout') }}" style="margin:0">
             @csrf
             <button type="submit" class="profile-dropdown-item">
@@ -183,6 +194,19 @@
                 <x-icon name="contrast" :size="20" style="color:var(--md-on-surface-variant)" />
               </button>
             </div>
+          </div>
+          <div class="profile-dropdown-divider"></div>
+          <div style="padding:6px 12px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Currency</div>
+            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif">
+              <option value="USD">$ USD</option>
+              <option value="INR">₹ INR</option>
+              <option value="EUR">€ EUR</option>
+              <option value="GBP">£ GBP</option>
+              <option value="AED">AED</option>
+              <option value="SGD">S$ SGD</option>
+              <option value="JPY">¥ JPY</option>
+            </select>
           </div>
         </div>
       </div>
@@ -459,16 +483,23 @@ setInterval(checkNotifications, 30000);
 </script>
 <script>
 // ── Social Interaction Functions ──
-function sharePost(url, title) {
+function sharePost(postId, url, title) {
+  var track = function() {
+    fetch('/posts/' + postId + '/share', { method:'POST', headers:{ 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept':'application/json' } })
+      .then(function(r) { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
+      .then(function(d) { if (d && d.shares) { var el = document.getElementById('share-count-' + postId); if (el) el.textContent = d.shares; } })
+      .catch(function() {});
+  };
   if (navigator.share) {
-    navigator.share({ title, url }).catch(() => {});
+    navigator.share({ title, url }).then(track).catch(function() {});
   } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = event.target.closest('.pcard-action') || event.target;
-      const orig = btn.innerHTML;
+    navigator.clipboard.writeText(url).then(function() {
+      track();
+      var btn = event.target.closest('.pcard-action') || event.target;
+      var orig = btn.innerHTML;
       btn.innerHTML = '<svg class="icon" width="20" height="20" viewBox="0 -960 960 960" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/><\/svg> Copied';
-      setTimeout(() => btn.innerHTML = orig, 2000);
-    }).catch(() => {});
+      setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    }).catch(function() {});
   }
 }
 function toggleLike(postId) {
@@ -855,13 +886,78 @@ function pvSubmitComment() {
       }
     }
   })
-  .catch(() => {});
+  .catch(() => { showSnackbar('Like failed.'); });
 }
 
 /* Enter to submit comment */
 document.getElementById('pvCommentInput')?.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') { e.preventDefault(); pvSubmitComment(); }
 });
+
+/* ===== GLOBAL CURRENCY ===== */
+const Yc = {
+  _allRates: null,
+  _sel: document.getElementById('globalCurrency'),
+  _sym: {'USD':'$','INR':'₹','EUR':'€','GBP':'£','AED':'AED ','SGD':'S$','JPY':'¥'},
+  get currency() { return localStorage.getItem('yatri_cur') || 'USD'; },
+  async _loadRates() {
+    if (this._allRates) return this._allRates;
+    try { const r = await fetch('/api/fx'); const d = await r.json(); if (d.rates) { this._allRates = d.rates; return d.rates; } } catch(e) {}
+    return {};
+  },
+  toUsd(amt, cur) {
+    if (cur === 'USD' || !this._allRates) return amt;
+    var r = this._allRates[cur.toLowerCase()];
+    return r ? amt / r : amt;
+  },
+  fromUsd(amt, cur) {
+    if (cur === 'USD' || !this._allRates) return amt;
+    var r = this._allRates[cur.toLowerCase()];
+    return r ? amt * r : amt;
+  },
+  async init() {
+    if (this._sel) this._sel.value = this.currency;
+    await this._loadRates();
+    this.convertAll();
+  },
+  convertAll() {
+    var cur = this.currency, sym = this._sym[cur] || (cur + ' ');
+    var allR = this._allRates;
+    var dispRate = allR ? (allR[cur.toLowerCase()] || 1) : 1;
+    document.querySelectorAll('.money[data-amt]').forEach(function(el) {
+      var amt = parseFloat(el.dataset.amt), srcCur = el.dataset.cur || 'USD';
+      if (isNaN(amt)) return;
+      var usd = amt;
+      if (srcCur !== 'USD' && allR) { var srcR = allR[srcCur.toLowerCase()]; if (srcR) usd = amt / srcR; }
+      el.textContent = sym + Math.round(usd * dispRate).toLocaleString();
+    });
+  },
+  set(val) {
+    localStorage.setItem('yatri_cur', val);
+    this.init();
+  }
+};
+document.addEventListener('DOMContentLoaded', function() { Yc.init(); });
+
+/* ===== SNACKBAR ===== */
+function showSnackbar(msg) {
+  var sb = document.getElementById('snackbar');
+  if (!sb) {
+    sb = document.createElement('div');
+    sb.id = 'snackbar';
+    sb.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10000;background:var(--md-inverse-surface, #2f3033);color:var(--md-inverse-on-surface, #f1f0f4);padding:12px 24px;border-radius:var(--md-shape-sm, 8px);font-size:14px;font-weight:500;box-shadow:var(--md-elevation-3, 0 4px 8px 3px rgba(0,0,0,.15));transition:opacity .3s,transform .3s;opacity:0;transform:translateX(-50%) translateY(16px);pointer-events:none;max-width:90vw;text-align:center;font-family:Inter,system-ui,sans-serif';
+    document.body.appendChild(sb);
+  }
+  sb.textContent = msg;
+  sb.style.opacity = '1';
+  sb.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(sb._t);
+  sb._t = setTimeout(function() {
+    sb.style.opacity = '0';
+    sb.style.transform = 'translateX(-50%) translateY(16px)';
+  }, 3000);
+}
 </script>
+<div id="snackbar" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);z-index:10000;background:var(--md-inverse-surface, #2f3033);color:var(--md-inverse-on-surface, #f1f0f4);padding:12px 24px;border-radius:var(--md-shape-sm, 8px);font-size:14px;font-weight:500;box-shadow:var(--md-elevation-3);opacity:0;pointer-events:none;max-width:90vw;text-align:center;font-family:Inter,system-ui,sans-serif;transition:opacity .3s,transform .3s"></div>
 </body>
 </html>

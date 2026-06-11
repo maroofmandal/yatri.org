@@ -321,6 +321,7 @@ class TripPlanner
             ."only genuine ground/intercity legs go in `transport` with mode train/bus/car.\n"
             ."Every cost is the TOTAL for the whole party for the whole trip, in {$trip->currency} (NOT per person), "
             .'EXCEPT hotels.price_per_night which is per night. Use plain numbers, no currency symbols. '
+            ."For every cost field, ALSO provide the USD-equivalent in the corresponding `_usd` field (e.g. `cost` in {$trip->currency}, `cost_usd` in USD). "
             ."Fill lat/lng for every route stop. Make budget.total equal the sum of the category amounts.\n"
             .'Set flights[].price_status and hotels[].price_status to `estimated` because no paid live fare/rate API is connected. '
             ."Set days[].items[].entry_fee_status to one of `free`, `estimated`, or `confirmed_by_source`.\n"
@@ -398,7 +399,7 @@ class TripPlanner
         $dayNum = 1;
         $cursor = $trip->start_date ? $trip->start_date->copy() : null;
         foreach ($stops as $stop) {
-            $nights = max(1, (int) ($stop['nights'] ?? 2));
+            $nights = max(0, (int) ($stop['nights'] ?? 2));
             for ($n = 0; $n < $nights; $n++) {
                 $days[] = [
                     'day' => $dayNum,

@@ -91,6 +91,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');
 });
 
+// ── Share tracking (no auth required) ────────────────────────────
+Route::post('/api/trip/{id}/share', [SocialController::class, 'shareTrip'])->name('trip.share');
+Route::post('/posts/{postId}/share', [SocialController::class, 'sharePost'])->name('post.share');
+
 // ── Auth ────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

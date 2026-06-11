@@ -102,9 +102,12 @@
         <x-icon name="chat_bubble" :size="20" />
         <span>{{ $post->comments_count }}</span>
       </button>
-      <button class="pcard-action">
-        <x-icon name="share" :size="20" /> Share
+      <button class="pcard-action" onclick="sharePost('{{ $post->id }}', '{{ route('posts.show', $post) }}', '{{ $post->title }}')">
+        <x-icon name="share" :size="20" /> <span id="share-count-{{ $post->id }}">{{ $post->shares ?? 0 }}</span>
       </button>
+      <span class="pcard-action" style="cursor:default;opacity:.6">
+        <x-icon name="visibility" :size="20" /> {{ $post->views ?? 0 }}
+      </span>
     </div>
 
     <div class="pcard-comments" id="comments-{{ $post->id }}" style="display:block;margin-top:24px">

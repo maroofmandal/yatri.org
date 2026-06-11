@@ -147,13 +147,13 @@ function destRow(name='', days=3, nights=2, lat='', lng=''){
   const dnVal = row.querySelector('.dn-minus + .step-val');
   row.querySelector('.dd-minus').onclick = ()=>{
     let d = parseInt(ddaysInput.value)||3;
-    if(d > 1){
+    if(d > 0){
       d--;
       ddaysInput.value = d;
       ddVal.textContent = d;
       let n = parseInt(dnightsInput.value)||2;
       n = Math.min(n, d + 1);
-      n = Math.max(n, Math.max(1, d - 1));
+      n = Math.max(n, Math.max(0, d - 1));
       dnightsInput.value = n;
       dnVal.textContent = n;
     }
@@ -165,7 +165,7 @@ function destRow(name='', days=3, nights=2, lat='', lng=''){
     ddVal.textContent = d;
     let n = parseInt(dnightsInput.value)||2;
     n = Math.min(n, d + 1);
-    n = Math.max(n, Math.max(1, d - 1));
+    n = Math.max(n, Math.max(0, d - 1));
     dnightsInput.value = n;
     dnVal.textContent = n;
   };
@@ -173,7 +173,7 @@ function destRow(name='', days=3, nights=2, lat='', lng=''){
   row.querySelector('.dn-minus').onclick = ()=>{
     let d = parseInt(ddaysInput.value)||3;
     let n = parseInt(dnightsInput.value)||2;
-    if(n > Math.max(1, d - 1)){
+    if(n > Math.max(0, d - 1)){
       n--;
       dnightsInput.value = n;
       dnVal.textContent = n;

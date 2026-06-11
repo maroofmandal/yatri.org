@@ -6,7 +6,7 @@
   $cur  = $trip->currency;
   $symMap = ['USD'=>'$','INR'=>'₹','EUR'=>'€','GBP'=>'£','AED'=>'AED ','SGD'=>'S$','JPY'=>'¥'];
   $sym = $symMap[$cur] ?? ($cur.' ');
-  $money = fn($n) => '<span class="money" data-amt="'.(float)$n.'">'.$sym.number_format((float)$n).'</span>';
+  $money = fn($n) => '<span class="money" data-amt="'.(float)$n.'" data-cur="'.$cur.'">'.$sym.number_format((float)$n).'</span>';
 
   $budget = $trip->budget_breakdown ?: ($plan['budget'] ?? []);
   $catIcons = [
@@ -111,7 +111,7 @@
 
 @section('content')
 <header class="hero"><div class="wrap">
-  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->nights }} nights · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget</p>
+  <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->nights }} nights · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget · <x-icon name="visibility" :size="14" /> {{ $trip->views }} · <x-icon name="share" :size="14" /> {{ $trip->shares ?? 0 }}</p>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <h1 style="margin:0"><strong>{{ $trip->title }}</strong>
       @if(!empty($plan['summary']))<span class="sub">{{ $plan['summary'] }}</span>@endif
@@ -268,26 +268,34 @@
     <p class="lead">@if($weatherDays->contains(fn($w) => ($w['source'] ?? '') === 'google_weather')) Live Google Weather daily forecast for your trip dates. @else Seasonal weather estimates for your trip. @endif</p>
     <div class="weather-grid">
       @foreach($weatherDays as $w)
-        <div class="weather-card weather-live">
+        <div class="weather-card{{ ($w['source'] ?? '') === 'google_weather' ? ' weather-live' : '' }}">
           <div class="weather-top">
             <div>
-              <b>Day {{ $w['day'] ?? $loop->iteration }}</b>
-              <span>{{ $w['city'] ?? '' }}{{ !empty($w['date']) ? ' · '.\Illuminate\Support\Carbon::parse($w['date'])->format('d M') : '' }}</span>
+              <span class="w-day">Day {{ $w['day'] ?? $loop->iteration }}</span>
+              <span class="w-city">{{ $w['city'] ?? '' }}</span>
+              @if(!empty($w['date']))<span class="w-date">{{ \Illuminate\Support\Carbon::parse($w['date'])->format('d M') }}</span>@endif
             </div>
             @if(!empty($w['icon']))
               <img src="{{ $w['icon'] }}.svg" alt="{{ $w['summary'] ?? 'Weather' }}" loading="lazy">
             @endif
           </div>
-          <p>{{ $w['summary'] ?? 'Weather data unavailable.' }}</p>
+          <div class="weather-summary">{{ $w['summary'] ?? 'Weather data unavailable.' }}</div>
+          @if(isset($w['temperature_min_c']) || isset($w['temperature_max_c']))
+            <div class="weather-temps">
+              <span class="w-high">{{ isset($w['temperature_max_c']) ? round($w['temperature_max_c']).'°' : '—°' }}</span>
+              <span class="w-sep">/</span>
+              <span class="w-low">{{ isset($w['temperature_min_c']) ? round($w['temperature_min_c']).'°' : '—°' }}</span>
+            </div>
+          @endif
+          @if(isset($w['precipitation_probability']))
+            @php $pp = round($w['precipitation_probability']); @endphp
+            <div class="weather-bar-wrap" title="{{ $pp }}% rain">
+              <div class="weather-bar-fill" style="width:{{ min(100,$pp) }}%"></div>
+            </div>
+          @endif
           <div class="weather-meta">
-            @if(isset($w['temperature_min_c']) || isset($w['temperature_max_c']))
-              <span>{{ isset($w['temperature_min_c']) ? round($w['temperature_min_c']) : '—' }}°C / {{ isset($w['temperature_max_c']) ? round($w['temperature_max_c']) : '—' }}°C</span>
-            @endif
-            @if(isset($w['precipitation_probability']))
-              <span>{{ round($w['precipitation_probability']) }}% rain</span>
-            @endif
+            <span>{{ ($w['source'] ?? '') === 'google_weather' ? 'Live forecast' : 'Estimate' }}</span>
           </div>
-          <span class="data-badge">{{ ($w['source'] ?? '') === 'google_weather' ? 'Live Google forecast' : 'Seasonal estimate' }}</span>
         </div>
       @endforeach
     </div>
@@ -647,30 +655,32 @@
 
   {{-- Likes & comments --}}
   <div class="block reveal" id="comments">
-    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <button class="btn {{ $trip->isLikedBy(auth()->user())?'btn-accent':'btn-ghost' }}" id="likeBtn" {{ auth()->check()?'':'disabled' }}>
-        <x-icon name="favorite" :size="20" id="likeIcon" /> <span id="likeCount">{{ $trip->likes()->count() }}</span>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <button class="like-btn {{ $trip->isLikedBy(auth()->user())?'liked':'' }}" id="likeBtn" {{ auth()->check()?'':'disabled' }}>
+        <x-icon name="favorite" :size="20" /> <span id="likeCount">{{ $trip->likes()->count() }}</span>
       </button>
-      <span class="muted"><x-icon name="chat_bubble" :size="16" /> {{ $trip->comments()->count() }} comments</span>
+      <span class="muted" style="display:flex;align-items:center;gap:4px"><x-icon name="chat_bubble" :size="18" /> {{ $trip->comments()->count() }}</span>
       @guest<span class="muted" style="font-size:13px">· <a href="{{ route('login') }}">Log in</a> to like &amp; comment</span>@endguest
     </div>
-    <h2 style="margin-top:20px">Comments</h2>
+    <h2 style="margin-top:24px;margin-bottom:16px;font-size:18px">Comments</h2>
     @auth
-      <form method="POST" action="{{ route('trip.comment',$trip) }}" style="display:flex;gap:8px;margin-bottom:16px">
-        @csrf<input type="text" name="body" placeholder="Add a comment…" maxlength="1000" required><button class="btn btn-primary">Post</button>
+      <form method="POST" action="{{ route('trip.comment',$trip) }}" class="comment-form">
+        @csrf<input type="text" name="body" placeholder="Add a comment…" maxlength="1000" required><button class="btn btn-primary btn-sm">Post</button>
       </form>
     @endauth
     @forelse($trip->comments()->with('user')->latest()->get() as $c)
-      <div style="display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)">
-        <img src="{{ $c->user->avatar() }}" alt="{{ $c->user->name }}" style="width:34px;height:34px;border-radius:50%" width="34" height="34">
+      <div class="comment-item">
+        <img src="{{ $c->user->avatar() }}" alt="{{ $c->user->name }}" width="34" height="34">
         <div>
-          <a href="{{ route('profile',$c->user) }}" style="font-weight:600;font-size:14px">{{ $c->user->name }}</a>
-          <span class="muted" style="font-size:12px">· {{ $c->created_at->diffForHumans() }}</span>
-          <div style="font-size:14px">{{ $c->body }}</div>
+          <div class="comment-head">
+            <a href="{{ route('profile',$c->user) }}">{{ $c->user->name }}</a>
+            <span>{{ $c->created_at->diffForHumans() }}</span>
+          </div>
+          <div class="comment-body">{{ $c->body }}</div>
         </div>
       </div>
     @empty
-      <p class="muted">No comments yet. Be the first.</p>
+      <p class="muted" style="padding:16px 0;text-align:center">No comments yet. Be the first.</p>
     @endforelse
   </div>
 
@@ -682,7 +692,7 @@
         <label>Shareable link</label>
         <div style="display:flex;gap:8px">
           <input type="text" id="shareUrl" value="{{ route('trip.show', $trip) }}" readonly>
-          <button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('shareUrl').value);this.textContent='Copied!'">Copy</button>
+          <button class="btn btn-ghost" onclick="copyTripUrl()">Copy</button>
         </div>
       </div>
       <div class="field" style="display:flex;align-items:flex-end;gap:10px">
@@ -820,10 +830,12 @@
           
           <div class="field" style="margin-bottom:14px">
             <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Rating</label>
-            <div class="rating-stars" style="display:flex;gap:6px;font-size:28px;">
+            <div class="rating-stars m3-rating">
               <input type="hidden" name="rating" id="review_rating" value="5">
               @for($i = 1; $i <= 5; $i++)
-                <span class="star-btn" data-val="{{ $i }}" style="cursor:pointer;color:var(--md-primary);transition:color 0.15s;" onclick="setRating({{ $i }})">★</span>
+                <span class="star-btn" data-val="{{ $i }}" onclick="setRating({{ $i }})">
+                  <x-icon name="star" :size="28" class="star-icon" />
+                </span>
               @endfor
             </div>
           </div>
@@ -921,6 +933,7 @@
      data-photo-key="{!! e($placesApiKey ?: '') !!}"
      data-chat-url="{{ route('trip.chat', $trip) }}"
      data-like-url="{{ route('trip.like', $trip) }}"
+     data-trip-id="{{ $trip->id }}"
      style="display:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
@@ -979,7 +992,8 @@ function convertCurrency() {
   document.querySelectorAll('.money[data-amt]').forEach(el => {
     const origAmt = parseFloat(el.dataset.amt);
     if (isNaN(origAmt)) return;
-    const usdAmt = baseRate ? origAmt / baseRate : origAmt;
+    const srcCur = el.dataset.cur || CUR_TRIP;
+    const usdAmt = baseRate && srcCur !== 'USD' ? origAmt / baseRate : origAmt;
     const converted = usdAmt * curRate;
     el.textContent = sym + Math.round(converted).toLocaleString();
   });
@@ -1019,10 +1033,10 @@ const nightValue = document.getElementById('nightValue');
 if (dayValue) dayValue.textContent = state.days;
 if (nightValue) nightValue.textContent = state.nights;
 document.getElementById('dayMinus')?.addEventListener('click', () => {
-  if (state.days > 1) {
+  if (state.days > 0) {
     state.days--;
     state.nights = Math.min(state.nights, state.days + 1);
-    state.nights = Math.max(state.nights, Math.max(1, state.days - 1));
+    state.nights = Math.max(state.nights, Math.max(0, state.days - 1));
     dayValue.textContent = state.days;
     nightValue.textContent = state.nights;
     saveState();
@@ -1031,7 +1045,7 @@ document.getElementById('dayMinus')?.addEventListener('click', () => {
 document.getElementById('dayPlus')?.addEventListener('click', () => {
   state.days++;
   state.nights = Math.min(state.nights, state.days + 1);
-  state.nights = Math.max(state.nights, Math.max(1, state.days - 1));
+  state.nights = Math.max(state.nights, Math.max(0, state.days - 1));
   dayValue.textContent = state.days;
   nightValue.textContent = state.nights;
   saveState();
@@ -1039,7 +1053,7 @@ document.getElementById('dayPlus')?.addEventListener('click', () => {
 
 /* ===== NIGHT STEPPER ===== */
 document.getElementById('nightMinus')?.addEventListener('click', () => {
-  if (state.nights > Math.max(1, state.days - 1)) { state.nights--; nightValue.textContent = state.nights; saveState(); }
+  if (state.nights > Math.max(0, state.days - 1)) { state.nights--; nightValue.textContent = state.nights; saveState(); }
 });
 document.getElementById('nightPlus')?.addEventListener('click', () => {
   if (state.nights < state.days + 1) { state.nights++; nightValue.textContent = state.nights; saveState(); }
@@ -1345,11 +1359,13 @@ if (likeBtn && !likeBtn.disabled) {
   likeBtn.addEventListener('click', async () => {
     try {
       const r = await fetch(_pd.likeUrl, {method:'POST', headers:{'X-CSRF-TOKEN':CSRF, 'Accept':'application/json'}});
+      if (r.redirected) { window.location.href = r.url; return; }
+      if (!r.ok) { showSnackbar('Like failed. Try again.'); return; }
       const d = await r.json();
       document.getElementById('likeCount').textContent = d.count;
-            likeBtn.classList.toggle('btn-accent', d.liked);
+      likeBtn.classList.toggle('btn-accent', d.liked);
       likeBtn.classList.toggle('btn-ghost', !d.liked);
-    } catch(e) {}
+    } catch(e) { showSnackbar('Something went wrong.'); }
   });
 }
 
@@ -1496,11 +1512,7 @@ window.setRating = function(rating) {
   document.getElementById('review_rating').value = rating;
   const stars = document.querySelectorAll('.rating-stars .star-btn');
   stars.forEach((star, idx) => {
-    if (idx < rating) {
-      star.style.color = 'var(--md-primary)';
-    } else {
-      star.style.color = 'var(--md-outline-variant)';
-    }
+    star.style.color = idx < rating ? 'var(--md-primary)' : 'var(--md-outline-variant)';
   });
 };
 
@@ -1539,6 +1551,19 @@ window.toggleForm = function(formId, btnId, typeText, defaultIcon) {
     btn.classList.remove('btn-ghost');
     btn.classList.add('btn-outlined');
   }
+};
+
+/* ===== TRIP SHARE TRACKING ===== */
+window.copyTripUrl = function() {
+  var url = document.getElementById('shareUrl').value;
+  navigator.clipboard.writeText(url).then(function() {
+    var btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    fetch('/api/trip/' + _pd.tripId + '/share', { method:'POST', headers:{ 'X-CSRF-TOKEN':CSRF, 'Accept':'application/json' } })
+      .then(function(r) { if (r.redirected) { window.location.href = r.url; return; } return r.json(); })
+      .catch(function() {});
+  }).catch(function() {});
 };
 </script>
 @endpush

@@ -92,4 +92,20 @@ class SocialController extends Controller
 
         return response()->json(['reply' => $reply->load('user')]);
     }
+
+    public function shareTrip($id)
+    {
+        $trip = Trip::findOrFail($id);
+        $trip->increment('shares');
+
+        return response()->json(['shares' => $trip->fresh()->shares]);
+    }
+
+    public function sharePost($postId)
+    {
+        $post = Post::findOrFail($postId);
+        $post->increment('shares');
+
+        return response()->json(['shares' => $post->fresh()->shares]);
+    }
 }
