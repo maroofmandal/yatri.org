@@ -149,7 +149,7 @@
           <div class="profile-dropdown-divider"></div>
           <div style="padding:6px 12px">
             <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Currency</div>
-            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif">
+            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-full);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif;line-height:1.4">
               <option value="USD">$ USD</option>
               <option value="INR">₹ INR</option>
               <option value="EUR">€ EUR</option>
@@ -198,7 +198,7 @@
           <div class="profile-dropdown-divider"></div>
           <div style="padding:6px 12px">
             <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--md-on-surface-variant);margin-bottom:6px">Currency</div>
-            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-sm);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif">
+            <select id="globalCurrency" onchange="Yc.set(this.value)" style="width:100%;padding:8px;border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-full);background:var(--md-surface-container);color:var(--md-on-surface);font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif;line-height:1.4">
               <option value="USD">$ USD</option>
               <option value="INR">₹ INR</option>
               <option value="EUR">€ EUR</option>

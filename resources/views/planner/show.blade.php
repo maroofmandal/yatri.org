@@ -7,6 +7,7 @@
   $symMap = ['USD'=>'$','INR'=>'₹','EUR'=>'€','GBP'=>'£','AED'=>'AED ','SGD'=>'S$','JPY'=>'¥'];
   $sym = $symMap[$cur] ?? ($cur.' ');
   $money = fn($n) => '<span class="money" data-amt="'.(float)$n.'" data-cur="'.$cur.'">'.$sym.number_format((float)$n).'</span>';
+  $fmt = fn($t) => nl2br(preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', e($t)));
 
   $budget = $trip->budget_breakdown ?: ($plan['budget'] ?? []);
   $catIcons = [
@@ -114,7 +115,7 @@
   <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->nights }} nights · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget · <x-icon name="visibility" :size="14" /> {{ $trip->views }} · <x-icon name="share" :size="14" /> {{ $trip->shares ?? 0 }}</p>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <h1 style="margin:0"><strong>{{ $trip->title }}</strong>
-      @if(!empty($plan['summary']))<span class="sub">{{ $plan['summary'] }}</span>@endif
+      @if(!empty($plan['summary']))<span class="sub">{!! $fmt($plan['summary']) !!}</span>@endif
     </h1>
   </div>
 </div></header>
@@ -391,7 +392,7 @@
           </div>
           <div class="body">
             <h3>{{ $d['title'] ?? '' }}</h3>
-            <p class="muted" style="font-size:13px;margin:0 0 8px">{{ $d['summary'] ?? '' }}</p>
+            <p class="muted" style="font-size:13px;margin:0 0 8px">{!! $fmt($d['summary'] ?? '') !!}</p>
             {{-- Photo carousel --}}
             @if(count($dayPhotoList) > 0)
             <div class="photo-carousel">
@@ -407,11 +408,11 @@
               <div class="it">
                 <div class="time">{{ $it['time'] ?? '' }}</div>
                 <div class="what">
-                  {{ $it['activity'] ?? '' }}
+                  {!! $fmt($it['activity'] ?? '') !!}
                   @if(($it['place_key'] ?? null) && !empty($placesData[$it['place_key']]['rating']))
                     <span class="place-rating">★ {{ number_format($placesData[$it['place_key']]['rating'], 1) }}{{ !empty($placesData[$it['place_key']]['reviews_count']) ? ' ('.number_format($placesData[$it['place_key']]['reviews_count']).')' : '' }}</span>
                   @endif
-                  @if(!empty($it['note']))<div class="note">{{ $it['note'] }}</div>@endif
+                  @if(!empty($it['note']))<div class="note">{!! $fmt($it['note']) !!}</div>@endif
                   @if(!empty($it['map_query']))<a class="mlink" target="_blank" rel="noopener" href="{{ $gmaps($it['map_query']) }}"><x-icon name="location_on" :size="14" /> Map</a>@endif
                   @if(isset($it['cost']) || !empty($it['entry_fee_status']))
                     <span class="fee-badge {{ ($it['entry_fee_status'] ?? '') === 'free' ? 'fee-free' : '' }}">{{ $statusText($it['entry_fee_status'] ?? (((float)($it['cost'] ?? 0)) <= 0 ? 'free' : 'estimated')) }}</span>
@@ -552,7 +553,7 @@
   @if(!empty($plan['tips']))
   <div class="block reveal">
     <h2>Good to know</h2>
-    <ul>@foreach($plan['tips'] as $tip)<li style="margin:6px 0">{{ $tip }}</li>@endforeach</ul>
+    <ul>@foreach($plan['tips'] as $tip)<li style="margin:6px 0">{!! $fmt($tip) !!}</li>@endforeach</ul>
   </div>
   @endif
 
@@ -564,7 +565,7 @@
       @foreach($plan['packing'] as $pk)
         <div class="card">
           <h3>{{ $pk['title'] ?? '' }}</h3>
-          <ul>@foreach(($pk['items'] ?? []) as $it)<li style="margin:5px 0;font-size:14px">{{ $it }}</li>@endforeach</ul>
+          <ul>@foreach(($pk['items'] ?? []) as $it)<li style="margin:5px 0;font-size:14px">{!! $fmt($it) !!}</li>@endforeach</ul>
         </div>
       @endforeach
     </div>
@@ -587,7 +588,7 @@
                 @foreach($c['dos'] as $d)
                 <li class="culture-item culture-item-do">
                   <x-icon name="check_circle" :size="18" />
-                  <span>{{ $d }}</span>
+                  <span>{!! $fmt($d) !!}</span>
                 </li>
                 @endforeach
               </ul>
@@ -600,7 +601,7 @@
                 @foreach($c['donts'] as $d)
                 <li class="culture-item culture-item-dont">
                   <x-icon name="cancel" :size="18" />
-                  <span>{{ $d }}</span>
+                  <span>{!! $fmt($d) !!}</span>
                 </li>
                 @endforeach
               </ul>
@@ -619,7 +620,7 @@
     <h2>Pre-trip countdown</h2>
     <div class="timeline">
       @foreach($plan['countdown'] as $c)
-        <div><b>{{ $c['when'] ?? '' }}</b><small>{{ $c['tasks'] ?? '' }}</small></div>
+        <div><b>{{ $c['when'] ?? '' }}</b><small>{!! $fmt($c['tasks'] ?? '') !!}</small></div>
       @endforeach
     </div>
   </div>
@@ -1317,7 +1318,7 @@ document.getElementById('chatForm')?.addEventListener('submit', async e => {
       headers:{'X-CSRF-TOKEN':CSRF,'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify({question:q})});
     const d = await r.json();
-    let html = (d.answer || 'No answer.').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+    let html = (d.answer || 'No answer.').replace(/</g, '&lt;').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     if (d.grounding && d.grounding.length) {
       html += '<div class="cites">' + d.grounding.filter(g => g.uri).slice(0,5)
         .map(g => `<a target="_blank" rel="noopener" href="${g.uri}">${(g.title||'source').slice(0,32)}</a>`).join('') + '</div>';
