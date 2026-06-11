@@ -19,7 +19,7 @@ return new class extends Migration
 
         Schema::table('posts', function (Blueprint $table) {
             if (!Schema::hasColumn('posts', 'views')) {
-                $table->unsignedInteger('views')->default(0)->after('status');
+                $table->unsignedInteger('views')->default(0)->after('is_public');
             }
             if (!Schema::hasColumn('posts', 'shares')) {
                 $table->unsignedInteger('shares')->default(0)->after('views');
