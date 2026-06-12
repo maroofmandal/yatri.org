@@ -131,46 +131,8 @@ class ItinerarySchema
                                 ],
                             ],
                             'tags' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
-                            'weather' => [
-                                'type' => 'OBJECT',
-                                'properties' => [
-                                    'date' => ['type' => 'STRING'],
-                                    'city' => ['type' => 'STRING'],
-                                    'source' => ['type' => 'STRING'],
-                                    'status' => ['type' => 'STRING'],
-                                    'summary' => ['type' => 'STRING'],
-                                    'temperature_min_c' => ['type' => 'NUMBER'],
-                                    'temperature_max_c' => ['type' => 'NUMBER'],
-                                    'precipitation_probability' => ['type' => 'NUMBER'],
-                                ],
-                            ],
                         ],
                         'required' => ['day', 'city', 'title'],
-                    ],
-                ],
-
-                'weather' => [
-                    'type' => 'OBJECT',
-                    'properties' => [
-                        'source' => ['type' => 'STRING'],
-                        'note' => ['type' => 'STRING'],
-                        'days' => [
-                            'type' => 'ARRAY',
-                            'items' => [
-                                'type' => 'OBJECT',
-                                'properties' => [
-                                    'day' => ['type' => 'INTEGER'],
-                                    'date' => ['type' => 'STRING'],
-                                    'city' => ['type' => 'STRING'],
-                                    'source' => ['type' => 'STRING'],
-                                    'status' => ['type' => 'STRING'],
-                                    'summary' => ['type' => 'STRING'],
-                                    'temperature_min_c' => ['type' => 'NUMBER'],
-                                    'temperature_max_c' => ['type' => 'NUMBER'],
-                                    'precipitation_probability' => ['type' => 'NUMBER'],
-                                ],
-                            ],
-                        ],
                     ],
                 ],
 

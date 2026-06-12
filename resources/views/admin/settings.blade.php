@@ -20,8 +20,8 @@
       <div class="field"><label>Model</label><input type="text" name="gemini_model" value="{{ $settings['ai']['gemini_model'] ?? config('gemini.model') }}"></div>
       <div class="field">
         <label>Google Maps API key (optional) @if(!empty($settings['ai']['google_maps_api_key']))<span class="badge ok">set</span>@endif</label>
-        <input type="password" name="google_maps_api_key" placeholder="{{ !empty($settings['ai']['google_maps_api_key']) ? '•••••••• stored' : 'optional — weather + richer place data' }}">
-        <div class="hint">Enable Maps JavaScript API, Places API, and Weather API in Google Cloud for autocomplete, business data, and 10-day forecasts.</div>
+        <input type="password" name="google_maps_api_key" placeholder="{{ !empty($settings['ai']['google_maps_api_key']) ? '•••••••• stored' : 'optional — richer place data' }}">
+        <div class="hint">Enable Maps JavaScript API and Places API in Google Cloud for autocomplete and business data. Weather uses Open-Meteo (free, no key needed).</div>
       </div>
     </div>
     <div class="field">

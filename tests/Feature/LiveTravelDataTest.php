@@ -17,25 +17,24 @@ class LiveTravelDataTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_generated_trip_within_ten_days_includes_google_weather(): void
+    public function test_generated_trip_includes_open_meteo_weather(): void
     {
         Cache::flush();
-        Setting::put('google_maps_api_key', 'maps-key', 'ai', 'secret');
         Http::fake([
-            'weather.googleapis.com/*' => Http::response([
-                'forecastDays' => [[
-                    'displayDate' => [
-                        'year' => now()->addDay()->year,
-                        'month' => now()->addDay()->month,
-                        'day' => now()->addDay()->day,
-                    ],
-                    'minTemperature' => ['degrees' => 19],
-                    'maxTemperature' => ['degrees' => 27],
-                    'daytimeForecast' => [
-                        'weatherCondition' => ['description' => ['text' => 'Clear']],
-                        'precipitation' => ['probability' => ['percent' => 10]],
-                    ],
-                ]],
+            'api.open-meteo.com/*' => Http::response([
+                'latitude' => 28.61,
+                'longitude' => 77.21,
+                'utc_offset_seconds' => 19800,
+                'daily' => [
+                    'time' => [now()->addDay()->toDateString()],
+                    'weather_code' => [2],
+                    'temperature_2m_max' => [27],
+                    'temperature_2m_min' => [19],
+                    'precipitation_sum' => [0.0],
+                    'precipitation_probability_max' => [10],
+                    'wind_speed_10m_max' => [12],
+                    'uv_index_max' => [6],
+                ],
             ]),
         ]);
 
@@ -55,33 +54,12 @@ class LiveTravelDataTest extends TestCase
 
         $trip = (new TripPlanner($this->llm()))->generate($trip);
 
-        $this->assertSame('google_weather', $trip->plan['weather']['source']);
-        $this->assertSame('live_forecast', $trip->plan['weather']['days'][0]['status']);
+        $this->assertSame('open_meteo', $trip->plan['weather']['source']);
+        $this->assertSame('live', $trip->plan['weather']['days'][0]['status']);
+        $this->assertSame(2, $trip->plan['weather']['days'][0]['weather_code']);
         $this->assertSame('estimated', $trip->plan['flights'][0]['price_status']);
         $this->assertSame('estimated', $trip->plan['hotels'][0]['price_status']);
         $this->assertSame('estimated', $trip->plan['days'][0]['items'][0]['entry_fee_status']);
-    }
-
-    public function test_future_trip_uses_seasonal_weather_estimate(): void
-    {
-        $trip = Trip::create([
-            'title' => 'Future sample',
-            'origin' => 'Mumbai',
-            'destinations' => [['name' => 'Tokyo', 'lat' => 35.6762, 'lng' => 139.6503, 'nights' => 1]],
-            'start_date' => now()->addMonths(2)->toDateString(),
-            'end_date' => now()->addMonths(2)->toDateString(),
-            'days' => 1,
-            'travelers' => 2,
-            'budget_total' => 2000,
-            'currency' => 'USD',
-            'style' => 'mid',
-            'status' => 'draft',
-        ]);
-
-        $trip = (new TripPlanner($this->llm()))->generate($trip);
-
-        $this->assertSame('seasonal_estimate', $trip->plan['weather']['source']);
-        $this->assertSame('seasonal_estimate', $trip->plan['weather']['days'][0]['status']);
     }
 
     public function test_show_page_renders_weather_estimated_prices_and_entry_fees(): void
@@ -103,14 +81,18 @@ class LiveTravelDataTest extends TestCase
                 'summary' => 'Test plan',
                 'route' => [['name' => 'Goa', 'lat' => 15.2993, 'lng' => 74.1240, 'nights' => 1]],
                 'weather' => [
-                    'note' => 'Live Google Weather appears for trips within 10 days.',
+                    'source' => 'open_meteo',
+                    'note' => 'Live weather from Open-Meteo.',
                     'days' => [[
                         'day' => 1,
                         'date' => now()->addMonths(2)->toDateString(),
                         'city' => 'Goa',
-                        'source' => 'seasonal_estimate',
-                        'status' => 'seasonal_estimate',
-                        'summary' => 'Warm and humid seasonal estimate.',
+                        'source' => 'open_meteo',
+                        'status' => 'live',
+                        'weather_code' => null,
+                        'icon' => null,
+                        'icon_class' => null,
+                        'summary' => 'Weather data unavailable for this date.',
                     ]],
                 ],
                 'flights' => [[
@@ -147,8 +129,7 @@ class LiveTravelDataTest extends TestCase
         $this->get(route('trip.show', $trip))
             ->assertOk()
             ->assertSee('Weather during trip')
-            ->assertSee('Warm and humid seasonal estimate.')
-            ->assertSee('Estimated')
+            ->assertSee('Weather data unavailable')
             ->assertSee('Museum visit');
     }
 

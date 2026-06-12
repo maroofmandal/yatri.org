@@ -17,9 +17,9 @@
         <p style="color:var(--md-on-surface-variant);font-size:13px;margin:0 0 16px">{{ $plan['tagline'] }}</p>
         <div style="margin-bottom:20px">
           @if($plan['price'] === 0)
-            <span style="font-family:'Outfit';font-size:36px;font-weight:600">Free</span>
+            <span style="font-family:'Poppins';font-size:36px;font-weight:600">Free</span>
           @else
-            <span style="font-family:'Outfit';font-size:36px;font-weight:600">${{ $plan['price'] }}</span>
+            <span style="font-family:'Poppins';font-size:36px;font-weight:600">${{ $plan['price'] }}</span>
             <span style="color:var(--md-on-surface-variant);font-size:14px">{{ $plan['period'] }}</span>
           @endif
         </div>

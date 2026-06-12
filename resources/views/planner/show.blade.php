@@ -266,36 +266,56 @@
   @if($hasWeather)
   <div class="block reveal">
     <h2>Weather during trip</h2>
-    <p class="lead">@if($weatherDays->contains(fn($w) => ($w['source'] ?? '') === 'google_weather')) Live Google Weather daily forecast for your trip dates. @else Seasonal weather estimates for your trip. @endif</p>
+    <p class="lead">Live weather from Open-Meteo for your trip dates.</p>
     <div class="weather-grid">
       @foreach($weatherDays as $w)
-        <div class="weather-card{{ ($w['source'] ?? '') === 'google_weather' ? ' weather-live' : '' }}">
-          <div class="weather-top">
-            <div>
-              <span class="w-day">Day {{ $w['day'] ?? $loop->iteration }}</span>
-              <span class="w-city">{{ $w['city'] ?? '' }}</span>
-              @if(!empty($w['date']))<span class="w-date">{{ \Illuminate\Support\Carbon::parse($w['date'])->format('d M') }}</span>@endif
+        @php
+          $cls = $w['icon_class'] ?? 'unknown';
+          $hasData = $w['weather_code'] !== null;
+          $icon = $hasData && !empty($w['icon']) ? $w['icon'] : 'cloud_off';
+        @endphp
+        <div class="weather-card weather-card--{{ $cls }}">
+          <div class="weather-card-bg"></div>
+          <div class="weather-card-body">
+            <div class="weather-card-head">
+              <x-icon name="{{ $icon }}" :size="32" class="weather-icon" />
+              <div class="weather-card-day">
+                <span class="w-day">Day {{ $w['day'] ?? $loop->iteration }}</span>
+                <span class="w-city">{{ $w['city'] ?? '' }}</span>
+                @if(!empty($w['date']))<span class="w-date">{{ \Illuminate\Support\Carbon::parse($w['date'])->format('d M') }}</span>@endif
+              </div>
             </div>
-            @if(!empty($w['icon']))
-              <img src="{{ $w['icon'] }}.svg" alt="{{ $w['summary'] ?? 'Weather' }}" loading="lazy">
+            <div class="weather-summary">{{ $w['summary'] ?? 'Weather data unavailable.' }}</div>
+            @if(isset($w['temperature_min_c']) || isset($w['temperature_max_c']))
+              <div class="weather-temps">
+                <span class="w-high">{{ isset($w['temperature_max_c']) ? round($w['temperature_max_c']).'°' : '—°' }}</span>
+                <span class="w-sep">/</span>
+                <span class="w-low">{{ isset($w['temperature_min_c']) ? round($w['temperature_min_c']).'°' : '—°' }}</span>
+              </div>
             @endif
-          </div>
-          <div class="weather-summary">{{ $w['summary'] ?? 'Weather data unavailable.' }}</div>
-          @if(isset($w['temperature_min_c']) || isset($w['temperature_max_c']))
-            <div class="weather-temps">
-              <span class="w-high">{{ isset($w['temperature_max_c']) ? round($w['temperature_max_c']).'°' : '—°' }}</span>
-              <span class="w-sep">/</span>
-              <span class="w-low">{{ isset($w['temperature_min_c']) ? round($w['temperature_min_c']).'°' : '—°' }}</span>
+            <div class="weather-stats">
+              @if(isset($w['precipitation_probability']))
+                @php $pp = round($w['precipitation_probability']); @endphp
+                <span class="weather-stat" title="{{ $pp }}% rain">
+                  <x-icon name="water_drop" :size="14" /> {{ $pp }}%
+                </span>
+              @endif
+              @if(isset($w['wind_speed']))
+                <span class="weather-stat">
+                  <x-icon name="air" :size="14" /> {{ round($w['wind_speed']) }} km/h
+                </span>
+              @endif
+              @if(isset($w['uv_index']))
+                <span class="weather-stat">
+                  <x-icon name="brightness_5" :size="14" /> UV {{ round($w['uv_index']) }}
+                </span>
+              @endif
             </div>
-          @endif
-          @if(isset($w['precipitation_probability']))
-            @php $pp = round($w['precipitation_probability']); @endphp
-            <div class="weather-bar-wrap" title="{{ $pp }}% rain">
-              <div class="weather-bar-fill" style="width:{{ min(100,$pp) }}%"></div>
-            </div>
-          @endif
-          <div class="weather-meta">
-            <span>{{ ($w['source'] ?? '') === 'google_weather' ? 'Live forecast' : 'Estimate' }}</span>
+            @if(isset($w['precipitation_sum']) && $w['precipitation_sum'] > 0)
+              <div class="weather-bar-wrap" title="{{ $w['precipitation_sum'] }} mm rain">
+                <div class="weather-bar-fill" style="width:{{ min(100, $w['precipitation_sum'] * 10) }}%"></div>
+              </div>
+            @endif
           </div>
         </div>
       @endforeach
@@ -311,12 +331,12 @@
     <div class="grid grid-2">
       @foreach($plan['flights'] as $fIdx => $f)
         <div class="card selectable{{ $fIdx < 2 ? ' selected' : '' }} flight-card" data-flight-idx="{{ $fIdx }}" data-flight-price="{{ (float)($f['price'] ?? 0) }}">
-          <div style="font-weight:600;font-family:Outfit;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div style="font-weight:600;font-family:'Poppins';display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             {{ $f['from'] ?? '' }} → {{ $f['to'] ?? '' }}
             @if(!empty($f['type']))<span class="tag {{ str_contains(strtolower($f['type'] ?? ''),'non-stop') || str_contains(strtolower($f['type'] ?? ''),'direct') ? 'tag-direct' : 'tag-stop' }}">{{ $f['type'] }}</span>@endif
           </div>
           <div class="muted" style="font-size:13px;margin:6px 0">{{ $f['airlines'] ?? '' }}{{ !empty($f['duration']) ? ' · '.$f['duration'] : '' }}</div>
-          <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit">{!! $money($f['price'] ?? 0) !!}</div>
+          <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:'Poppins'">{!! $money($f['price'] ?? 0) !!}</div>
           <span class="data-badge">{{ $statusText($f['price_status'] ?? 'estimated') }}</span>
           <a class="mlink mt" target="_blank" rel="noopener" href="{{ $flightLink('flights '.($f['from']??'').' to '.($f['to']??'')) }}">Check fares ↗</a>
         </div>
@@ -324,9 +344,9 @@
       {{-- Flights total --}}
       @php $flightTotal = array_sum(array_column($plan['flights'], 'price')); @endphp
       <div class="card flight-total" id="flightTotalCard">
-        <div style="font-weight:600;font-family:Outfit">Flights total</div>
+        <div style="font-weight:600;font-family:'Poppins'">Flights total</div>
         <div class="muted" style="font-size:13px;margin:6px 0">Selected air legs combined</div>
-        <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit" id="flightTotalAmt">{!! $money($flightTotal) !!}</div>
+        <div style="font-size:20px;font-weight:600;color:var(--accent);font-family:'Poppins'" id="flightTotalAmt">{!! $money($flightTotal) !!}</div>
         <span class="tag">Book early for best rates</span>
       </div>
     </div>

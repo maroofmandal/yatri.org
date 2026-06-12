@@ -13,7 +13,7 @@
 <style>
 .adm{display:flex;min-height:100vh}
 .adm-side{width:240px;background:var(--md-inverse-surface);color:var(--md-inverse-on-surface);flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow:auto}
-.adm-side .b{font-family:Outfit;font-weight:700;color:var(--md-inverse-on-surface);font-size:18px;padding:0 22px 18px;display:flex;gap:10px;align-items:center}
+.adm-side .b{font-family:'Poppins';font-weight:700;color:var(--md-inverse-on-surface);font-size:18px;padding:0 22px 18px;display:flex;gap:10px;align-items:center}
 .adm-side .b .dot{width:8px;height:8px;border-radius:50%;background:var(--md-inverse-primary)}
 .adm-side a{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.7);padding:11px 22px;font-size:14px;font-weight:500;border-left:3px solid transparent;text-decoration:none;transition:all .15s}
 .adm-side a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
@@ -24,12 +24,12 @@
 .adm-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px}
 .adm-h h1{font-size:26px;font-weight:600}
 table.t{width:100%;border-collapse:collapse;background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-md);overflow:hidden}
-table.t th{text-align:left;font-family:Outfit;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--md-on-surface-variant);padding:11px 14px;border-bottom:1px solid var(--md-outline-variant);background:var(--md-surface-container)}
+table.t th{text-align:left;font-family:'Poppins';font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--md-on-surface-variant);padding:11px 14px;border-bottom:1px solid var(--md-outline-variant);background:var(--md-surface-container)}
 table.t td{padding:11px 14px;border-bottom:1px solid var(--md-outline-variant);font-size:13px;vertical-align:middle}
 table.t tr:last-child td{border-bottom:none}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .stat{background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-md);padding:18px}
-.stat .n{font-family:Outfit;font-weight:600;font-size:28px;color:var(--md-primary)}
+.stat .n{font-family:'Poppins';font-weight:600;font-size:28px;color:var(--md-primary)}
 .stat .l{color:var(--md-on-surface-variant);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;border-radius:var(--md-shape-full);padding:3px 10px}
 .badge.ok{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}

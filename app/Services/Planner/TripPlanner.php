@@ -6,7 +6,7 @@ use App\Models\GeminiLog;
 use App\Models\Trip;
 use App\Services\Llm\LlmClient;
 use App\Services\Google\PlacesClient;
-use App\Services\Google\WeatherClient;
+use App\Services\Weather\OpenMeteoClient;
 use Throwable;
 
 class TripPlanner
@@ -52,7 +52,7 @@ class TripPlanner
             // Post-generation: enrich with Google Places data (ratings, reviews, photos).
             $enricher = new PlacesEnricher(new PlacesClient);
             $plan = $enricher->enrich($plan);
-            $plan = $this->enrichWeather($trip, $plan, new WeatherClient);
+            $plan = $this->enrichWeather($trip, $plan, new OpenMeteoClient);
             $plan = $this->normalizePriceStatuses($plan);
 
             $budget = $plan['budget'] ?? [];
@@ -182,7 +182,7 @@ class TripPlanner
         return $total <= $cap * 0.85 ? 'under' : 'fit';
     }
 
-    protected function enrichWeather(Trip $trip, array $plan, WeatherClient $weather): array
+    protected function enrichWeather(Trip $trip, array $plan, OpenMeteoClient $weather): array
     {
         $days = collect($plan['days'] ?? []);
         if ($days->isEmpty()) {
@@ -193,11 +193,11 @@ class TripPlanner
             ->filter(fn ($stop) => ! empty($stop['name']))
             ->keyBy(fn ($stop) => mb_strtolower((string) $stop['name']));
 
+        $startDate = $trip->start_date?->toDateString();
+        $endDate = $trip->end_date?->toDateString();
         $forecastByCity = [];
-        if ($trip->start_date
-            && $weather->isConfigured()
-            && $trip->start_date->gte(now()->startOfDay())
-            && $trip->start_date->lte(now()->addDays(9)->endOfDay())) {
+
+        if ($startDate && $endDate) {
             $cities = $days->pluck('city')->filter()->unique();
 
             foreach ($cities as $city) {
@@ -206,9 +206,9 @@ class TripPlanner
                     continue;
                 }
 
-                $forecast = $weather->dailyForecast((float) $stop['lat'], (float) $stop['lng'], 10);
+                $forecast = $weather->dailyForecast((float) $stop['lat'], (float) $stop['lng'], $startDate, $endDate);
                 if ($forecast) {
-                    $forecastByCity[$city] = collect($forecast)->keyBy('date')->all();
+                    $forecastByCity[$city] = $forecast;
                 }
             }
         }
@@ -221,14 +221,17 @@ class TripPlanner
 
             $entry = $live ?: [
                 'date' => $date,
-                'source' => 'seasonal_estimate',
-                'status' => $trip->start_date ? 'seasonal_estimate' : 'flexible_dates_estimate',
-                'summary' => 'Seasonal estimate. Live Google Weather forecast is available only within 10 days of travel.',
+                'source' => 'open_meteo',
+                'status' => 'live',
+                'weather_code' => null,
+                'summary' => $date ? 'Weather data unavailable for this date.' : 'Flexible dates — set specific dates for live weather.',
                 'icon' => null,
+                'icon_class' => null,
                 'temperature_min_c' => null,
                 'temperature_max_c' => null,
+                'precipitation_sum' => null,
                 'precipitation_probability' => null,
-                'humidity' => null,
+                'wind_speed' => null,
                 'uv_index' => null,
             ];
 
@@ -238,11 +241,12 @@ class TripPlanner
             $plan['days'][$index]['weather'] = $entry;
         }
 
+        $anyLive = collect($weatherDays)->contains(fn ($day) => $day['weather_code'] !== null);
         $plan['weather'] = [
-            'source' => collect($weatherDays)->contains(fn ($day) => ($day['source'] ?? null) === 'google_weather')
-                ? 'google_weather'
-                : 'seasonal_estimate',
-            'note' => 'Google Weather gives live daily forecasts for up to 10 days. Later or flexible dates use seasonal estimates.',
+            'source' => 'open_meteo',
+            'note' => $anyLive
+                ? 'Live weather from Open-Meteo for your trip dates.'
+                : 'Set specific trip dates to see live weather forecasts from Open-Meteo.',
             'days' => $weatherDays,
         ];
 
@@ -305,7 +309,7 @@ class TripPlanner
         2. 2–3 well-rated REAL hotels per stop in a sensible area, with the current or typical nightly price for the style above. For every hotel, provide the exact real Google Business / Google Maps search query to retrieve real data.
         3. Top attractions per stop with entry fees (say if free) and the exact real Google Maps search query (e.g. 'Senso-ji Temple Tokyo'). Mark whether fees are free, estimated, or confirmed by source.
         4. Typical daily food cost per person for this style.
-        5. Visa, seasonal weather, live-weather availability, or closure notes for these dates.
+        5. Visa, seasonal or closure notes for these dates.
         Use real names and real current numbers. Keep it tight.
         TXT;
     }
@@ -327,7 +331,7 @@ class TripPlanner
             ."Set days[].items[].entry_fee_status to one of `free`, `estimated`, or `confirmed_by_source`.\n"
             ."CRITICAL IMAGE RULE: Always populate `place_query` for every single hotel and day item activity with the exact, real Google Business / Google Maps search query (e.g. 'Park Hyatt Tokyo', 'Senso-ji Temple Tokyo'). This is used to query the Google Places API to fetch real user review photos and ratings. Do not use generic names (like 'hotel' or 'sightseeing') or mock/unsplash/external image URLs anywhere. Every destination, hotel, and activity must map to a real place query.\n"
             .'Also populate: route_options (2 distinct routing options with pros/cons), flights (each leg with airlines, type, duration, price, booking_query), '
-            .'weather (seasonal estimates per city/day if available), packing (grouped lists suited to the season/dates), culture (dos/donts per country or place), and countdown (a pre-trip timeline from ~8 weeks out to 1 week before).';
+            .'packing (grouped lists suited to the season/dates), culture (dos/donts per country or place), and countdown (a pre-trip timeline from ~8 weeks out to 1 week before).';
     }
 
     protected function structurePrompt(Trip $trip, string $research, string $feedback): string
@@ -512,7 +516,7 @@ class TripPlanner
             ],
         ];
 
-        $plan = $this->enrichWeather($trip, $plan, new WeatherClient);
+        $plan = $this->enrichWeather($trip, $plan, new OpenMeteoClient);
         $plan = $this->normalizePriceStatuses($plan);
 
         $trip->update([
