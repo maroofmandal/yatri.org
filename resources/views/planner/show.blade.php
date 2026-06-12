@@ -120,8 +120,30 @@
 </select>
 @endpush
 
+@push('head')
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.ai-image-status {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+@endpush
+
 @section('content')
-<header class="trip-hero" @if($tripImage) style="background-image:url('{{ $tripImage }}')" @else style="background:{{ $trip->fallbackGradient() }}" @endif>
+<header class="trip-hero" id="tripHeroHeader" @if($tripImage) style="background-image:url('{{ $tripImage }}')" @else style="background:{{ $trip->fallbackGradient() }}" @endif>
+  @if(!$tripImage)
+    <div id="aiImageStatus" class="ai-image-status" style="position:absolute;top:20px;right:24px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;color:#fff;z-index:10;border:1px solid rgba(255,255,255,0.15)">
+      <span class="spinner-sm" style="display:inline-block;width:12px;height:12px;border:2.5px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 1s linear infinite;"></span>
+      <span>Generating AI cover...</span>
+    </div>
+  @endif
   <div class="trip-hero-glass">
     <div class="wrap">
       <p class="eyebrow">{{ $trip->origin }} · {{ $trip->days }} days · {{ $trip->nights }} nights · {{ $trip->travelers }} traveler(s) · {!! $money($trip->budget_total) !!} budget · <x-icon name="visibility" :size="14" /> {{ $trip->views }} · <x-icon name="share" :size="14" /> {{ $trip->shares ?? 0 }}</p>
@@ -1599,7 +1621,64 @@ window.copyTripUrl = function() {
   }).catch(function() {});
 };
 
+/* ===== ASYNC IMAGE GENERATION ===== */
+(function() {
+  const isImageReady = {!! json_encode(!empty($trip->image)) !!};
+  if (isImageReady) return;
 
+  const token = CSRF;
+
+  // Trigger image generation
+  fetch(`/t/${_pd.tripId}/generate-images`, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': token,
+      'Accept': 'application/json'
+    }
+  }).catch(() => {});
+
+  // Poll for completion
+  let attempts = 0;
+  const maxAttempts = 30; // 30 * 3s = 90s max polling
+
+  const pollInterval = setInterval(async () => {
+    attempts++;
+    if (attempts > maxAttempts) {
+      clearInterval(pollInterval);
+      const statusEl = document.getElementById('aiImageStatus');
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--md-error)">Image generation timeout</span>';
+      setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 3000);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/t/${_pd.tripId}/images-status`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ready && data.image_url) {
+          clearInterval(pollInterval);
+          
+          // Fade in the new background image on the hero header
+          const hero = document.getElementById('tripHeroHeader');
+          if (hero) {
+            hero.style.transition = 'background-image 0.8s ease-in-out';
+            hero.style.backgroundImage = `url('${data.image_url}')`;
+          }
+          
+          // Hide status badge
+          const statusEl = document.getElementById('aiImageStatus');
+          if (statusEl) {
+            statusEl.style.transition = 'opacity 0.4s ease-out';
+            statusEl.style.opacity = '0';
+            setTimeout(() => statusEl.style.display = 'none', 400);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error polling image status:', e);
+    }
+  }, 3000);
+})();
 </script>
 @endpush
 @endsection

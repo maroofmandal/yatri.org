@@ -17,7 +17,7 @@ class Trip extends Model
         'budget_total', 'currency', 'style', 'interests',
         'status', 'plan', 'budget_breakdown', 'fit_status',
         'grounding', 'model_used', 'error', 'is_public', 'views',
-        'image',
+        'image', 'progress', 'compressed_chat_context',
     ];
 
     protected $casts = [

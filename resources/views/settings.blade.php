@@ -61,6 +61,13 @@
           @error('current_city')<div class="err">{{ $message }}</div>@enderror
         </div>
         <div class="field">
+          <label>Age</label>
+          <input type="number" name="age" value="{{ old('age', $user->age) }}" placeholder="e.g. 28" min="1" max="120">
+          @error('age')<div class="err">{{ $message }}</div>@enderror
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="field">
           <label>Default Currency</label>
           <select name="default_currency">
             @foreach(['USD'=>'USD — US Dollar','EUR'=>'EUR — Euro','GBP'=>'GBP — British Pound','INR'=>'INR — Indian Rupee','JPY'=>'JPY — Japanese Yen','AUD'=>'AUD — Australian Dollar','CAD'=>'CAD — Canadian Dollar','SGD'=>'SGD — Singapore Dollar','AED'=>'AED — UAE Dirham','THB'=>'THB — Thai Baht','IDR'=>'IDR — Indonesian Rupiah','MYR'=>'MYR — Malaysian Ringgit','PHP'=>'PHP — Philippine Peso','VND'=>'VND — Vietnamese Dong','KRW'=>'KRW — Korean Won','CNY'=>'CNY — Chinese Yuan','NZD'=>'NZD — New Zealand Dollar','CHF'=>'CHF — Swiss Franc','SEK'=>'SEK — Swedish Krona','NOK'=>'NOK — Norwegian Krone','TRY'=>'TRY — Turkish Lira','EGP'=>'EGP — Egyptian Pound','ZAR'=>'ZAR — South African Rand','BRL'=>'BRL — Brazilian Real','MXN'=>'MXN — Mexican Peso','RUB'=>'RUB — Russian Ruble','PKR'=>'PKR — Pakistani Rupee','BDT'=>'BDT — Bangladeshi Taka','LKR'=>'LKR — Sri Lankan Rupee','NPR'=>'NPR — Nepalese Rupee'] as $code => $label)
@@ -69,6 +76,11 @@
           </select>
           @error('default_currency')<div class="err">{{ $message }}</div>@enderror
         </div>
+      </div>
+      <div class="field">
+        <label>Travel Preferences / Special Requirements</label>
+        <textarea name="travel_preferences" rows="3" maxlength="1000" placeholder="e.g. Vegetarian food, prefer historic sights, require wheelchair access...">{{ old('travel_preferences', $user->travel_preferences) }}</textarea>
+        @error('travel_preferences')<div class="err">{{ $message }}</div>@enderror
       </div>
       <button type="submit" class="btn btn-filled">
         <x-icon name="save" :size="18" /> Save changes

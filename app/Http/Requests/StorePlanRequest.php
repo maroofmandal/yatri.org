@@ -41,6 +41,7 @@ class StorePlanRequest extends FormRequest
             'style'                 => ['required', 'in:budget,mid,luxury'],
             'interests'             => ['nullable', 'array'],
             'interests.*'           => ['string', 'max:40'],
+            'compressed_chat_context' => ['nullable', 'string', 'max:5000'],
         ];
     }
 }

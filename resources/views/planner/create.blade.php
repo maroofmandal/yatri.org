@@ -84,7 +84,30 @@
       </div>
     </div>
 
-    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> {{ isset($editTrip) ? 'Save changes & regenerate' : 'Generate my plan' }}</button>
+    <input type="hidden" name="compressed_chat_context" id="compressedChatContextField">
+
+    {{-- Pre-Plan AI Chat Interface --}}
+    <div id="prePlanChatBox" class="pre-plan-chat-box" style="display:none;margin-top:24px;border:1px solid var(--md-outline-variant);border-radius:12px;padding:20px;background:var(--md-surface-container-low);box-shadow:var(--md-elevation-1);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--md-outline-variant);padding-bottom:10px">
+        <h4 style="margin:0;display:flex;align-items:center;gap:8px;font-family:'Poppins';font-weight:600;color:var(--md-primary)">
+          <x-icon name="smart_toy" style="color:var(--md-primary)" /> Chat with Travel AI
+        </h4>
+        <button type="button" id="closePrePlanChat" style="border:none;background:none;font-size:24px;cursor:pointer;color:var(--md-on-surface-variant);line-height:1">&times;</button>
+      </div>
+
+      <div class="chat-log" id="prePlanChatLog" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:8px;display:flex;flex-direction:column;gap:12px;">
+        <div class="chat-msg bot">Hi! Let's personalize your trip. Gathering some clarification questions...</div>
+      </div>
+    </div>
+
+    <div class="row row-2 mt" style="gap:12px;margin-top:20px;display:flex">
+      <button type="button" class="btn btn-outlined" id="chatWithAIBtn" style="font-size:16px;padding:15px;display:flex;align-items:center;justify-content:center;gap:8px;flex:1">
+        <x-icon name="chat" :size="20" /> Chat with AI
+      </button>
+      <button type="submit" class="btn btn-filled" id="generatePlanBtn" style="font-size:16px;padding:15px;display:flex;align-items:center;justify-content:center;gap:8px;flex:1">
+        <x-icon name="auto_awesome" :size="20" /> {{ isset($editTrip) ? 'Save changes & regenerate' : 'Generate my plan' }}
+      </button>
+    </div>
     @if(!isset($editTrip))<p class="hint center mt">Free to try — no account needed. You'll get a shareable link.</p>@endif
   </form>
 
@@ -324,6 +347,359 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
   if(!dests.length){ e.preventDefault(); alert('Add at least one destination.'); return; }
   document.getElementById('destinationsField').value = JSON.stringify(dests);
 });
+</script>
+
+<style>
+.pre-plan-chat-box {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-lg);
+  padding: 24px;
+  margin-top: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--md-elevation-1);
+}
+.pre-plan-chat-box h4 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--md-primary);
+}
+.chat-log {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 85%;
+  padding: 14px 18px;
+  border-radius: var(--md-shape-lg);
+  font-size: 14.5px;
+  line-height: 1.5;
+  animation: fadeIn 0.25s ease-out;
+}
+.chat-msg.bot {
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  align-self: flex-start;
+  border-bottom-left-radius: var(--md-shape-xs);
+}
+.chat-msg.user {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  align-self: flex-end;
+  border-bottom-right-radius: var(--md-shape-xs);
+}
+.chat-question-card {
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-md);
+  background: var(--md-surface-container);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.chat-question-card.active {
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 1px var(--md-primary);
+}
+.chat-question-header {
+  padding: 14px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.chat-question-header:hover {
+  background: var(--md-state-hover);
+}
+.chat-question-options {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chat-option-btn {
+  background: var(--md-surface-container-highest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-full);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--md-on-surface);
+}
+.chat-option-btn:hover {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border-color: var(--md-primary);
+}
+.recommended-badge {
+  background: var(--md-tertiary-container);
+  color: var(--md-on-tertiary-container);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--md-shape-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.preplan-pulse {
+  animation: preplanPulse 2s infinite;
+}
+@keyframes preplanPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 92, 187, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 92, 187, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 92, 187, 0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+// Pre-Plan AI Chat Logic
+(function() {
+  const token = document.querySelector('meta[name=csrf-token]').content;
+  const prePlanChatBox = document.getElementById('prePlanChatBox');
+  const prePlanChatLog = document.getElementById('prePlanChatLog');
+  const chatWithAIBtn = document.getElementById('chatWithAIBtn');
+  const generatePlanBtn = document.getElementById('generatePlanBtn');
+  const closePrePlanChat = document.getElementById('closePrePlanChat');
+  const compressedChatContextField = document.getElementById('compressedChatContextField');
+
+  let chatAnswers = [];
+  let chatQuestions = [];
+  let currentQuestionIndex = 0;
+
+  chatWithAIBtn.addEventListener('click', async () => {
+    if (prePlanChatBox.style.display === 'block') {
+      prePlanChatBox.style.display = 'none';
+      return;
+    }
+
+    const formVals = getFormValues();
+    if (formVals.destinations.length === 0) {
+      alert('Please add at least one destination first.');
+      return;
+    }
+
+    prePlanChatBox.style.display = 'block';
+    prePlanChatLog.innerHTML = '<div class="chat-msg bot">Hi! Let\'s personalize your trip. Gathering some clarification questions...</div>';
+    
+    try {
+      const res = await fetch('{{ route("plan.pre-chat-init") }}', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ form_values: formVals })
+      });
+      
+      if (!res.ok) throw new Error('Failed to load questions');
+      const data = await res.json();
+      chatQuestions = data.questions || [];
+      chatAnswers = [];
+      currentQuestionIndex = 0;
+      
+      renderQuestionsList();
+    } catch (err) {
+      prePlanChatLog.innerHTML = '<div class="chat-msg bot" style="color:var(--md-error)">Sorry, we couldn\'t load personalization questions. You can still generate your plan directly!</div>';
+    }
+  });
+
+  closePrePlanChat.addEventListener('click', () => {
+    prePlanChatBox.style.display = 'none';
+  });
+
+  function getSerializedDests() {
+    return [...list.querySelectorAll('.dest-item')].map(r=>({
+      name: r.querySelector('.dname').value.trim(),
+      days: parseInt(r.querySelector('.ddays').value)||3,
+      nights: parseInt(r.querySelector('.dnights').value)||2,
+      lat: parseFloat(r.querySelector('.dlat').value)||null,
+      lng: parseFloat(r.querySelector('.dlng').value)||null,
+    })).filter(d=>d.name);
+  }
+
+  function getFormValues() {
+    const dests = getSerializedDests();
+    const interests = [];
+    document.querySelectorAll('input[name="interests[]"]:checked').forEach(el => {
+      interests.push(el.value);
+    });
+    return {
+      origin: document.getElementById('originInput').value.trim(),
+      destinations: dests,
+      travelers: parseInt(document.querySelector('input[name="travelers"]').value) || 2,
+      start_date: document.querySelector('input[name="start_date"]').value || null,
+      end_date: document.querySelector('input[name="end_date"]').value || null,
+      style: document.querySelector('input[name="style"]:checked')?.value || 'mid',
+      budget_total: parseFloat(document.getElementById('budgetInput').value) || 3000,
+      currency: document.getElementById('currency').value,
+      interests: interests
+    };
+  }
+
+  function renderQuestionsList() {
+    prePlanChatLog.innerHTML = '<div class="chat-msg bot">Please answer these 3 quick questions to help personalize your itinerary:</div>';
+    
+    chatQuestions.forEach((q, idx) => {
+      const card = document.createElement('div');
+      card.className = 'chat-question-card' + (idx === currentQuestionIndex ? ' active' : '');
+      card.id = 'chat-q-card-' + idx;
+      
+      let answerHtml = '';
+      const answered = chatAnswers.find(a => a.id === q.id);
+      if (answered) {
+        answerHtml = `<div style="padding:10px 18px;background:var(--md-primary-container);color:var(--md-on-primary-container);font-size:13.5px;font-weight:500;">✓ Selected: ${answered.answer}</div>`;
+      }
+      
+      card.innerHTML = `
+        <div class="chat-question-header" onclick="toggleQuestionCard(${idx})">
+          <span>${idx + 1}. ${q.question}</span>
+          <span class="arrow">${idx === currentQuestionIndex ? '▼' : '►'}</span>
+        </div>
+        <div class="chat-question-options" id="chat-q-options-${idx}" style="display:${idx === currentQuestionIndex && !answered ? 'flex' : 'none'}">
+          ${q.options.map(opt => {
+            const isRec = opt === q.recommended;
+            return `
+              <button type="button" class="chat-option-btn" onclick="selectAnswer(${idx}, '${opt.replace(/'/g, "\\'")}')">
+                <span>${opt}</span>
+                ${isRec ? '<span class="recommended-badge">Recommended</span>' : ''}
+              </button>
+            `;
+          }).join('')}
+        </div>
+        ${answerHtml}
+      `;
+      
+      prePlanChatLog.appendChild(card);
+    });
+    
+    prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
+  }
+
+  window.toggleQuestionCard = function(idx) {
+    const card = document.getElementById('chat-q-card-' + idx);
+    const options = document.getElementById('chat-q-options-' + idx);
+    const arrow = card.querySelector('.arrow');
+    
+    if (options.style.display === 'none') {
+      for (let i = 0; i < chatQuestions.length; i++) {
+        const opt = document.getElementById('chat-q-options-' + i);
+        if (opt) opt.style.display = 'none';
+        const arr = document.querySelector('#chat-q-card-' + i + ' .arrow');
+        if (arr) arr.textContent = '►';
+        const c = document.getElementById('chat-q-card-' + i);
+        if (c) c.classList.remove('active');
+      }
+      
+      options.style.display = 'flex';
+      arrow.textContent = '▼';
+      card.classList.add('active');
+    } else {
+      options.style.display = 'none';
+      arrow.textContent = '►';
+      card.classList.remove('active');
+    }
+  };
+
+  window.selectAnswer = async function(qIdx, answer) {
+    const q = chatQuestions[qIdx];
+    
+    const existingIdx = chatAnswers.findIndex(a => a.id === q.id);
+    if (existingIdx > -1) {
+      chatAnswers[existingIdx].answer = answer;
+    } else {
+      chatAnswers.push({ id: q.id, question: q.question, answer: answer });
+    }
+    
+    if (currentQuestionIndex === qIdx) {
+      currentQuestionIndex = chatQuestions.findIndex((q, idx) => !chatAnswers.some(a => a.id === q.id));
+    }
+    
+    renderQuestionsList();
+    
+    if (chatAnswers.length >= chatQuestions.length) {
+      await checkNextAdaptiveQuestion();
+    }
+  };
+
+  async function checkNextAdaptiveQuestion() {
+    const formVals = getFormValues();
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'chat-msg bot';
+    loadingMsg.id = 'chat-loading-followup';
+    loadingMsg.innerHTML = 'Analyzing preferences for follow-up...';
+    prePlanChatLog.appendChild(loadingMsg);
+    prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
+    
+    try {
+      const res = await fetch('{{ route("plan.pre-chat-next") }}', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ form_values: formVals, answers: chatAnswers })
+      });
+      
+      if (loadingMsg) loadingMsg.remove();
+      
+      if (!res.ok) throw new Error('Failed to get follow-up');
+      const data = await res.json();
+      
+      if (data.has_more && data.question) {
+        const newQ = data.question;
+        if (!chatQuestions.some(q => q.id === newQ.id)) {
+          chatQuestions.push(newQ);
+          currentQuestionIndex = chatQuestions.length - 1;
+          renderQuestionsList();
+        } else {
+          finishPrePlanChat(data.compressed_context || "Context compiled.");
+        }
+      } else {
+        finishPrePlanChat(data.compressed_context || "Context compiled.");
+      }
+    } catch (err) {
+      if (loadingMsg) loadingMsg.remove();
+      finishPrePlanChat("Fallback context compiled.");
+    }
+  }
+
+  function finishPrePlanChat(compressedContext) {
+    compressedChatContextField.value = compressedContext;
+    
+    const endCard = document.createElement('div');
+    endCard.className = 'chat-msg bot';
+    endCard.style.borderColor = 'var(--md-primary)';
+    endCard.style.borderWidth = '1px';
+    endCard.style.borderStyle = 'solid';
+    endCard.innerHTML = `<strong>✨ Preferences saved!</strong><br>We gathered everything needed to tailor the itinerary to your style. Click <strong>Generate my plan</strong> below to build your custom trip plan.`;
+    prePlanChatLog.appendChild(endCard);
+    prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
+    
+    generatePlanBtn.classList.add('preplan-pulse');
+  }
+})();
 </script>
 @endpush
 @endsection

@@ -37,6 +37,9 @@ ssh -i "$SSH_KEY" "$REMOTE" "
   echo \"---- Installing composer dependencies...\" &&
   composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5 &&
 
+  echo \"---- Running database migrations...\" &&
+  php artisan migrate --force &&
+
   echo \"---- Clearing ALL Laravel caches...\" &&
   php artisan view:clear &&
   php artisan route:clear &&

@@ -42,6 +42,9 @@ async function poll(){
     if (d.status === 'error') {
       return fail('Couldn\'t finish the plan', d.error || 'Something went wrong. Please try again.');
     }
+    if (d.progress) {
+      document.getElementById('msg').textContent = d.progress;
+    }
     setTimeout(poll, 3000);
   } catch (e) {
     if (++transient >= MAX_TRANSIENT) {

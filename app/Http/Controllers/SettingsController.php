@@ -21,10 +21,12 @@ class SettingsController extends Controller
         $user = auth()->user();
 
         $data = $request->validate([
-            'name'          => ['required', 'string', 'max:120'],
-            'bio'           => ['nullable', 'string', 'max:500'],
-            'current_city'  => ['nullable', 'string', 'max:120'],
+            'name'             => ['required', 'string', 'max:120'],
+            'bio'              => ['nullable', 'string', 'max:500'],
+            'current_city'     => ['nullable', 'string', 'max:120'],
             'default_currency' => ['required', 'string', 'size:3'],
+            'age'              => ['nullable', 'integer', 'min:1', 'max:120'],
+            'travel_preferences' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $user->fill($data);

@@ -27,7 +27,11 @@ class TripPlanner
      */
     public function generate(Trip $trip): Trip
     {
-        $trip->update(['status' => 'generating', 'error' => null]);
+        $trip->update([
+            'status' => 'generating',
+            'progress' => 'Researching destinations, hotels and transit options...',
+            'error' => null
+        ]);
 
         if (! $this->llm->enabled()) {
             return $this->fillSample($trip);
@@ -44,6 +48,8 @@ class TripPlanner
             );
             $this->log($trip, 'research', $research, true, $startedAt);
 
+            $trip->update(['progress' => 'Structuring day-by-day itinerary and fitting budget...']);
+
             // Pass 2 — structure into JSON, looping until it fits the budget cap.
             [$plan, $structure] = $this->structureWithBudgetFit($trip, $research['text']);
             $this->log($trip, 'plan', $structure, false, $startedAt);
@@ -52,9 +58,14 @@ class TripPlanner
                 throw new \RuntimeException('Model returned an empty itinerary.');
             }
 
+            $trip->update(['progress' => 'Enriching places, ratings and reviews...']);
+
             // Post-generation: enrich with Google Places data (ratings, reviews, photos).
             $enricher = new PlacesEnricher(new PlacesClient);
             $plan = $enricher->enrich($plan);
+
+            $trip->update(['progress' => 'Fetching weather forecasts...']);
+
             $plan = $this->enrichWeather($trip, $plan, new OpenMeteoClient);
             $plan = $this->normalizePriceStatuses($plan);
 
@@ -63,6 +74,7 @@ class TripPlanner
 
             $trip->update([
                 'status' => 'ready',
+                'progress' => 'Itinerary finalized! Ready to display...',
                 'title' => $plan['title'] ?? $trip->title,
                 'plan' => $plan,
                 'budget_breakdown' => $budget,
@@ -71,17 +83,7 @@ class TripPlanner
                 'model_used' => $research['model'],
             ]);
 
-            $trip = $trip->refresh();
-
-            // Generate preview + destination images inline before marking ready
-            // so failures surface via the polling page instead of silently
-            try {
-                app(TripImageGenerator::class)->generateForTrip($trip);
-            } catch (\Throwable $imgE) {
-                Log::warning("Image generation failed for trip {$trip->id}: " . $imgE->getMessage());
-            }
-
-            return $trip;
+            return $trip->refresh();
         } catch (Throwable $e) {
             report($e);
             // Resilience: if live generation fails (bad/denied key, quota, network),
@@ -377,6 +379,21 @@ class TripPlanner
 
         $interests = $trip->interests ? implode(', ', $trip->interests) : 'general sightseeing';
 
+        $user = $trip->user;
+        $profileContext = '';
+        if ($user) {
+            $profileContext = "\nUser Profile Context:\n"
+                . "- Current City/Home Base: " . ($user->current_city ?: $user->home_base ?: 'Unknown') . "\n"
+                . "- Age: " . ($user->age ?: 'Unknown') . "\n"
+                . "- General Travel Style: " . ($user->travel_style ?: 'Unknown') . "\n"
+                . "- Travel Preferences: " . ($user->travel_preferences ?: 'None specified') . "\n"
+                . "- Bio/About: " . ($user->bio ?: 'None') . "\n";
+        }
+
+        $chatContextText = $trip->compressed_chat_context 
+            ? "\nPersonal Travel Preferences & Choices collected from pre-trip chat:\n" . $trip->compressed_chat_context . "\n"
+            : '';
+
         return <<<TXT
         Plan a {$trip->days}-day ({$trip->nights}-night) trip for {$trip->travelers} traveler(s).
         Origin: {$trip->origin}
@@ -385,7 +402,7 @@ class TripPlanner
         Total budget (HARD CAP, whole party, whole trip): {$trip->budget_total} {$trip->currency}
         Travel style: {$trip->style}
         Interests: {$interests}
-
+        {$profileContext}{$chatContextText}
         Research and report live, usable data to build a COSTED day-by-day plan that fits the budget:
         1. Best transport for every leg (origin↔stops and between stops): mode, typical 2026 price per person, duration. Compare flight vs train/bus where relevant.
         2. 2–3 well-rated REAL hotels per stop in a sensible area, with the current or typical nightly price for the style above. For every hotel, provide the exact real Google Business / Google Maps search query to retrieve real data.

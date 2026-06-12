@@ -7,8 +7,11 @@ use App\Models\Destination;
 use App\Models\Setting;
 use App\Models\Trip;
 use App\Services\Planner\TripPlanner;
+use App\Services\Planner\PrePlanChatService;
+use App\Services\ImageGen\TripImageGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PlannerController extends Controller
 {
@@ -71,6 +74,7 @@ class PlannerController extends Controller
             'style'        => $data['style'],
             'interests'    => $data['interests'] ?? [],
             'status'       => 'draft',
+            'compressed_chat_context' => $data['compressed_chat_context'] ?? null,
         ]);
 
         return redirect()->route('trip.show', $trip);
@@ -170,8 +174,57 @@ class PlannerController extends Controller
     {
         return response()->json([
             'status'   => $trip->status,
+            'progress' => $trip->progress,
             'error'    => $trip->error,
             'redirect' => route('trip.show', $trip),
+        ]);
+    }
+
+    public function prePlanChatInit(Request $request, PrePlanChatService $service)
+    {
+        $data = $request->validate([
+            'form_values' => ['required', 'array'],
+        ]);
+
+        $questions = $service->initChat($data['form_values'], $request->user());
+
+        return response()->json(['questions' => $questions]);
+    }
+
+    public function prePlanChatNext(Request $request, PrePlanChatService $service)
+    {
+        $data = $request->validate([
+            'form_values' => ['required', 'array'],
+            'answers'     => ['required', 'array'],
+        ]);
+
+        $res = $service->nextQuestion($data['form_values'], $data['answers'], $request->user());
+
+        return response()->json($res);
+    }
+
+    public function generateImages(Trip $trip)
+    {
+        $tripId = $trip->id;
+        dispatch(function () use ($tripId) {
+            @set_time_limit(0);
+            $trip = Trip::find($tripId);
+            if (!$trip) return;
+            try {
+                app(TripImageGenerator::class)->generateForTrip($trip);
+            } catch (\Throwable $e) {
+                Log::warning("Async image generation failed for trip {$tripId}: " . $e->getMessage());
+            }
+        })->afterResponse();
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function imagesStatus(Trip $trip)
+    {
+        return response()->json([
+            'ready' => !empty($trip->image),
+            'image_url' => $trip->image ? \Illuminate\Support\Facades\Storage::url($trip->image) : null,
         ]);
     }
 
@@ -181,6 +234,7 @@ class PlannerController extends Controller
 
         $trip->update([
             'status'    => 'draft',
+            'progress'  => null,
             'plan'      => null,
             'error'     => null,
         ]);
@@ -216,6 +270,7 @@ class PlannerController extends Controller
             'style'        => $data['style'],
             'interests'    => $data['interests'] ?? [],
             'status'       => 'draft',
+            'progress'     => null,
             'plan'         => null,
             'error'        => null,
         ]);

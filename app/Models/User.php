@@ -30,6 +30,8 @@ class User extends Authenticatable
         'default_currency',
         'current_city',
         'theme',
+        'age',
+        'travel_preferences',
     ];
 
     protected $hidden = [
