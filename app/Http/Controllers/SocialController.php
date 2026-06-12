@@ -16,6 +16,9 @@ class SocialController extends Controller
 
     public function like(Trip $trip)
     {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
         $user = auth()->user();
         $existing = $trip->likes()->where('user_id', $user->id)->first();
 

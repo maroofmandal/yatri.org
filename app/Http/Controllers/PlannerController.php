@@ -171,6 +171,41 @@ class PlannerController extends Controller
         return redirect()->route('trip.show', $trip);
     }
 
+    public function update(StorePlanRequest $request, Trip $trip)
+    {
+        abort_unless($this->canManage($trip), 403);
+
+        $data = $request->validated();
+
+        $dests = collect($data['destinations'])->map(fn ($d) => [
+            'name'   => $d['name'],
+            'days'   => (int) ($d['days'] ?? 3),
+            'nights' => (int) ($d['nights'] ?? 2),
+            'lat'    => $d['lat'] ?? null,
+            'lng'    => $d['lng'] ?? null,
+        ])->all();
+
+        $trip->update([
+            'origin'       => $data['origin'],
+            'destinations' => $dests,
+            'title'        => $this->defaultTitle($data['origin'], $dests),
+            'start_date'   => $data['start_date'] ?? null,
+            'end_date'     => $data['end_date'] ?? null,
+            'days'         => $this->computeDays($data, $dests),
+            'nights'       => $this->computeNights($dests),
+            'travelers'    => $data['travelers'],
+            'budget_total' => $data['budget_total'],
+            'currency'     => strtoupper($data['currency']),
+            'style'        => $data['style'],
+            'interests'    => $data['interests'] ?? [],
+            'status'       => 'draft',
+            'plan'         => null,
+            'error'        => null,
+        ]);
+
+        return redirect()->route('trip.show', $trip);
+    }
+
     public function chat(Request $request, Trip $trip, TripPlanner $planner)
     {
         $data = $request->validate(['question' => ['required', 'string', 'max:500']]);

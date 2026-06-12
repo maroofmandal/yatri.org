@@ -17,6 +17,7 @@ class Trip extends Model
         'budget_total', 'currency', 'style', 'interests',
         'status', 'plan', 'budget_breakdown', 'fit_status',
         'grounding', 'model_used', 'error', 'is_public', 'views',
+        'image',
     ];
 
     protected $casts = [
@@ -30,6 +31,40 @@ class Trip extends Model
         'end_date'         => 'date',
         'budget_total'     => 'decimal:2',
     ];
+
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->image) {
+            return \Illuminate\Support\Facades\Storage::url($this->image);
+        }
+        return $this->fallbackGradient();
+    }
+
+    public function getOgImageUrlAttribute(): string
+    {
+        return $this->image_url;
+    }
+
+    public function getCardImageUrlAttribute(): string
+    {
+        if ($this->image) {
+            $card = dirname($this->image) . '/card_' . basename($this->image);
+            $disk = \Illuminate\Support\Facades\Storage::disk('public');
+            if ($disk->exists($card)) {
+                return $disk->url($card);
+            }
+            return $disk->url($this->image);
+        }
+        return $this->fallbackGradient();
+    }
+
+    public function fallbackGradient(): string
+    {
+        $dests = collect($this->destinations ?? []);
+        $seed  = $dests->isNotEmpty() ? crc32($dests->first()['name'] ?? 'travel') : crc32('travel');
+        $hue   = abs($seed) % 360;
+        return "linear-gradient(135deg, hsl({$hue},40%,30%), hsl(" . (($hue + 60) % 360) . ",35%,20%))";
+    }
 
     protected static function booted(): void
     {

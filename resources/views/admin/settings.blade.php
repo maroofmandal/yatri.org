@@ -18,6 +18,9 @@
     </div>
     <div class="row row-2">
       <div class="field"><label>Model</label><input type="text" name="gemini_model" value="{{ $settings['ai']['gemini_model'] ?? config('gemini.model') }}"></div>
+      <div class="field"><label>Nano Banana (image) model</label><input type="text" name="nano_banana_model" value="{{ $settings['ai']['nano_banana_model'] ?? config('gemini.nano_banana_model', 'gemini-3.1-flash-image') }}"></div>
+    </div>
+    <div class="row row-2">
       <div class="field">
         <label>Google Maps API key (optional) @if(!empty($settings['ai']['google_maps_api_key']))<span class="badge ok">set</span>@endif</label>
         <input type="password" name="google_maps_api_key" placeholder="{{ !empty($settings['ai']['google_maps_api_key']) ? '•••••••• stored' : 'optional — richer place data' }}">
@@ -31,6 +34,88 @@
     </div>
     <label style="font-weight:500"><input type="checkbox" name="gemini_grounding_search" value="1" style="width:auto;margin-right:6px" {{ ($settings['ai']['gemini_grounding_search'] ?? true) ? 'checked' : '' }}>Ground with Google Search</label><br>
     <label style="font-weight:500;display:inline-block;margin-top:8px"><input type="checkbox" name="gemini_grounding_maps" value="1" style="width:auto;margin-right:6px" {{ ($settings['ai']['gemini_grounding_maps'] ?? true) ? 'checked' : '' }}>Ground with Google Maps</label>
+  </div>
+
+  {{-- Gemini API Keys (Round-Robin) --}}
+  <div class="card mb">
+    <h3>Gemini API Keys <span class="muted" style="font-size:13px;font-weight:500">— round-robin pool</span></h3>
+    <div class="hint" style="margin-bottom:12px">Add multiple Gemini keys for automatic failover. If a key hits its rate limit (429), the system rotates to the next active key.</div>
+    <table class="t" style="margin-bottom:12px">
+      <thead><tr><th>Label</th><th>Key</th><th>Status</th><th>Last used</th><th></th></tr></thead>
+      <tbody>
+        @forelse($geminiKeys as $ak)
+          <tr>
+            <td>{{ $ak->label ?: '—' }}</td>
+            <td><code style="font-size:11px">{{ substr($ak->key, 0, 8) }}••••{{ substr($ak->key, -4) }}</code></td>
+            <td>@if($ak->is_active)<span class="badge ok">active</span>@else<span class="badge warn">exhausted</span>@endif</td>
+            <td style="font-size:11px;color:var(--md-on-surface-variant)">{{ $ak->last_used_at ? $ak->last_used_at->diffForHumans() : 'never' }}</td>
+            <td>
+              <form class="inline-form" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" onsubmit="return confirm('Remove this key?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-small" style="color:var(--md-error)">remove</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="5" style="text-align:center;color:var(--md-on-surface-variant);font-size:13px;padding:18px">No Gemini API keys configured. The legacy single key will be used.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+    <div class="row row-3" style="align-items:end">
+      <div class="field"><label>Add key</label><input type="password" name="new_gemini_key" placeholder="Paste AI Studio key"></div>
+      <div class="field"><label>Label (optional)</label><input type="text" name="new_gemini_label" placeholder="e.g. Free tier #2"></div>
+      <div>
+        <button class="btn btn-accent" form="add-gemini-key-form">Add key</button>
+        @if($geminiKeys->where('is_active',false)->count())
+          <form class="inline-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="margin-left:8px">
+            @csrf
+            <input type="hidden" name="service" value="gemini">
+            <button class="btn btn-small" title="Reactivate exhausted keys">Reactivate all</button>
+          </form>
+        @endif
+      </div>
+    </div>
+  </div>
+
+  {{-- Nano Banana API Keys (Image Generation) --}}
+  <div class="card mb">
+    <h3>Nano Banana <span class="muted" style="font-size:13px;font-weight:500">— AI image generation (gemini-3.1-flash-image)</span></h3>
+    <div class="hint" style="margin-bottom:12px">Gemini Nano Banana generates trip hero images and Open Graph images. Multiple keys rotate on rate-limit exhaustion.</div>
+    <table class="t" style="margin-bottom:12px">
+      <thead><tr><th>Label</th><th>Key</th><th>Status</th><th>Last used</th><th></th></tr></thead>
+      <tbody>
+        @forelse($nanoBananaKeys as $ak)
+          <tr>
+            <td>{{ $ak->label ?: '—' }}</td>
+            <td><code style="font-size:11px">{{ substr($ak->key, 0, 8) }}••••{{ substr($ak->key, -4) }}</code></td>
+            <td>@if($ak->is_active)<span class="badge ok">active</span>@else<span class="badge warn">exhausted</span>@endif</td>
+            <td style="font-size:11px;color:var(--md-on-surface-variant)">{{ $ak->last_used_at ? $ak->last_used_at->diffForHumans() : 'never' }}</td>
+            <td>
+              <form class="inline-form" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" onsubmit="return confirm('Remove this key?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-small" style="color:var(--md-error)">remove</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="5" style="text-align:center;color:var(--md-on-surface-variant);font-size:13px;padding:18px">No Nano Banana keys configured. Trip images will not be generated.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+    <div class="row row-3" style="align-items:end">
+      <div class="field"><label>Add key</label><input type="password" name="new_nano_banana_key" placeholder="Paste AI Studio key"></div>
+      <div class="field"><label>Label (optional)</label><input type="text" name="new_nano_banana_label" placeholder="e.g. NB key #1"></div>
+      <div>
+        <button class="btn btn-accent" form="add-nb-key-form">Add key</button>
+        @if($nanoBananaKeys->where('is_active',false)->count())
+          <form class="inline-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="margin-left:8px">
+            @csrf
+            <input type="hidden" name="service" value="nano_banana">
+            <button class="btn btn-small" title="Reactivate exhausted keys">Reactivate all</button>
+          </form>
+        @endif
+      </div>
+    </div>
   </div>
 
   <div class="card mb">
@@ -126,4 +211,66 @@
 
   <button class="btn btn-accent">Save settings</button>
 </form>
+
+{{-- Separate forms for adding keys (POST to ApiKeyController) --}}
+<form id="add-gemini-key-form" method="POST" action="{{ route('admin.api-keys.store') }}" style="display:none">
+  @csrf
+  <input type="hidden" name="service" value="gemini">
+  <input type="hidden" name="key" value="">
+  <input type="hidden" name="label" value="">
+</form>
+<form id="add-nb-key-form" method="POST" action="{{ route('admin.api-keys.store') }}" style="display:none">
+  @csrf
+  <input type="hidden" name="service" value="nano_banana">
+  <input type="hidden" name="key" value="">
+  <input type="hidden" name="label" value="">
+</form>
+
+@push('scripts')
+<script>
+document.querySelector('[form="add-gemini-key-form"]')?.addEventListener('click', function(e) {
+  const form = document.getElementById('add-gemini-key-form');
+  const key = form.closest('.card').querySelector('[name="new_gemini_key"]');
+  const label = form.closest('.card').querySelector('[name="new_gemini_label"]');
+  if (!key.value) { e.preventDefault(); alert('Paste an API key first.'); return; }
+  form.querySelector('[name="key"]').value = key.value;
+  form.querySelector('[name="label"]').value = label.value;
+});
+document.querySelector('[form="add-nb-key-form"]')?.addEventListener('click', function(e) {
+  const form = document.getElementById('add-nb-key-form');
+  const card = form.closest('.card');
+  const key = card.querySelector('[name="new_nano_banana_key"]');
+  const label = card.querySelector('[name="new_nano_banana_label"]');
+  if (!key.value) { e.preventDefault(); alert('Paste an API key first.'); return; }
+  form.querySelector('[name="key"]').value = key.value;
+  form.querySelector('[name="label"]').value = label.value;
+});
+</script>
+@endpush
+
+<script>
+// Also handle the "Add key" buttons that use the hidden forms
+document.querySelectorAll('[form="add-gemini-key-form"]').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const card = this.closest('.card');
+    const key = card.querySelector('[name="new_gemini_key"]');
+    const label = card.querySelector('[name="new_gemini_label"]');
+    if (!key || !key.value) { e.preventDefault(); alert('Paste an API key first.'); return; }
+    const form = document.getElementById('add-gemini-key-form');
+    form.querySelector('[name="key"]').value = key.value;
+    form.querySelector('[name="label"]').value = label.value || '';
+  });
+});
+document.querySelectorAll('[form="add-nb-key-form"]').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const card = this.closest('.card');
+    const key = card.querySelector('[name="new_nano_banana_key"]');
+    const label = card.querySelector('[name="new_nano_banana_label"]');
+    if (!key || !key.value) { e.preventDefault(); alert('Paste an API key first.'); return; }
+    const form = document.getElementById('add-nb-key-form');
+    form.querySelector('[name="key"]').value = key.value;
+    form.querySelector('[name="label"]').value = label.value || '';
+  });
+});
+</script>
 @endsection

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ApiKey;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,7 @@ class SettingController extends Controller
             'gemini_model'            => $settings['ai']['gemini_model'] ?? config('gemini.model'),
             'gemini_grounding_search' => $settings['ai']['gemini_grounding_search'] ?? config('gemini.grounding_search'),
             'gemini_grounding_maps'   => $settings['ai']['gemini_grounding_maps'] ?? config('gemini.grounding_maps'),
+            'nano_banana_model'       => $settings['ai']['nano_banana_model'] ?? config('gemini.nano_banana_model', 'gemini-3.1-flash-image'),
         ];
 
         // Ensure fx_rates is always an array for the form.
@@ -39,7 +41,11 @@ class SettingController extends Controller
 
         $hasEnvKey = ! empty(config('gemini.key'));
 
-        return view('admin.settings', compact('settings', 'hasEnvKey'));
+        // Load API keys for Gemini and Nano Banana
+        $geminiKeys = ApiKey::where('service', 'gemini')->orderBy('id')->get();
+        $nanoBananaKeys = ApiKey::where('service', 'nano_banana')->orderBy('id')->get();
+
+        return view('admin.settings', compact('settings', 'hasEnvKey', 'geminiKeys', 'nanoBananaKeys'));
     }
 
     public function update(Request $request)
@@ -47,6 +53,7 @@ class SettingController extends Controller
         $data = $request->validate([
             'gemini_api_key'          => ['nullable', 'string', 'max:200'],
             'gemini_model'            => ['required', 'string', 'max:80'],
+            'nano_banana_model'       => ['nullable', 'string', 'max:80'],
             'gemini_grounding_search' => ['nullable', 'boolean'],
             'gemini_grounding_maps'   => ['nullable', 'boolean'],
             'google_maps_api_key'     => ['nullable', 'string', 'max:200'],
@@ -84,6 +91,9 @@ class SettingController extends Controller
             Setting::put('google_places_api_key', $data['google_places_api_key'], 'ai', 'secret');
         }
         Setting::put('gemini_model', $data['gemini_model'], 'ai', 'string');
+        if (! empty($data['nano_banana_model'])) {
+            Setting::put('nano_banana_model', $data['nano_banana_model'], 'ai', 'string');
+        }
         Setting::put('gemini_grounding_search', $request->boolean('gemini_grounding_search'), 'ai', 'bool');
         Setting::put('gemini_grounding_maps', $request->boolean('gemini_grounding_maps'), 'ai', 'bool');
 

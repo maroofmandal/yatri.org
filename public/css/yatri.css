@@ -1,3 +1,9 @@
+/* ── Poppins Font (self-hosted) ── */
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:optional;src:url(../fonts/Poppins-400.woff2) format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:optional;src:url(../fonts/Poppins-500.woff2) format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:optional;src:url(../fonts/Poppins-600.woff2) format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:optional;src:url(../fonts/Poppins-700.woff2) format('woff2')}
+
 /* ============ Material 3 Design System ============ */
 /* ── M3 Light Tokens ── */
 :root, [data-theme="light"] {
@@ -468,6 +474,7 @@ input[list]::-webkit-list-button{display:none!important}
 .flash{border-radius:var(--md-shape-md);padding:14px 18px;margin:16px 0;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px}
 .flash-ok{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}
 .flash-err{background:var(--md-error-container);color:var(--md-on-error-container)}
+.flash-warn{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
 
 /* ── Spinner ── */
 .spinner{width:44px;height:44px;border:3px solid var(--md-surface-container-highest);border-top-color:var(--md-primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
@@ -497,6 +504,18 @@ input[list]::-webkit-list-button{display:none!important}
 .tauthor img{width:26px;height:26px;border-radius:50%;object-fit:cover}
 .tstats{font-size:13px;color:var(--md-on-surface-variant)}
 .plan-featured{border-color:var(--md-primary);box-shadow:var(--md-elevation-1)}
+
+/* ── Trip card images (glassmorphism) ── */
+.tcard-img{height:180px;background-size:cover;background-position:center;position:relative;overflow:hidden}
+.tcard-img-fallback{background-size:cover}
+.tcard-img-glass{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55));pointer-events:none}
+
+/* ── Trip hero header ── */
+.trip-hero{min-height:320px;background-size:cover;background-position:center;position:relative;display:flex;align-items:flex-end}
+.trip-hero-glass{width:100%;padding:40px 0 28px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.65) 100%);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.trip-hero .eyebrow{color:rgba(255,255,255,.75);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.trip-hero .sub{display:block;font-size:15px;font-weight:400;margin-top:6px;opacity:.9}
+.trip-hero .wrap h1 strong{text-shadow:0 2px 8px rgba(0,0,0,.4)}
 
 /* ── Post cards ── */
 .pcard{background:var(--md-surface-container-low);border:1px solid var(--md-outline-variant);border-radius:var(--md-shape-md);overflow:hidden;margin-bottom:16px;transition:box-shadow .2s}
@@ -1016,4 +1035,13 @@ body.has-est-bar{padding-bottom:80px}
     gap: 16px;
   }
 }
+
+/* ── Edit Plan Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.modal-box{background:var(--md-surface-container);border-radius:var(--md-shape-lg);max-width:640px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--md-elevation-3)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--md-outline-variant)}
+.modal-head h2{margin:0;font-size:18px}
+.modal-body{padding:20px 24px;overflow-y:auto;flex:1}
+.modal-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid var(--md-outline-variant)}
+@media(max-width:600px){.modal-overlay{padding:12px;align-items:flex-end}.modal-box{max-height:92vh;border-radius:var(--md-shape-lg) var(--md-shape-lg) 0 0}}
 

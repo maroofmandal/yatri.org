@@ -13,5 +13,8 @@ return [
 
     'google_places_api_key' => env('GOOGLE_PLACES_API_KEY'),
 
+    'nano_banana_model' => env('NANO_BANANA_MODEL', 'gemini-3.1-flash-image'),
+    'nano_banana_key'   => env('NANO_BANANA_API_KEY'),
+
     'base' => env('GEMINI_BASE', 'https://generativelanguage.googleapis.com/v1beta'),
 ];

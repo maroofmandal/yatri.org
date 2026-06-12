@@ -1,4 +1,14 @@
 <div class="tcard">
+  @php $cardImg = $trip->image ? \Illuminate\Support\Facades\Storage::url($trip->image) : null; @endphp
+  @if($cardImg)
+    <div class="tcard-img" style="background-image: url('{{ $cardImg }}')">
+      <div class="tcard-img-glass"></div>
+    </div>
+  @else
+    <div class="tcard-img tcard-img-fallback" style="background:{{ $trip->fallbackGradient() }}">
+      <div class="tcard-img-glass"></div>
+    </div>
+  @endif
   <a href="{{ route('trip.show', $trip) }}" class="tcard-body">
     <div class="tcard-head">
       <span class="tag tag-primary"><x-icon name="payments" :size="14" /> <span class="money" data-amt="{{ (float)$trip->budget_total }}" data-cur="{{ $trip->currency }}">{{ strtoupper($trip->currency) }} {{ number_format($trip->budget_total) }}</span></span>

@@ -59,6 +59,7 @@ Route::get('/t/{trip}', [PlannerController::class, 'show'])->name('trip.show');
 Route::post('/t/{trip}/generate', [PlannerController::class, 'generate'])->name('trip.generate');
 Route::post('/t/{trip}/chat', [PlannerController::class, 'chat'])->name('trip.chat');
 Route::post('/t/{trip}/regenerate', [PlannerController::class, 'regenerate'])->name('trip.regenerate');
+Route::post('/t/{trip}/update', [PlannerController::class, 'update'])->name('trip.update');
 
 // ── Social actions (auth) ───────────────────────────────────────
 Route::middleware('auth')->group(function () {
@@ -134,4 +135,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/destinations/{destination}', [Admin\DestinationController::class, 'destroy'])->name('destinations.destroy');
 
     Route::get('/gemini', [Admin\GeminiLogController::class, 'index'])->name('gemini.index');
+
+    // API key management for round-robin
+    Route::post('/api-keys', [Admin\ApiKeyController::class, 'store'])->name('api-keys.store');
+    Route::delete('/api-keys/{apiKey}', [Admin\ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    Route::post('/api-keys/refresh', [Admin\ApiKeyController::class, 'refresh'])->name('api-keys.refresh');
 });

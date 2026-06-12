@@ -7,6 +7,9 @@
 @if(!\App\Models\Setting::get('gemini_api_key') && !config('gemini.key'))
   <div class="flash flash-err">No Gemini API key set — planner runs in <strong>sample mode</strong>. Add one in <a href="{{ route('admin.settings.edit') }}">Settings → AI</a> to enable live, grounded plans.</div>
 @endif
+@if(\App\Models\ApiKey::where('service','nano_banana')->where('is_active',true)->count() === 0)
+  <div class="flash flash-warn">No Nano Banana (image generation) keys configured. Trip hero images will not be generated. <a href="{{ route('admin.settings.edit') }}">Add keys in Settings</a>.</div>
+@endif
 
 <div class="stat-grid">
   <div class="stat"><div class="n">{{ $stats['users'] }}</div><div class="l">Users</div></div>

@@ -68,7 +68,12 @@ class TripPlanner
                 'model_used' => $research['model'],
             ]);
 
-            return $trip->refresh();
+            $trip = $trip->refresh();
+
+            // Dispatch background image generation using Nano Banana
+            \App\Jobs\GenerateTripImage::dispatch($trip);
+
+            return $trip;
         } catch (Throwable $e) {
             report($e);
             // Resilience: if live generation fails (bad/denied key, quota, network),

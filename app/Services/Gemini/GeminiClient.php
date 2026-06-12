@@ -3,6 +3,7 @@
 namespace App\Services\Gemini;
 
 use App\Models\Setting;
+use App\Services\ApiKeyManager;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -14,11 +15,32 @@ use RuntimeException;
  *   - structured JSON (responseSchema, no tools)            -> opts['schema'=>[...]]
  * Gemini does not allow grounding tools and a JSON responseSchema in one call,
  * so the planner runs them as two passes.
+ *
+ * API key resolution:
+ *   1. Round-robin from api_keys table (service='gemini', if any active keys exist)
+ *   2. Single key from settings table (legacy)
+ *   3. Single key from env config (legacy)
+ * On 429 the key is marked exhausted and the next key/model is tried.
  */
 class GeminiClient
 {
+    protected ?ApiKeyManager $keyManager = null;
+
+    protected function getApiKeyManager(): ApiKeyManager
+    {
+        if (! $this->keyManager) {
+            $this->keyManager = app(ApiKeyManager::class);
+        }
+        return $this->keyManager;
+    }
+
     public function apiKey(): ?string
     {
+        // Prefer round-robin from api_keys table
+        if ($this->getApiKeyManager()->available(ApiKeyManager::SERVICE_GEMINI)) {
+            return $this->getApiKeyManager()->nextKey(ApiKeyManager::SERVICE_GEMINI);
+        }
+
         return Setting::get('gemini_api_key') ?: config('gemini.key');
     }
 
@@ -45,25 +67,35 @@ class GeminiClient
     }
 
     /**
+     * Try to get an API key, with optional tracking.
+     * @return array{key:string, tracked:bool}|null
+     */
+    protected function resolveKey(): ?array
+    {
+        $km = $this->getApiKeyManager();
+        if ($km->available(ApiKeyManager::SERVICE_GEMINI)) {
+            $tracked = $km->nextTrackedKey(ApiKeyManager::SERVICE_GEMINI);
+            if ($tracked) {
+                return ['key' => $tracked['key'], 'tracked_id' => $tracked['id']];
+            }
+        }
+        $legacy = Setting::get('gemini_api_key') ?: config('gemini.key');
+        if ($legacy) {
+            return ['key' => $legacy, 'tracked_id' => 0];
+        }
+        return null;
+    }
+
+    /**
      * @return array{text:string, grounding:array, usage:array, model:string}
      */
     public function generate(string $system, string $user, array $opts = []): array
     {
-        $key = $this->apiKey();
-        if (! $key) {
-            throw new RuntimeException('Gemini API key not configured.');
-        }
-
         $model    = $opts['model'] ?? $this->model();
         $schema   = $opts['schema'] ?? null;
         $grounded = $opts['grounding'] ?? false;
         $temp     = $opts['temperature'] ?? 0.7;
 
-        // Thinking budget. The 2.5 "thinking" models spend most of their wall-clock
-        // (and tokens) on internal reasoning — a structured JSON pass routinely took
-        // 100s+ of thinking, which blows past front proxy timeouts. The JSON pass needs
-        // no reasoning, so disable thinking there (≈100x faster). Grounded research keeps
-        // a modest budget. Callers may override via opts['thinking_budget'].
         $thinkingBudget = array_key_exists('thinking_budget', $opts)
             ? $opts['thinking_budget']
             : ($schema ? 0 : null);
@@ -90,10 +122,7 @@ class GeminiClient
         }
         $toolSets[] = null;
 
-        // Model fallback chain. Free-tier quota is PER-DAY, PER-MODEL
-        // (GenerateRequestsPerDayPerProjectPerModel-FreeTier), so when one model is
-        // exhausted (429) we advance to a different model with its own daily bucket.
-        // Order: chosen model first, then high-headroom 'lite' models, then alternates.
+        // Model fallback chain
         $models = array_values(array_unique(array_filter([
             $model,
             'gemini-2.5-flash',
@@ -103,55 +132,71 @@ class GeminiClient
             'gemini-2.0-flash',
         ])));
 
-        $base = rtrim(config('gemini.base'), '/');
+        $base      = rtrim(config('gemini.base'), '/');
         $lastError = null;
+        $km        = $this->getApiKeyManager();
+        $usedKeys  = [];
 
-        foreach ($models as $candidate) {
-            $url = "{$base}/models/{$candidate}:generateContent";
+        for ($keyAttempt = 0; $keyAttempt < 5; $keyAttempt++) {
+            $keyData = $this->resolveKey();
+            if (! $keyData) {
+                throw new RuntimeException('Gemini API key not configured.');
+            }
 
-            foreach ($toolSets as $tools) {
-                $payload = $body;
-                if ($tools) {
-                    $payload['tools'] = $tools;
-                }
+            $key      = $keyData['key'];
+            $keyId    = $keyData['tracked_id'];
 
-                $status = null;
-
-                // Up to 3 attempts with exponential backoff on transient overload (503/500).
-                for ($attempt = 0; $attempt < 3; $attempt++) {
-                    $resp = Http::timeout(180)
-                        ->withHeaders(['x-goog-api-key' => $key])
-                        ->acceptJson()
-                        ->post($url, $payload);
-
-                    if ($resp->successful()) {
-                        return $this->parse($resp->json(), $candidate);
-                    }
-
-                    $status = $resp->status();
-                    $lastError = $status . ': ' . $resp->body();
-
-                    if (in_array($status, [500, 503], true)) {
-                        usleep((int) (800_000 * (2 ** $attempt))); // 0.8s, 1.6s, 3.2s
-                        continue;
-                    }
-
-                    break; // 429/400/403/404 → no point retrying the SAME model/call
-                }
-
-                // 429 → this model's daily bucket is exhausted; advance to next model
-                // (separate per-model quota). No sleep — daily quota won't clear in-request.
-                if ($status === 429) {
-                    break; // next model
-                }
-
-                // 400 → unsupported tool: drop to next, smaller tool set (same model).
-                if ($status === 400) {
-                    continue;
-                }
-
-                // 503/500 (still failing after retries) or 403/404 → try next model.
+            // Avoid looping the same key if multiple keys in pool
+            if (in_array($keyId, $usedKeys, true)) {
                 break;
+            }
+            $usedKeys[] = $keyId;
+
+            foreach ($models as $candidate) {
+                $url = "{$base}/models/{$candidate}:generateContent";
+
+                foreach ($toolSets as $tools) {
+                    $payload = $body;
+                    if ($tools) {
+                        $payload['tools'] = $tools;
+                    }
+
+                    $status = null;
+
+                    for ($attempt = 0; $attempt < 3; $attempt++) {
+                        $resp = Http::timeout(180)
+                            ->withHeaders(['x-goog-api-key' => $key])
+                            ->acceptJson()
+                            ->post($url, $payload);
+
+                        if ($resp->successful()) {
+                            return $this->parse($resp->json(), $candidate);
+                        }
+
+                        $status    = $resp->status();
+                        $lastError = $status . ': ' . $resp->body();
+
+                        if (in_array($status, [500, 503], true)) {
+                            usleep((int) (800_000 * (2 ** $attempt)));
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    if ($status === 429) {
+                        if ($keyId > 0) {
+                            $km->markExhaustedById($keyId, $lastError);
+                        }
+                        break; // try next model (loop will try a new key)
+                    }
+
+                    if ($status === 400) {
+                        continue; // drop to smaller tool set
+                    }
+
+                    break; // 403/404/500/503 → next model
+                }
             }
         }
 
