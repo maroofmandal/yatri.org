@@ -36,7 +36,43 @@ class ImageGenClient
         // NanoBanana uses the same Google Generative Language API as Gemini,
         // so fall back to Gemini keys if no dedicated NanoBanana keys exist.
         return $this->keyManager->available($this->service)
-            || $this->keyManager->available(ApiKeyManager::SERVICE_GEMINI);
+            || $this->keyManager->available(ApiKeyManager::SERVICE_GEMINI)
+            || ! empty(config('gemini.key'));
+    }
+
+    /**
+     * Resolve an API key with fallback chain:
+     * 1. NanoBanana keys from api_keys table (round-robin)
+     * 2. Gemini keys from api_keys table (round-robin)
+     * 3. Legacy Nanobanana key from settings/env
+     * 4. Gemini env key (GEMINI_API_KEY)
+     */
+    protected function resolveKey(): array
+    {
+        $keyData = $this->keyManager->nextTrackedKey($this->service);
+        if ($keyData) {
+            return $keyData;
+        }
+
+        // NanoBanana uses the same Google API as Gemini — fall back to Gemini keys
+        $keyData = $this->keyManager->nextTrackedKey(ApiKeyManager::SERVICE_GEMINI);
+        if ($keyData) {
+            return $keyData;
+        }
+
+        // Fallback to the legacy single-key setting so existing configs still work
+        $legacy = Setting::get('nano_banana_api_key') ?: config('gemini.nano_banana_key');
+        if ($legacy) {
+            return ['id' => 0, 'key' => $legacy];
+        }
+
+        // Final fallback: Gemini env key (same Google API endpoint)
+        $envKey = config('gemini.key');
+        if ($envKey) {
+            return ['id' => 0, 'key' => $envKey];
+        }
+
+        throw new RuntimeException('Nano Banana API key not configured.');
     }
 
     /**
@@ -49,32 +85,16 @@ class ImageGenClient
         $aspectRatio = $opts['aspect_ratio'] ?? '16:9';
         $imageSize   = $opts['image_size'] ?? '1K';
 
-        // Round-robin key selection with automatic fallback on 429
-        $keyData = $this->keyManager->nextTrackedKey($this->service);
-
-        if (! $keyData) {
-            // NanoBanana uses the same Google API as Gemini — fall back to Gemini keys
-            $keyData = $this->keyManager->nextTrackedKey(ApiKeyManager::SERVICE_GEMINI);
-        }
-
-        if (! $keyData) {
-            // Fallback to the legacy single-key setting so existing configs still work
-            $legacy = Setting::get('nano_banana_api_key') ?: config('gemini.nano_banana_key');
-            if (! $legacy) {
-                throw new RuntimeException('Nano Banana API key not configured.');
-            }
-            $keyData = ['id' => 0, 'key' => $legacy];
-        }
-
+        $keyData = $this->resolveKey();
         $key     = $keyData['key'];
         $keyId   = $keyData['id'];
         $model   = $opts['model'] ?? $this->model();
 
-        // Model fallback chain
+        // Model fallback chain: try configured model, then known good models
         $models = array_values(array_unique(array_filter([
             $model,
             'gemini-3.1-flash-image',
-            'gemini-2.0-flash-exp-image-generation',
+            'gemini-2.5-flash-image',
         ])));
 
         $base     = rtrim(config('gemini.base', 'https://generativelanguage.googleapis.com/v1beta'), '/');
@@ -102,7 +122,9 @@ class ImageGenClient
                 ],
             ];
 
-            $status = null;
+            $status   = null;
+            $attempts = 0;
+            $retry429 = 0;
 
             for ($attempt = 0; $attempt < 3; $attempt++) {
                 $resp = Http::timeout(120)
@@ -124,6 +146,24 @@ class ImageGenClient
                 $status    = $resp->status();
                 $lastError = $status . ': ' . $resp->body();
 
+                // 429 = rate limited. Wait for suggested delay, then retry.
+                if ($status === 429) {
+                    $retry429++;
+                    $body = $resp->json();
+                    $delay = 0;
+                    if (isset($body['error']['details'])) {
+                        foreach ($body['error']['details'] as $detail) {
+                            if (isset($detail['retryDelay'])) {
+                                $delay = max($delay, (int) preg_replace('/[^0-9]/', '', $detail['retryDelay']));
+                            }
+                        }
+                    }
+                    $delay = min(max($delay ?: 5, 2), 60);
+                    Log::info("ImageGen 429 for {$candidate} (attempt {$attempt}), waiting {$delay}s...");
+                    sleep($delay);
+                    continue;
+                }
+
                 if (in_array($status, [500, 503], true)) {
                     usleep((int) (800_000 * (2 ** $attempt)));
                     continue;
@@ -132,14 +172,13 @@ class ImageGenClient
                 break;
             }
 
-            if ($status === 429) {
+            // All 3 attempts returned 429 — key truly exhausted
+            if ($status === 429 && $retry429 >= 3) {
                 if ($keyId > 0) {
                     $this->keyManager->markExhaustedById($keyId, $lastError);
-                    Log::warning("Nano Banana key #{$keyId} exhausted (429). Trying next key.");
+                    Log::warning("Nano Banana key #{$keyId} exhausted (429 after {$retry429} retries).");
                 }
-
-                // Try next model (or next key if we had one)
-                continue;
+                continue; // Try next model
             }
 
             // Non-retryable error with this model: try next
@@ -150,7 +189,7 @@ class ImageGenClient
             break;
         }
 
-        throw new RuntimeException('Image generation failed — ' . $lastError);
+        throw new RuntimeException('Image generation failed — ' . ($lastError ?? 'unknown error'));
     }
 
     /**

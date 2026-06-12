@@ -13,14 +13,14 @@
 <link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
 <style>
 .adm{display:flex;min-height:100vh}
-.adm-side{width:240px;background:var(--md-inverse-surface);color:var(--md-inverse-on-surface);flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow:auto}
-.adm-side .b{font-family:'Poppins';font-weight:700;color:var(--md-inverse-on-surface);font-size:18px;padding:0 22px 18px;display:flex;gap:10px;align-items:center}
-.adm-side .b .dot{width:8px;height:8px;border-radius:50%;background:var(--md-inverse-primary)}
-.adm-side a{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.7);padding:11px 22px;font-size:14px;font-weight:500;border-left:3px solid transparent;text-decoration:none;transition:all .15s}
-.adm-side a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
-.adm-side a.on{color:#fff;border-left-color:var(--md-inverse-primary);background:rgba(255,255,255,.1)}
+.adm-side{width:240px;background:var(--md-surface-container-high);color:var(--md-on-surface-variant);flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow:auto}
+.adm-side .b{font-family:'Poppins';font-weight:700;color:var(--md-on-surface);font-size:18px;padding:0 22px 18px;display:flex;gap:10px;align-items:center}
+.adm-side .b .dot{width:8px;height:8px;border-radius:50%;background:var(--md-primary)}
+.adm-side a{display:flex;align-items:center;gap:10px;color:var(--md-on-surface-variant);padding:11px 22px;font-size:14px;font-weight:500;border-left:3px solid transparent;text-decoration:none;transition:all .15s}
+.adm-side a:hover{color:var(--md-on-surface);background:var(--md-primary-container);text-decoration:none}
+.adm-side a.on{color:var(--md-primary);border-left-color:var(--md-primary);background:var(--md-primary-container)}
 .adm-side a .icon{font-size:20px}
-.adm-side .sep{border-top:1px solid rgba(255,255,255,.12);margin:12px 0}
+.adm-side .sep{border-top:1px solid var(--md-outline-variant);margin:12px 0}
 .adm-main{flex:1;padding:28px 32px;overflow:auto;background:var(--md-surface)}
 .adm-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px}
 .adm-h h1{font-size:26px;font-weight:600}
