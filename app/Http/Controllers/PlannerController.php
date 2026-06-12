@@ -26,6 +26,23 @@ class PlannerController extends Controller
         return view('planner.create', compact('destinations', 'recent', 'fxRates'));
     }
 
+    public function edit(Trip $trip)
+    {
+        abort_unless($this->canManage($trip), 403);
+
+        $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
+        $recent = Trip::where('is_public', true)->where('status', 'ready')->latest()->limit(6)->get();
+
+        $fxRates = Setting::get('fx_rates', []);
+        if (!is_array($fxRates)) {
+            $fxRates = [];
+        }
+
+        $editTrip = $trip;
+
+        return view('planner.create', compact('destinations', 'recent', 'fxRates', 'editTrip'));
+    }
+
     public function store(StorePlanRequest $request)
     {
         $data = $request->validated();

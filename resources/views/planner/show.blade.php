@@ -732,7 +732,7 @@
       </div>
       <div class="field" style="display:flex;align-items:flex-end;gap:10px">
         @if($canManage)
-        <button class="btn btn-ghost" onclick="openEditModal()"><x-icon name="edit" :size="16" /> Edit plan</button>
+        <a class="btn btn-ghost" href="{{ route('plan.edit', $trip) }}"><x-icon name="edit" :size="16" /> Edit plan</a>
         @endif
         <a class="btn btn-primary" href="{{ route('home') }}">+ New trip</a>
       </div>
@@ -950,91 +950,9 @@
   </div>
 </div>
 
-{{-- Edit Plan Modal --}}
-<div class="modal-overlay" id="editModal" style="display:none" onclick="if(event.target===this)closeEditModal()">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2>Edit plan</h2>
-      <button type="button" class="btn btn-ghost" onclick="closeEditModal()"><x-icon name="close" :size="20" /></button>
-    </div>
-    <form method="POST" action="{{ route('trip.update', $trip) }}" id="editPlanForm">
-      @csrf
-      <input type="hidden" name="destinations" id="editDestinationsField">
-      <div class="modal-body">
-        <div class="row row-2">
-          <div class="field">
-            <label>Starting from</label>
-            <input type="text" name="origin" id="editOrigin" value="{{ $trip->origin }}" required>
-          </div>
-          <div class="field">
-            <label>Travelers</label>
-            <input type="number" name="travelers" min="1" max="30" value="{{ $trip->travelers }}" required>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Destinations <span class="muted" style="font-weight:500">— days &amp; nights per stop</span></label>
-          <div class="dest-list" id="editDestList"></div>
-          <button type="button" class="btn btn-ghost btn-sm mt" id="editAddDest">+ Add destination</button>
-        </div>
-
-        <div class="row row-3">
-          <div class="field">
-            <label>Start date <span class="muted">(optional)</span></label>
-            <input type="date" name="start_date" value="{{ $trip->start_date ? $trip->start_date->format('Y-m-d') : '' }}">
-          </div>
-          <div class="field">
-            <label>End date <span class="muted">(optional)</span></label>
-            <input type="date" name="end_date" value="{{ $trip->end_date ? $trip->end_date->format('Y-m-d') : '' }}">
-          </div>
-          <div class="field">
-            <label>Travel style</label>
-            <div class="seg">
-              <label><input type="radio" name="style" value="budget" {{ $trip->style==='budget'?'checked':'' }}><span>Budget</span></label>
-              <label><input type="radio" name="style" value="mid" {{ ($trip->style??'mid')==='mid'?'checked':'' }}><span>Mid</span></label>
-              <label><input type="radio" name="style" value="luxury" {{ $trip->style==='luxury'?'checked':'' }}><span>Luxury</span></label>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="budget-head">
-            <label style="margin:0">Total budget</label>
-            <div class="budget-val"><span id="editCurSym">$</span><span id="editBudgetLabel">{{ number_format($trip->budget_total) }}</span></div>
-          </div>
-          <input type="range" id="editBudgetRange" min="200" max="30000" step="100" value="{{ $trip->budget_total }}">
-          <div class="row row-2 mt">
-            <input type="number" name="budget_total" id="editBudgetInput" min="0" value="{{ $trip->budget_total }}" required>
-            <select name="currency" id="editCurrency">
-              @foreach(['USD'=>'$ USD','INR'=>'₹ INR','EUR'=>'€ EUR','GBP'=>'£ GBP','AED'=>'AED','SGD'=>'S$ SGD','JPY'=>'¥ JPY'] as $code=>$lbl)
-                <option value="{{ $code }}" {{ strtoupper($trip->currency)===$code?'selected':'' }}>{{ $lbl }}</option>
-              @endforeach
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Interests <span class="muted">(optional)</span></label>
-          <div class="chips">
-            @php $tripInterests = $trip->interests ?? []; @endphp
-            @foreach(['Food','Culture','Nature','Nightlife','Beaches','Adventure','Shopping','History','Relaxation','Art'] as $i)
-              <label class="chip-toggle"><input type="checkbox" name="interests[]" value="{{ $i }}" {{ in_array($i, $tripInterests)?'checked':'' }}><span>{{ $i }}</span></label>
-            @endforeach
-          </div>
-        </div>
-      </div>
-      <div class="modal-foot">
-        <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
-        <button type="submit" class="btn btn-filled"><x-icon name="auto_awesome" :size="18" /> Save &amp; regenerate</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 @push('scripts')
 {{-- Full plan data as JSON for JS --}}
 <script type="application/json" id="planJson">{!! json_encode($plan) !!}</script>
-<script type="application/json" id="editDestData">{!! json_encode($trip->destinations) !!}</script>
 <div id="page-data"
      data-route="{!! e(json_encode($route->map(fn($r)=>['name'=>$r['name'],'lat'=>(float)$r['lat'],'lng'=>(float)$r['lng']]))) !!}"
      data-route-options="{!! e(json_encode($plan['route_options'] ?? [])) !!}"
@@ -1681,149 +1599,7 @@ window.copyTripUrl = function() {
   }).catch(function() {});
 };
 
-/* ===== EDIT PLAN MODAL ===== */
-const EDIT_DESTS = JSON.parse(document.getElementById('editDestData').textContent);
-const EDIT_LIST = document.getElementById('editDestList');
-const EDIT_CUR_SYM = {'USD':'$','INR':'₹','EUR':'€','GBP':'£','AED':'AED ','SGD':'S$','JPY':'¥'};
 
-function editDestRow(name, days, nights, lat, lng){
-  const row = document.createElement('div');
-  row.className = 'dest-item';
-  row.innerHTML = '<span class="grip">⠿</span>' +
-    '<input class="dname" placeholder="Add a city" value="' + name.replace(/"/g,'&quot;') + '" autocomplete="off">' +
-    '<input type="hidden" class="dlat" value="' + (lat||'') + '"><input type="hidden" class="dlng" value="' + (lng||'') + '">' +
-    '<input type="hidden" class="ddays" value="' + days + '"><input type="hidden" class="dnights" value="' + nights + '">' +
-    '<span class="dest-counter"><label>Days</label><div class="day-stepper">' +
-    '<button type="button" class="dd-minus">\u2212</button>' +
-    '<span class="step-val">' + days + '</span>' +
-    '<button type="button" class="dd-plus">+</button></div></span>' +
-    '<span class="dest-counter"><label>Nights</label><div class="day-stepper">' +
-    '<button type="button" class="dn-minus">\u2212</button>' +
-    '<span class="step-val">' + nights + '</span>' +
-    '<button type="button" class="dn-plus">+</button></div></span>' +
-    '<button type="button" class="rm" title="Remove">\u00d7</button>';
-  const ddaysInput = row.querySelector('.ddays');
-  const dnightsInput = row.querySelector('.dnights');
-  const ddVal = row.querySelector('.dd-minus + .step-val');
-  const dnVal = row.querySelector('.dn-minus + .step-val');
-
-  row.querySelector('.rm').onclick = function(){ row.remove(); };
-  row.querySelector('.dd-minus').onclick = function(){
-    let d = parseInt(ddaysInput.value)||3; if(d > 0){ d--; ddaysInput.value = d; ddVal.textContent = d;
-      let n = parseInt(dnightsInput.value)||2; n = Math.min(n, d+1); n = Math.max(n, Math.max(0, d-1));
-      dnightsInput.value = n; dnVal.textContent = n; } };
-  row.querySelector('.dd-plus').onclick = function(){
-    let d = parseInt(ddaysInput.value)||3; d++; ddaysInput.value = d; ddVal.textContent = d;
-    let n = parseInt(dnightsInput.value)||2; n = Math.min(n, d+1); n = Math.max(n, Math.max(0, d-1));
-    dnightsInput.value = n; dnVal.textContent = n; };
-  row.querySelector('.dn-minus').onclick = function(){
-    let d = parseInt(ddaysInput.value)||3; let n = parseInt(dnightsInput.value)||2;
-    if(n > Math.max(0, d-1)){ n--; dnightsInput.value = n; dnVal.textContent = n; } };
-  row.querySelector('.dn-plus').onclick = function(){
-    let d = parseInt(ddaysInput.value)||3; let n = parseInt(dnightsInput.value)||2;
-    if(n < d+1){ n++; dnightsInput.value = n; dnVal.textContent = n; } };
-  EDIT_LIST.appendChild(row);
-  return row;
-}
-
-window.openEditModal = function(){
-  EDIT_LIST.innerHTML = '';
-  if(EDIT_DESTS && EDIT_DESTS.length){
-    EDIT_DESTS.forEach(function(d){
-      editDestRow(d.name, d.days||3, d.nights||2, d.lat||'', d.lng||'');
-    });
-  } else { editDestRow('', 3, 2, '', ''); }
-  document.getElementById('editModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-};
-
-window.closeEditModal = function(){
-  document.getElementById('editModal').style.display = 'none';
-  document.body.style.overflow = '';
-};
-
-document.getElementById('editAddDest').onclick = function(){
-  editDestRow('', 3, 2, '', '').querySelector('.dname').focus();
-};
-
-/* Budget slider sync */
-(function(){
-  const range = document.getElementById('editBudgetRange');
-  const input = document.getElementById('editBudgetInput');
-  const label = document.getElementById('editBudgetLabel');
-  if(range && input){
-    range.oninput = function(){ input.value = range.value; label.textContent = Number(range.value).toLocaleString(); };
-    input.oninput = function(){ if(+input.value <= +range.max) range.value = input.value; label.textContent = Number(input.value).toLocaleString(); };
-  }
-})();
-
-/* Currency FX */
-(async function(){
-  const cur = document.getElementById('editCurrency');
-  const sym = document.getElementById('editCurSym');
-  const range = document.getElementById('editBudgetRange');
-  const input = document.getElementById('editBudgetInput');
-  const label = document.getElementById('editBudgetLabel');
-  if(!cur) return;
-
-  let baseUSD = Number(input ? input.value : range.value) || 3000;
-  let currentRate = 1;
-
-  async function fetchRate(currency){
-    if(currency === 'USD') return 1;
-    try {
-      const res = await fetch('/api/fx/' + currency);
-      if(res.ok){ const d = await res.json(); if(d.rate) return d.rate; }
-    } catch(_){}
-    const h = {inr:85,eur:0.92,gbp:0.79,aed:3.67,sgd:1.34,jpy:157};
-    return h[currency.toLowerCase()] || 1;
-  }
-
-  function round100(n){ return Math.round(n / 100) * 100; }
-
-  function applyRate(rate){
-    currentRate = rate;
-    const converted = round100(baseUSD * rate);
-    range.max = Math.max(converted * 10, round100(baseUSD * rate * 10));
-    range.step = 100;
-    range.value = converted;
-    input.value = converted;
-    label.textContent = Number(converted).toLocaleString();
-  }
-
-  sym.textContent = EDIT_CUR_SYM[cur.value] || cur.value + ' ';
-
-  if(range && input){
-    range.oninput = function(){ input.value = range.value; label.textContent = Number(range.value).toLocaleString(); baseUSD = Math.round(Number(range.value) / currentRate); };
-    input.oninput = function(){ if(+input.value <= +range.max) range.value = input.value; label.textContent = Number(input.value).toLocaleString(); baseUSD = Math.round(Number(input.value) / currentRate); };
-  }
-
-  cur.onchange = async function(){
-    sym.textContent = EDIT_CUR_SYM[cur.value] || cur.value + ' ';
-    const rate = await fetchRate(cur.value);
-    applyRate(rate);
-  };
-
-  if(cur.value !== 'USD'){
-    const rate = await fetchRate(cur.value);
-    applyRate(rate);
-  }
-})();
-
-/* Serialize destinations on submit */
-document.getElementById('editPlanForm').addEventListener('submit', function(e){
-  const dests = [...EDIT_LIST.querySelectorAll('.dest-item')].map(function(r){
-    return {
-      name: r.querySelector('.dname').value.trim(),
-      days: parseInt(r.querySelector('.ddays').value) || 3,
-      nights: parseInt(r.querySelector('.dnights').value) || 2,
-      lat: parseFloat(r.querySelector('.dlat').value) || null,
-      lng: parseFloat(r.querySelector('.dlng').value) || null,
-    };
-  }).filter(function(d){ return d.name; });
-  if(!dests.length){ e.preventDefault(); showSnackbar('Add at least one destination.'); return; }
-  document.getElementById('editDestinationsField').value = JSON.stringify(dests);
-});
 </script>
 @endpush
 @endsection

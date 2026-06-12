@@ -54,6 +54,7 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 
 // ── Planner ─────────────────────────────────────────────────────
 Route::get('/plan', [PlannerController::class, 'create'])->name('planner');
+Route::get('/plan/{trip}/edit', [PlannerController::class, 'edit'])->name('plan.edit');
 Route::post('/plan', [PlannerController::class, 'store'])->name('plan.store');
 Route::get('/t/{trip}', [PlannerController::class, 'show'])->name('trip.show');
 Route::post('/t/{trip}/generate', [PlannerController::class, 'generate'])->name('trip.generate');

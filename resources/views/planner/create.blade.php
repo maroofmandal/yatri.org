@@ -11,19 +11,19 @@
 </div></header>
 
 <div class="wrap">
-  <form method="POST" action="{{ route('plan.store') }}" class="planner-card" id="plannerForm">
+  <form method="POST" action="{{ isset($editTrip) ? route('trip.update', $editTrip) : route('plan.store') }}" class="planner-card" id="plannerForm">
     @csrf
     <input type="hidden" name="destinations" id="destinationsField">
 
     <div class="row row-2">
       <div class="field">
         <label>Starting from</label>
-        <input type="text" name="origin" id="originInput" list="cityList" data-places placeholder="e.g. Mumbai" value="{{ old('origin') }}" autocomplete="off" required>
+        <input type="text" name="origin" id="originInput" list="cityList" data-places placeholder="e.g. Mumbai" value="{{ isset($editTrip) ? $editTrip->origin : old('origin') }}" autocomplete="off" required>
         @error('origin')<div class="err">{{ $message }}</div>@enderror
       </div>
       <div class="field">
         <label>Travelers</label>
-        <input type="number" name="travelers" min="1" max="30" value="{{ old('travelers', 2) }}" required>
+        <input type="number" name="travelers" min="1" max="30" value="{{ isset($editTrip) ? $editTrip->travelers : old('travelers', 2) }}" required>
       </div>
     </div>
 
@@ -42,18 +42,18 @@
     <div class="row row-3">
       <div class="field">
         <label>Start date <span class="muted" style="font-weight:500">(optional)</span></label>
-        <input type="date" name="start_date" value="{{ old('start_date') }}">
+        <input type="date" name="start_date" value="{{ isset($editTrip) && $editTrip->start_date ? $editTrip->start_date->format('Y-m-d') : old('start_date') }}">
       </div>
       <div class="field">
         <label>End date <span class="muted" style="font-weight:500">(optional)</span></label>
-        <input type="date" name="end_date" value="{{ old('end_date') }}">
+        <input type="date" name="end_date" value="{{ isset($editTrip) && $editTrip->end_date ? $editTrip->end_date->format('Y-m-d') : old('end_date') }}">
       </div>
       <div class="field">
         <label>Travel style</label>
         <div class="seg">
-          <label><input type="radio" name="style" value="budget" {{ old('style')==='budget'?'checked':'' }}><span>Budget</span></label>
-          <label><input type="radio" name="style" value="mid" {{ old('style','mid')==='mid'?'checked':'' }}><span>Mid</span></label>
-          <label><input type="radio" name="style" value="luxury" {{ old('style')==='luxury'?'checked':'' }}><span>Luxury</span></label>
+          <label><input type="radio" name="style" value="budget" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='budget'?'checked':'' }}><span>Budget</span></label>
+          <label><input type="radio" name="style" value="mid" {{ (isset($editTrip) ? ($editTrip->style??'mid') : old('style','mid'))==='mid'?'checked':'' }}><span>Mid</span></label>
+          <label><input type="radio" name="style" value="luxury" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='luxury'?'checked':'' }}><span>Luxury</span></label>
         </div>
       </div>
     </div>
@@ -61,14 +61,14 @@
     <div class="field">
       <div class="budget-head">
         <label style="margin:0">Total budget <span class="muted" style="font-weight:500">— whole trip, whole party</span></label>
-        <div class="budget-val"><span id="curSym">$</span><span id="budgetLabel">3,000</span></div>
+        <div class="budget-val"><span id="curSym">$</span><span id="budgetLabel">{{ isset($editTrip) ? number_format($editTrip->budget_total) : '3,000' }}</span></div>
       </div>
-      <input type="range" id="budgetRange" min="200" max="30000" step="100" value="{{ old('budget_total', 3000) }}">
+      <input type="range" id="budgetRange" min="200" max="30000" step="100" value="{{ isset($editTrip) ? $editTrip->budget_total : old('budget_total', 3000) }}">
       <div class="row row-2 mt">
-        <input type="number" name="budget_total" id="budgetInput" min="0" value="{{ old('budget_total', 3000) }}" required>
+        <input type="number" name="budget_total" id="budgetInput" min="0" value="{{ isset($editTrip) ? $editTrip->budget_total : old('budget_total', 3000) }}" required>
         <select name="currency" id="currency">
           @foreach(['USD'=>'$ USD','INR'=>'₹ INR','EUR'=>'€ EUR','GBP'=>'£ GBP','AED'=>'AED','SGD'=>'S$ SGD','JPY'=>'¥ JPY'] as $code=>$lbl)
-            <option value="{{ $code }}" {{ old('currency','USD')===$code?'selected':'' }}>{{ $lbl }}</option>
+            <option value="{{ $code }}" {{ (isset($editTrip) ? strtoupper($editTrip->currency) : old('currency','USD'))===$code?'selected':'' }}>{{ $lbl }}</option>
           @endforeach
         </select>
       </div>
@@ -77,14 +77,15 @@
     <div class="field">
       <label>Interests <span class="muted" style="font-weight:500">(optional)</span></label>
       <div class="chips">
+        @php $chosenInterests = isset($editTrip) ? ($editTrip->interests ?? []) : (old('interests') ?? []); @endphp
         @foreach(['Food','Culture','Nature','Nightlife','Beaches','Adventure','Shopping','History','Relaxation','Art'] as $i)
-          <label class="chip-toggle"><input type="checkbox" name="interests[]" value="{{ $i }}"><span>{{ $i }}</span></label>
+          <label class="chip-toggle"><input type="checkbox" name="interests[]" value="{{ $i }}" {{ in_array($i, $chosenInterests)?'checked':'' }}><span>{{ $i }}</span></label>
         @endforeach
       </div>
     </div>
 
-    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> Generate my plan</button>
-    <p class="hint center mt">Free to try — no account needed. You'll get a shareable link.</p>
+    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> {{ isset($editTrip) ? 'Save changes &amp; regenerate' : 'Generate my plan' }}</button>
+    @if(!isset($editTrip))<p class="hint center mt">Free to try — no account needed. You'll get a shareable link.</p>@endif
   </form>
 
   @if($recent->count())
@@ -110,9 +111,11 @@
 
 @push('scripts')
 <script type="application/json" id="suggestData">{!! json_encode($destinations->map(fn($d)=>['name'=>$d->name,'lat'=>$d->lat,'lng'=>$d->lng])) !!}</script>
+<script type="application/json" id="editDestData">{!! isset($editTrip) ? json_encode($editTrip->destinations) : 'null' !!}</script>
 <script type="application/json" id="fxRatesData">{!! json_encode($fxRates) !!}</script>
 <script>
 const SUGGEST = JSON.parse(document.getElementById('suggestData').textContent);
+const EDIT_DESTS = JSON.parse(document.getElementById('editDestData').textContent);
 const list = document.getElementById('destList');
 
 function destRow(name='', days=3, nights=2, lat='', lng=''){
@@ -225,8 +228,10 @@ document.querySelectorAll('#suggest button').forEach(b=>{
   };
 });
 
-// seed two rows
-addRow(); addRow();
+// seed rows from edit data, or two empty rows
+if(EDIT_DESTS && EDIT_DESTS.length){
+  EDIT_DESTS.forEach(function(d){ destRow(d.name, d.days||3, d.nights||2, d.lat||'', d.lng||''); });
+} else { addRow(); addRow(); }
 
 // budget slider <-> input <-> currency symbol + live FX conversion
 const SYM = {USD:'$',INR:'₹',EUR:'€',GBP:'£',AED:'AED ',SGD:'S$',JPY:'¥'};

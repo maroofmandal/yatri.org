@@ -198,8 +198,8 @@ class TripPlanner
             ->filter(fn ($stop) => ! empty($stop['name']))
             ->keyBy(fn ($stop) => mb_strtolower((string) $stop['name']));
 
-        $startDate = $trip->start_date?->toDateString();
-        $endDate = $trip->end_date?->toDateString();
+        $startDate = $trip->start_date ? \Illuminate\Support\Carbon::parse($trip->start_date)->toDateString() : null;
+        $endDate = $trip->end_date ? \Illuminate\Support\Carbon::parse($trip->end_date)->toDateString() : null;
         $forecastByCity = [];
 
         if ($startDate && $endDate) {
@@ -221,7 +221,7 @@ class TripPlanner
         $weatherDays = [];
         foreach ($days as $index => $day) {
             $city = $day['city'] ?? null;
-            $date = $trip->start_date ? $trip->start_date->copy()->addDays($index)->toDateString() : null;
+            $date = $trip->start_date ? \Illuminate\Support\Carbon::parse($trip->start_date)->copy()->addDays($index)->toDateString() : null;
             $live = $city && $date && isset($forecastByCity[$city][$date]) ? $forecastByCity[$city][$date] : null;
 
             $entry = $live ?: [
@@ -363,8 +363,10 @@ class TripPlanner
     protected function dateLabel(Trip $trip): string
     {
         if ($trip->start_date) {
-            return $trip->start_date->format('d M Y')
-                .($trip->end_date ? ' – '.$trip->end_date->format('d M Y') : '');
+            $start = \Illuminate\Support\Carbon::parse($trip->start_date);
+            $end = $trip->end_date ? \Illuminate\Support\Carbon::parse($trip->end_date) : null;
+            return $start->format('d M Y')
+                .($end ? ' – '.$end->format('d M Y') : '');
         }
 
         return 'flexible';
@@ -406,7 +408,7 @@ class TripPlanner
         // Day-by-day across the stops.
         $days = [];
         $dayNum = 1;
-        $cursor = $trip->start_date ? $trip->start_date->copy() : null;
+        $cursor = $trip->start_date ? \Illuminate\Support\Carbon::parse($trip->start_date)->copy() : null;
         foreach ($stops as $stop) {
             $nights = max(0, (int) ($stop['nights'] ?? 2));
             for ($n = 0; $n < $nights; $n++) {
