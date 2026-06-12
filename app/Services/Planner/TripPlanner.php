@@ -71,7 +71,8 @@ class TripPlanner
             $trip = $trip->refresh();
 
             // Dispatch background image generation using Nano Banana
-            \App\Jobs\GenerateTripImage::dispatch($trip);
+            // Use dispatchSync since no queue worker may be running
+            \App\Jobs\GenerateTripImage::dispatchSync($trip);
 
             return $trip;
         } catch (Throwable $e) {

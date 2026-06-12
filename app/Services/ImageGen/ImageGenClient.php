@@ -33,7 +33,10 @@ class ImageGenClient
 
     public function enabled(): bool
     {
-        return $this->keyManager->available($this->service);
+        // NanoBanana uses the same Google Generative Language API as Gemini,
+        // so fall back to Gemini keys if no dedicated NanoBanana keys exist.
+        return $this->keyManager->available($this->service)
+            || $this->keyManager->available(ApiKeyManager::SERVICE_GEMINI);
     }
 
     /**
@@ -48,6 +51,11 @@ class ImageGenClient
 
         // Round-robin key selection with automatic fallback on 429
         $keyData = $this->keyManager->nextTrackedKey($this->service);
+
+        if (! $keyData) {
+            // NanoBanana uses the same Google API as Gemini — fall back to Gemini keys
+            $keyData = $this->keyManager->nextTrackedKey(ApiKeyManager::SERVICE_GEMINI);
+        }
 
         if (! $keyData) {
             // Fallback to the legacy single-key setting so existing configs still work

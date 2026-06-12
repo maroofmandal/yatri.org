@@ -133,6 +133,6 @@ return [
     |
     */
 
-    'version' => env('APP_VERSION', '2026.06.12.1810'),
+    'version' => env('APP_VERSION', '2026.06.12.1839'),
 
 ];

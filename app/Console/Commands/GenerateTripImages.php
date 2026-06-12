@@ -30,13 +30,13 @@ class GenerateTripImages extends Command
                 if ($count >= $limit) {
                     return false;
                 }
-                GenerateTripImage::dispatch($trip);
+                GenerateTripImage::dispatchSync($trip, $this->option('force'));
                 $count++;
-                $this->info("Dispatched image gen for trip #{$trip->id}: {$trip->title}");
+                $this->info("Generated images for trip #{$trip->id}: {$trip->title}");
             }
         });
 
-        $this->info("Done. Dispatched {$count} image generation job(s).");
+        $this->info("Done. Generated images for {$count} trip(s).");
 
         return Command::SUCCESS;
     }
