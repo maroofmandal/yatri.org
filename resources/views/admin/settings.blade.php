@@ -118,6 +118,32 @@
     </div>
   </div>
 
+  {{-- Weather Settings --}}
+  <div class="card mb">
+    <h3>Weather <span class="muted" style="font-size:13px;font-weight:500">— daily forecast on trip pages</span></h3>
+    <label style="font-weight:500;display:block;margin-bottom:12px">
+      <input type="checkbox" name="weather_enabled" value="1" style="width:auto;margin-right:6px"
+        {{ ($settings['weather']['weather_enabled'] ?? true) ? 'checked' : '' }}>
+      Show weather details on planned trip dates
+    </label>
+    <div class="row row-2">
+      <div class="field">
+        <label>Provider</label>
+        <select name="weather_provider">
+          <option value="open_meteo" {{ ($settings['weather']['weather_provider'] ?? 'open_meteo') === 'open_meteo' ? 'selected' : '' }}>Open-Meteo (free, no key)</option>
+          <option value="gemini" {{ ($settings['weather']['weather_provider'] ?? '') === 'gemini' ? 'selected' : '' }}>Gemini AI (uses AI key above)</option>
+        </select>
+        <div class="hint">Open-Meteo returns live data from national weather services. Gemini generates descriptive weather summaries.</div>
+      </div>
+      @php $weatherKeySet = !empty($settings['weather']['weather_api_key']); @endphp
+      <div class="field">
+        <label>Weather API key @if($weatherKeySet)<span class="badge ok">set</span>@endif</label>
+        <input type="password" name="weather_api_key" placeholder="{{ $weatherKeySet ? '•••••••• stored (leave blank to keep)' : 'Optional — separate weather API key' }}">
+        <div class="hint">Only needed if you use a custom weather API. Open-Meteo and Gemini use existing keys.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card mb">
     <h3>Providers <span class="muted" style="font-size:13px;font-weight:500">— free alternatives, no billing</span></h3>
     @php $pv = $settings['providers']; @endphp

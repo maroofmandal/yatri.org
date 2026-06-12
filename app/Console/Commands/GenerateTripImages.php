@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\GenerateTripImage;
 use App\Models\Trip;
+use App\Services\ImageGen\TripImageGenerator;
 use Illuminate\Console\Command;
 
 class GenerateTripImages extends Command
@@ -14,7 +14,7 @@ class GenerateTripImages extends Command
 
     protected $description = 'Backfill trip images using Nano Banana';
 
-    public function handle(): int
+    public function handle(TripImageGenerator $generator): int
     {
         $query = Trip::where('status', 'ready');
 
@@ -25,12 +25,12 @@ class GenerateTripImages extends Command
         $count = 0;
         $limit = (int) $this->option('limit');
 
-        $query->chunk(5, function ($trips) use (&$count, $limit) {
+        $query->chunk(5, function ($trips) use ($generator, &$count, $limit) {
             foreach ($trips as $trip) {
                 if ($count >= $limit) {
                     return false;
                 }
-                GenerateTripImage::dispatchSync($trip, $this->option('force'));
+                $generator->force($this->option('force'))->generateForTrip($trip);
                 $count++;
                 $this->info("Generated images for trip #{$trip->id}: {$trip->title}");
             }

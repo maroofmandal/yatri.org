@@ -77,14 +77,14 @@
     <div class="field">
       <label>Interests <span class="muted" style="font-weight:500">(optional)</span></label>
       <div class="chips">
-        @php $chosenInterests = isset($editTrip) ? ($editTrip->interests ?? []) : (old('interests') ?? []); @endphp
+        @php $chosenInterests = old('interests', isset($editTrip) ? ($editTrip->interests ?? []) : []); @endphp
         @foreach(['Food','Culture','Nature','Nightlife','Beaches','Adventure','Shopping','History','Relaxation','Art'] as $i)
           <label class="chip-toggle"><input type="checkbox" name="interests[]" value="{{ $i }}" {{ in_array($i, $chosenInterests)?'checked':'' }}><span>{{ $i }}</span></label>
         @endforeach
       </div>
     </div>
 
-    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> {{ isset($editTrip) ? 'Save changes &amp; regenerate' : 'Generate my plan' }}</button>
+    <button type="submit" class="btn btn-filled btn-block" style="font-size:16px;padding:15px"><x-icon name="auto_awesome" :size="20" /> {{ isset($editTrip) ? 'Save changes & regenerate' : 'Generate my plan' }}</button>
     @if(!isset($editTrip))<p class="hint center mt">Free to try — no account needed. You'll get a shareable link.</p>@endif
   </form>
 

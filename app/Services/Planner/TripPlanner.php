@@ -3,10 +3,13 @@
 namespace App\Services\Planner;
 
 use App\Models\GeminiLog;
+use App\Models\Setting;
 use App\Models\Trip;
+use App\Services\ImageGen\TripImageGenerator;
 use App\Services\Llm\LlmClient;
 use App\Services\Google\PlacesClient;
 use App\Services\Weather\OpenMeteoClient;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class TripPlanner
@@ -70,9 +73,13 @@ class TripPlanner
 
             $trip = $trip->refresh();
 
-            // Dispatch background image generation using Nano Banana
-            // Use dispatchSync since no queue worker may be running
-            \App\Jobs\GenerateTripImage::dispatchSync($trip);
+            // Generate preview + destination images inline before marking ready
+            // so failures surface via the polling page instead of silently
+            try {
+                app(TripImageGenerator::class)->generateForTrip($trip);
+            } catch (\Throwable $imgE) {
+                Log::warning("Image generation failed for trip {$trip->id}: " . $imgE->getMessage());
+            }
 
             return $trip;
         } catch (Throwable $e) {
@@ -195,6 +202,19 @@ class TripPlanner
             return $plan;
         }
 
+        // Check if weather is enabled in admin settings
+        $weatherEnabled = Setting::get('weather_enabled', true);
+        $weatherProvider = Setting::get('weather_provider', 'open_meteo');
+
+        if (! $weatherEnabled) {
+            $plan['weather'] = [
+                'source' => 'disabled',
+                'note' => 'Weather display is disabled in admin settings.',
+                'days' => [],
+            ];
+            return $plan;
+        }
+
         $route = collect($plan['route'] ?? $trip->destinations)
             ->filter(fn ($stop) => ! empty($stop['name']))
             ->keyBy(fn ($stop) => mb_strtolower((string) $stop['name']));
@@ -212,7 +232,12 @@ class TripPlanner
                     continue;
                 }
 
-                $forecast = $weather->dailyForecast((float) $stop['lat'], (float) $stop['lng'], $startDate, $endDate);
+                if ($weatherProvider === 'gemini') {
+                    $forecast = $this->geminiWeather((float) $stop['lat'], (float) $stop['lng'], $startDate, $endDate, $city);
+                } else {
+                    $forecast = $weather->dailyForecast((float) $stop['lat'], (float) $stop['lng'], $startDate, $endDate);
+                }
+
                 if ($forecast) {
                     $forecastByCity[$city] = $forecast;
                 }
@@ -227,7 +252,7 @@ class TripPlanner
 
             $entry = $live ?: [
                 'date' => $date,
-                'source' => 'open_meteo',
+                'source' => $weatherProvider,
                 'status' => 'live',
                 'weather_code' => null,
                 'summary' => $date ? 'Weather data unavailable for this date.' : 'Flexible dates — set specific dates for live weather.',
@@ -249,14 +274,65 @@ class TripPlanner
 
         $anyLive = collect($weatherDays)->contains(fn ($day) => $day['weather_code'] !== null);
         $plan['weather'] = [
-            'source' => 'open_meteo',
+            'source' => $weatherProvider,
             'note' => $anyLive
-                ? 'Live weather from Open-Meteo for your trip dates.'
-                : 'Set specific trip dates to see live weather forecasts from Open-Meteo.',
+                ? ($weatherProvider === 'gemini'
+                    ? 'Weather summary from Gemini AI for your trip dates.'
+                    : 'Live weather from Open-Meteo for your trip dates.')
+                : 'Set specific trip dates to see weather forecasts.',
             'days' => $weatherDays,
         ];
 
         return $plan;
+    }
+
+    protected function geminiWeather(float $lat, float $lng, string $startDate, string $endDate, string $city): ?array
+    {
+        try {
+            $llm = app(LlmClient::class);
+            if (! $llm->enabled()) {
+                return null;
+            }
+
+            $result = $llm->generate(
+                'You are a weather expert. Return ONLY valid JSON, no markdown, no code fences.',
+                "Provide a day-by-day weather forecast for {$city} (lat:{$lat}, lng:{$lng}) "
+                . "from {$startDate} to {$endDate}. For each date, return: date, summary (1 sentence), "
+                . "temperature_min_c, temperature_max_c, precipitation_probability, "
+                . "wind_speed, weather_code (WMO code 0-99), precipitation_sum, uv_index. "
+                . "Return as a JSON object keyed by ISO date string.",
+                ['temperature' => 0.3]
+            );
+
+            $data = json_decode($result['text'], true);
+            if (! is_array($data)) {
+                return null;
+            }
+
+            $forecast = [];
+            foreach ($data as $date => $entry) {
+                $forecast[$date] = [
+                    'date' => $date,
+                    'source' => 'gemini',
+                    'status' => $entry['status'] ?? 'estimated',
+                    'weather_code' => $entry['weather_code'] ?? null,
+                    'summary' => $entry['summary'] ?? 'Weather data unavailable.',
+                    'icon' => null,
+                    'icon_class' => null,
+                    'temperature_min_c' => isset($entry['temperature_min_c']) ? (float) $entry['temperature_min_c'] : null,
+                    'temperature_max_c' => isset($entry['temperature_max_c']) ? (float) $entry['temperature_max_c'] : null,
+                    'precipitation_sum' => isset($entry['precipitation_sum']) ? (float) $entry['precipitation_sum'] : null,
+                    'precipitation_probability' => isset($entry['precipitation_probability']) ? (int) $entry['precipitation_probability'] : null,
+                    'wind_speed' => isset($entry['wind_speed']) ? (float) $entry['wind_speed'] : null,
+                    'uv_index' => isset($entry['uv_index']) ? (float) $entry['uv_index'] : null,
+                ];
+            }
+
+            return $forecast;
+        } catch (\Throwable $e) {
+            Log::warning("Gemini weather failed for {$city}: " . $e->getMessage());
+            return null;
+        }
     }
 
     protected function normalizePriceStatuses(array $plan): array

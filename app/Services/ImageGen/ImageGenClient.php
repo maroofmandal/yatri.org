@@ -74,7 +74,7 @@ class ImageGenClient
         $models = array_values(array_unique(array_filter([
             $model,
             'gemini-3.1-flash-image',
-            'gemini-2.5-flash-image',
+            'gemini-2.0-flash-exp-image-generation',
         ])));
 
         $base     = rtrim(config('gemini.base', 'https://generativelanguage.googleapis.com/v1beta'), '/');

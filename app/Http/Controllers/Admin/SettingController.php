@@ -16,6 +16,7 @@ class SettingController extends Controller
             'brand'     => Setting::group('brand'),
             'booking'   => Setting::group('booking'),
             'providers' => Setting::group('providers'),
+            'weather'   => Setting::group('weather'),
         ];
 
         $settings['providers'] += [
@@ -78,6 +79,11 @@ class SettingController extends Controller
             'brave_api_key'           => ['nullable', 'string', 'max:200'],
             'geocode_provider'        => ['required', 'in:photon,geoapify,nominatim,google'],
             'geoapify_api_key'        => ['nullable', 'string', 'max:200'],
+
+            // Weather
+            'weather_enabled'         => ['nullable', 'boolean'],
+            'weather_provider'        => ['required', 'in:open_meteo,gemini'],
+            'weather_api_key'         => ['nullable', 'string', 'max:200'],
         ]);
 
         // AI — only overwrite the key when a new value is typed (keeps the stored secret).
@@ -126,6 +132,13 @@ class SettingController extends Controller
             if (! empty($data[$secret])) {
                 Setting::put($secret, $data[$secret], 'providers', 'secret');
             }
+        }
+
+        // Weather
+        Setting::put('weather_enabled', $request->boolean('weather_enabled'), 'weather', 'bool');
+        Setting::put('weather_provider', $data['weather_provider'], 'weather', 'string');
+        if (! empty($data['weather_api_key'])) {
+            Setting::put('weather_api_key', $data['weather_api_key'], 'weather', 'secret');
         }
 
         return back()->with('ok', 'Settings saved.');
