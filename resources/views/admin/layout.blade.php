@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title','Admin') · Yatri</title>
-<link rel="preload" href="{{ asset('fonts/Poppins-400.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-500.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-600.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-700.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-400.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-500.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-600.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-700.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 <link rel="preload" as="style" href="{{ asset('css/yatri.css') }}" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="{{ asset('css/yatri.css') }}"></noscript>

@@ -9,10 +9,10 @@
 @php $_route = request()->route() ? request()->route()->getName() : ''; $_noindex = in_array($_route, ['login', 'register', 'notifications.index', 'settings', 'dashboard']); @endphp
 <meta name="robots" content="{{ $_noindex ? 'noindex,nofollow' : 'index,follow' }}">
 <link rel="canonical" href="{{ url()->current() }}">
-<link rel="preload" href="{{ asset('fonts/Poppins-400.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-500.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-600.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ asset('fonts/Poppins-700.woff2') }}?v={{ config('app.version') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-400.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-500.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-600.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ asset('fonts/Poppins-700.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="{{ asset('storage/images/favicon.ico') }}?v={{ config('app.version') }}" sizes="any">
 <link rel="icon" href="{{ asset('storage/images/favicon-32x32.png') }}?v={{ config('app.version') }}" sizes="32x32" type="image/png">
 <link rel="icon" href="{{ asset('storage/images/favicon-16x16.png') }}?v={{ config('app.version') }}" sizes="16x16" type="image/png">
