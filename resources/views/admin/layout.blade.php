@@ -10,8 +10,7 @@
 <link rel="preload" href="{{ asset('fonts/Poppins-600.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{ asset('fonts/Poppins-700.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="{{ asset('favicon.ico') }}">
-<link rel="preload" as="style" href="{{ asset('css/yatri.css') }}" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="{{ asset('css/yatri.css') }}"></noscript>
+<link rel="stylesheet" href="{{ asset('css/yatri.css') }}">
 <style>
 .adm{display:flex;min-height:100vh}
 .adm-side{width:240px;background:var(--md-inverse-surface);color:var(--md-inverse-on-surface);flex-shrink:0;padding:20px 0;position:sticky;top:0;height:100vh;overflow:auto}
