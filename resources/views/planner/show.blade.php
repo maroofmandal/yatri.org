@@ -271,7 +271,7 @@
       @foreach($weatherDays as $w)
         @php
           $cls = $w['icon_class'] ?? 'unknown';
-          $hasData = $w['weather_code'] !== null;
+          $hasData = ($w['weather_code'] ?? null) !== null;
           $icon = $hasData && !empty($w['icon']) ? $w['icon'] : 'cloud_off';
         @endphp
         <div class="weather-card weather-card--{{ $cls }}">
