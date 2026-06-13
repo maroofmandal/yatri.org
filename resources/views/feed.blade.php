@@ -2,7 +2,7 @@
 @section('title', \App\Models\Setting::get('site_name','Yatri').' — discover trips & plan with AI')
 @section('meta_description', 'Discover real, costed trips from travelers. Plan your perfect budget trip with AI — hotels, transport, and activities that fit your budget.')
 
-@section('content')
+@section('hero')
 <header class="hero"><div class="wrap">
   <p class="eyebrow">Travel social network + AI budget planner</p>
   <h1><strong>Where next?</strong>
@@ -14,9 +14,9 @@
     </a>
   </div>
 </div></header>
+@endsection
 
-<div class="wrap">
-
+@section('content')
   {{-- Posts --}}
   <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
     <h2 style="margin:0">Latest posts</h2>
@@ -57,7 +57,7 @@
   </div>
 
   @if($trips->count())
-    <div class="grid grid-3">
+    <div class="grid grid-2">
       @foreach($trips as $trip)
         @include('partials.trip-card')
       @endforeach
@@ -86,6 +86,4 @@
     </div>
   </div>
   @endif
-</div>
-
 @endsection

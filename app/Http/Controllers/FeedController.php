@@ -22,7 +22,7 @@ class FeedController extends Controller
         $trips = Trip::query()
             ->where('is_public', true)
             ->where('status', 'ready')
-            ->with('user')
+            ->with('user', 'posts.media', 'media')
             ->withCount(['likes', 'comments'])
             ->when($request->filter === 'following' && $request->user(), function ($q) use ($request) {
                 $q->whereIn('user_id', $request->user()->following()->pluck('users.id'));

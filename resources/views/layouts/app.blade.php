@@ -299,7 +299,72 @@
 @if(session('ok'))<div class="wrap"><div class="flash flash-ok"><x-icon name="check_circle" :size="20" /> {{ session('ok') }}</div></div>@endif
 @if(session('error'))<div class="wrap"><div class="flash flash-err"><x-icon name="error" :size="20" /> {{ session('error') }}</div></div>@endif
 
-<main>@yield('content')</main>
+@yield('hero')
+
+<main>
+<div class="site-columns wrap">
+  <aside class="col-left">
+    <nav class="sidebar-nav">
+      <a class="side-link @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
+        <x-icon name="explore" /> Explore
+      </a>
+      <a class="side-link @if($currentPage === 'rankings') active @endif" href="{{ route('rankings') }}">
+        <x-icon name="leaderboard" /> Rankings
+      </a>
+      <a class="side-link @if($currentPage === 'pricing') active @endif" href="{{ route('pricing') }}">
+        <x-icon name="payments" /> Pricing
+      </a>
+      <a class="side-link" href="{{ route('planner') }}">
+        <x-icon name="route" /> Plan a trip
+      </a>
+      @auth
+        <div class="side-divider"></div>
+        <a class="side-link" href="{{ route('posts.create') }}">
+          <x-icon name="add_circle" /> Create Post
+        </a>
+        <a class="side-link @if($currentPage === 'dashboard') active @endif" href="{{ route('dashboard') }}">
+          <x-icon name="dashboard" /> My trips
+        </a>
+        <a class="side-link @if($currentPage === 'notifications.index') active @endif" href="{{ route('notifications.index') }}">
+          <x-icon name="notifications" /> Notifications
+          @if($unreadCount > 0)<span style="margin-left:auto;background:var(--md-error);color:var(--md-on-error);font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--md-shape-full)">{{ $unreadCount }}</span>@endif
+        </a>
+        @if(auth()->user()->isAdmin())
+        <a class="side-link" href="{{ route('admin.dashboard') }}">
+          <x-icon name="admin_panel_settings" /> Admin
+        </a>
+        @endif
+        <div class="side-divider"></div>
+        <a class="side-link @if($currentPage === 'profile') active @endif" href="{{ route('profile', auth()->user()) }}">
+          <x-icon name="person" /> Profile
+        </a>
+        <a class="side-link" href="{{ route('settings') }}">
+          <x-icon name="settings" /> Settings
+        </a>
+        <form method="post" action="{{ route('logout') }}" style="margin:0">
+          @csrf
+          <button type="submit" class="side-link" style="width:100%;color:var(--md-error);background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--md-shape-full);transition:background .15s">
+            <x-icon name="logout" /> Log out
+          </button>
+        </form>
+      @else
+        <div class="side-divider"></div>
+        <a class="side-link" href="{{ route('login') }}">
+          <x-icon name="login" /> Log in
+        </a>
+        <a class="side-link" href="{{ route('register') }}">
+          <x-icon name="person_add" /> Sign up
+        </a>
+      @endauth
+    </nav>
+  </aside>
+  <div class="col-main">
+    @yield('content')
+  </div>
+  <aside class="col-right">
+  </aside>
+</div>
+</main>
 
 <footer style="padding:32px 0 40px;color:var(--md-on-surface-variant);font-size:13px;text-align:center;border-top:1px solid var(--md-outline-variant)">
   <div class="wrap">
@@ -939,6 +1004,48 @@ const Yc = {
   }
 };
 document.addEventListener('DOMContentLoaded', function() { Yc.init(); });
+
+/* ===== CAROUSEL (post card scroll + trip card crossfade) ===== */
+function carouselNav(id, dir) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var step = el.querySelector('.c-item')?.offsetWidth || 300;
+  el.scrollBy({ left: dir * step, behavior: 'smooth' });
+  setTimeout(function() { updateDots(el); }, 350);
+}
+function carouselDot(id, idx) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var step = el.querySelector('.c-item')?.offsetWidth || 300;
+  el.scrollTo({ left: idx * step, behavior: 'smooth' });
+  setTimeout(function() { updateDots(el); }, 350);
+}
+function updateDots(el) {
+  var step = el.querySelector('.c-item')?.offsetWidth || 300;
+  var idx = Math.round(el.scrollLeft / step);
+  var dots = el.closest('.pcard')?.querySelectorAll('.carousel-dot');
+  if (dots) dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+}
+/* Trip card crossfade carousel */
+function carouselTrip(id, dir) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var items = el.querySelectorAll('.c-item');
+  var cur = Array.from(items).findIndex(function(i) { return i.classList.contains('active'); });
+  var next = (cur + dir + items.length) % items.length;
+  items[cur].classList.remove('active');
+  items[next].classList.add('active');
+  var dots = el.querySelectorAll('.carousel-dot');
+  if (dots.length) { dots.forEach(function(d, i) { d.classList.toggle('active', i === next); }); }
+}
+function carouselTripDot(id, idx) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var items = el.querySelectorAll('.c-item');
+  items.forEach(function(i, n) { i.classList.toggle('active', n === idx); });
+  var dots = el.querySelectorAll('.carousel-dot');
+  if (dots.length) { dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); }); }
+}
 
 /* ===== SNACKBAR ===== */
 function showSnackbar(msg) {

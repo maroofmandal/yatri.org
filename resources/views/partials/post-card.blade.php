@@ -1,4 +1,37 @@
 <div class="pcard">
+  {{-- 1. IMAGES ON TOP (carousel with arrows + dots) --}}
+  @if($post->media->count())
+    <div class="pcard-media" style="position:relative">
+      @if($post->media->count() === 1)
+        @if($post->media->first()->isVideo())
+          <video controls class="pcard-video" src="{{ $post->media->first()->url }}" style="display:block;width:100%;max-height:400px;object-fit:cover"></video>
+        @else
+          <img src="{{ $post->media->first()->thumb_url }}" alt="{{ $post->title }}" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer;display:block;width:100%;max-height:500px;object-fit:cover" loading="lazy" srcset="{{ $post->media->first()->thumb_sm_url }} 200w, {{ $post->media->first()->thumb_url }} 400w" sizes="(max-width:480px)100vw,500px">
+        @endif
+      @else
+        <div class="pcard-carousel" id="pcarousel-{{ $post->id }}">
+          @foreach($post->media as $m)
+            <div class="c-item">
+              @if($m->isVideo())
+                <video controls style="width:100%;aspect-ratio:3/2;object-fit:cover;display:block" src="{{ $m->url }}"></video>
+              @else
+                <img src="{{ $m->thumb_url }}" alt="{{ $post->title }}" onclick="openPostViewer({{ $post->id }})" loading="lazy" srcset="{{ $m->thumb_sm_url }} 200w, {{ $m->thumb_url }} 400w" sizes="(max-width:480px)100vw,500px">
+              @endif
+            </div>
+          @endforeach
+        </div>
+        <button class="carousel-nav prev" onclick="carouselNav('pcarousel-{{ $post->id }}', -1)" aria-label="Previous image">‹</button>
+        <button class="carousel-nav next" onclick="carouselNav('pcarousel-{{ $post->id }}', 1)" aria-label="Next image">›</button>
+        <div class="carousel-dots">
+          @foreach($post->media as $i => $m)
+            <button class="carousel-dot {{ $i === 0 ? 'active' : '' }}" onclick="carouselDot('pcarousel-{{ $post->id }}', {{ $i }})" aria-label="Image {{ $i+1 }}"></button>
+          @endforeach
+        </div>
+      @endif
+    </div>
+  @endif
+
+  {{-- 2. USER INFO --}}
   <div class="pcard-head">
     <a href="{{ route('profile', $post->user) }}" class="pcard-author">
       <img src="{{ $post->user->avatar() }}" alt="{{ $post->user->name }}" class="pcard-avatar" width="40" height="40">
@@ -12,42 +45,19 @@
     @endif
   </div>
 
+  {{-- 3. TITLE --}}
   <a href="{{ route('posts.show', $post) }}" style="color:inherit;text-decoration:none">
     <h3 style="padding:0 18px;margin:0 0 8px;font-size:18px">{{ $post->title }}</h3>
   </a>
 
+  {{-- 4. BODY --}}
   @if($post->body)
     <div class="pcard-body">
       <p>{{ \Illuminate\Support\Str::limit($post->body, 200) }}</p>
     </div>
   @endif
 
-  @if($post->media->count())
-    <div class="pcard-media">
-      @if($post->media->count() === 1)
-        @if($post->media->first()->isVideo())
-          <video controls class="pcard-video" src="{{ $post->media->first()->url }}"></video>
-        @else
-          <img src="{{ $post->media->first()->thumb_url }}" alt="{{ $post->title }}" class="pcard-image" onclick="openPostViewer({{ $post->id }})" style="cursor:pointer" width="400" height="267" loading="lazy" srcset="{{ $post->media->first()->thumb_sm_url }} 200w, {{ $post->media->first()->thumb_url }} 400w" sizes="(max-width: 480px) 100vw, 400px">
-        @endif
-      @else
-        <div class="photo-carousel">
-          @foreach($post->media as $m)
-            @if($m->isVideo())
-              <div class="c-item" style="background:#000">
-                <video controls style="width:100%;height:100%;object-fit:cover" src="{{ $m->url }}"></video>
-              </div>
-            @else
-              <div class="c-item" style="background-image:url('{{ $m->thumb_sm_url }}')" onclick="openPostViewer({{ $post->id }})">
-                <img src="{{ $m->thumb_sm_url }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover" width="400" height="267" loading="lazy" srcset="{{ $m->thumb_sm_url }} 200w, {{ $m->thumb_url }} 400w" sizes="180px">
-              </div>
-            @endif
-          @endforeach
-        </div>
-      @endif
-    </div>
-  @endif
-
+  {{-- 5. TRIP LINK --}}
   @if($post->trip)
     <div class="pcard-trip">
       <a href="{{ route('trip.show', $post->trip) }}">
@@ -56,6 +66,7 @@
     </div>
   @endif
 
+  {{-- 6. FOOTER --}}
   <div class="pcard-foot">
     <button class="pcard-action like-btn {{ $post->isLikedBy(auth()->user()) ? 'liked' : '' }}"
             data-post-id="{{ $post->id }}"
@@ -77,13 +88,13 @@
     </span>
   </div>
 
+  {{-- 7. COMMENTS --}}
   <div class="pcard-comments" id="comments-{{ $post->id }}" style="display:none">
     <div class="comment-list" id="comment-list-{{ $post->id }}">
       @foreach($post->comments->take(3) as $comment)
         @include('partials.comment-item', ['comment' => $comment])
       @endforeach
     </div>
-
     @auth
       <form class="comment-form" onsubmit="submitComment(event, {{ $post->id }})">
         <input type="text" placeholder="Add a comment..." required maxlength="1000">
