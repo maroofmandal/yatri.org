@@ -98,6 +98,11 @@
       <div class="chat-log" id="prePlanChatLog" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:8px;display:flex;flex-direction:column;gap:12px;">
         <div class="chat-msg bot">Hi! Let's personalize your trip. Gathering some clarification questions...</div>
       </div>
+
+      <form id="prePlanChatForm" style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--md-outline-variant);padding-top:12px">
+        <input type="text" id="prePlanChatInput" placeholder="Type a custom preference or detail..." style="flex:1;padding:10px 14px;border-radius:20px;border:1px solid var(--md-outline-variant);background:var(--md-surface);color:var(--md-on-surface);font-size:14px;" autocomplete="off" required>
+        <button type="submit" class="btn btn-filled btn-sm" style="border-radius:20px;padding:8px 16px;">Send</button>
+      </form>
     </div>
 
     <div class="row row-2 mt" style="gap:12px;margin-top:20px;display:flex">
@@ -481,6 +486,8 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
   const generatePlanBtn = document.getElementById('generatePlanBtn');
   const closePrePlanChat = document.getElementById('closePrePlanChat');
   const compressedChatContextField = document.getElementById('compressedChatContextField');
+  const prePlanChatForm = document.getElementById('prePlanChatForm');
+  const prePlanChatInput = document.getElementById('prePlanChatInput');
 
   let chatAnswers = [];
   let chatQuestions = [];
@@ -499,7 +506,12 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
     }
 
     prePlanChatBox.style.display = 'block';
-    prePlanChatLog.innerHTML = '<div class="chat-msg bot">Hi! Let\'s personalize your trip. Gathering some clarification questions...</div>';
+    prePlanChatLog.innerHTML = `
+      <div id="prePlanQuestionsContainer">
+        <div class="chat-msg bot">Hi! Let's personalize your trip. Gathering some clarification questions...</div>
+      </div>
+      <div id="prePlanConversationFlow" style="display:flex;flex-direction:column;gap:12px;"></div>
+    `;
     
     try {
       const res = await fetch('{{ route("plan.pre-chat-init") }}', {
@@ -520,12 +532,42 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
       
       renderQuestionsList();
     } catch (err) {
-      prePlanChatLog.innerHTML = '<div class="chat-msg bot" style="color:var(--md-error)">Sorry, we couldn\'t load personalization questions. You can still generate your plan directly!</div>';
+      const container = document.getElementById('prePlanQuestionsContainer');
+      if (container) {
+        container.innerHTML = '<div class="chat-msg bot" style="color:var(--md-error)">Sorry, we couldn\'t load personalization questions. You can still generate your plan directly!</div>';
+      }
     }
   });
 
   closePrePlanChat.addEventListener('click', () => {
     prePlanChatBox.style.display = 'none';
+  });
+
+  prePlanChatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = prePlanChatInput.value.trim();
+    if (!text) return;
+
+    prePlanChatInput.value = '';
+
+    const flowContainer = document.getElementById('prePlanConversationFlow');
+    if (!flowContainer) return;
+
+    // Append user input to log
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-msg user';
+    userMsg.textContent = text;
+    flowContainer.appendChild(userMsg);
+    prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
+
+    // Add to answers list
+    chatAnswers.push({
+      id: 'user_input_' + Date.now(),
+      question: 'User message',
+      answer: text
+    });
+
+    await checkNextAdaptiveQuestion();
   });
 
   function getSerializedDests() {
@@ -558,7 +600,10 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
   }
 
   function renderQuestionsList() {
-    prePlanChatLog.innerHTML = '<div class="chat-msg bot">Please answer these 3 quick questions to help personalize your itinerary:</div>';
+    const container = document.getElementById('prePlanQuestionsContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="chat-msg bot">Please answer these 3 quick questions to help personalize your itinerary:</div>';
     
     chatQuestions.forEach((q, idx) => {
       const card = document.createElement('div');
@@ -590,7 +635,7 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
         ${answerHtml}
       `;
       
-      prePlanChatLog.appendChild(card);
+      container.appendChild(card);
     });
     
     prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
@@ -642,13 +687,66 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
     }
   };
 
+  function appendFollowUpQuestion(q) {
+    const flowContainer = document.getElementById('prePlanConversationFlow');
+    if (!flowContainer) return;
+
+    const card = document.createElement('div');
+    card.className = 'chat-question-card active';
+    card.id = 'chat-q-card-followup-' + q.id;
+    
+    card.innerHTML = `
+      <div class="chat-question-header">
+        <span>${q.question}</span>
+      </div>
+      <div class="chat-question-options" id="chat-q-options-followup-${q.id}" style="display:flex;flex-direction:column;gap:10px;padding: 14px 18px 18px;">
+        ${q.options.map(opt => {
+          const isRec = opt === q.recommended;
+          return `
+            <button type="button" class="chat-option-btn" onclick="selectFollowUpAnswer('${q.id}', '${q.question.replace(/'/g, "\\'")}', '${opt.replace(/'/g, "\\'")}')">
+              <span>${opt}</span>
+              ${isRec ? '<span class="recommended-badge">Recommended</span>' : ''}
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+    flowContainer.appendChild(card);
+    prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
+  }
+
+  window.selectFollowUpAnswer = async function(qId, questionText, answer) {
+    const card = document.getElementById('chat-q-card-followup-' + qId);
+    if (!card) return;
+
+    card.innerHTML = `
+      <div class="chat-question-header">
+        <span>${qId.includes('user_input') ? 'Custom preference' : questionText}</span>
+      </div>
+      <div style="padding:10px 18px;background:var(--md-primary-container);color:var(--md-on-primary-container);font-size:13.5px;font-weight:500;">✓ Selected: ${answer}</div>
+    `;
+
+    // Remove any previous matching ID to avoid duplicates
+    const idx = chatAnswers.findIndex(a => a.id === qId);
+    if (idx > -1) {
+      chatAnswers[idx].answer = answer;
+    } else {
+      chatAnswers.push({ id: qId, question: questionText, answer: answer });
+    }
+
+    await checkNextAdaptiveQuestion();
+  };
+
   async function checkNextAdaptiveQuestion() {
     const formVals = getFormValues();
+    const flowContainer = document.getElementById('prePlanConversationFlow');
+    if (!flowContainer) return;
+
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'chat-msg bot';
     loadingMsg.id = 'chat-loading-followup';
     loadingMsg.innerHTML = 'Analyzing preferences for follow-up...';
-    prePlanChatLog.appendChild(loadingMsg);
+    flowContainer.appendChild(loadingMsg);
     prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
     
     try {
@@ -669,10 +767,8 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
       
       if (data.has_more && data.question) {
         const newQ = data.question;
-        if (!chatQuestions.some(q => q.id === newQ.id)) {
-          chatQuestions.push(newQ);
-          currentQuestionIndex = chatQuestions.length - 1;
-          renderQuestionsList();
+        if (!chatQuestions.some(q => q.id === newQ.id) && !chatAnswers.some(a => a.id === newQ.id)) {
+          appendFollowUpQuestion(newQ);
         } else {
           finishPrePlanChat(data.compressed_context || "Context compiled.");
         }
@@ -687,6 +783,8 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
 
   function finishPrePlanChat(compressedContext) {
     compressedChatContextField.value = compressedContext;
+    const flowContainer = document.getElementById('prePlanConversationFlow');
+    if (!flowContainer) return;
     
     const endCard = document.createElement('div');
     endCard.className = 'chat-msg bot';
@@ -694,7 +792,7 @@ document.getElementById('plannerForm').addEventListener('submit', e=>{
     endCard.style.borderWidth = '1px';
     endCard.style.borderStyle = 'solid';
     endCard.innerHTML = `<strong>✨ Preferences saved!</strong><br>We gathered everything needed to tailor the itinerary to your style. Click <strong>Generate my plan</strong> below to build your custom trip plan.`;
-    prePlanChatLog.appendChild(endCard);
+    flowContainer.appendChild(endCard);
     prePlanChatLog.scrollTop = prePlanChatLog.scrollHeight;
     
     generatePlanBtn.classList.add('preplan-pulse');

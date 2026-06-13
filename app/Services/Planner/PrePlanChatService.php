@@ -106,9 +106,9 @@ class PrePlanChatService
             $answersText = collect($answers)->map(fn($a) => "Q: {$a['question']}\nA: {$a['answer']}")->implode("\n\n");
             $answersCount = count($answers);
 
-            $systemPrompt = "You are Yatri's travel advisor. You are in a conversational pre-plan flow to collect preferences for a trip. We have asked some questions and got answers.\n"
-                . "If the answers so far are sufficient to build a perfect trip, or if we have reached 5 questions total (current question count: {$answersCount}), set has_more to false and provide a structured compressed_context summary.\n"
-                . "Otherwise, set has_more to true and ask the next adaptive question based on the previous answers. Keep it highly relevant (e.g. if budget and they like fine dining, ask about food budget balance; if family with kids, ask about pace/stroller friendliness). Provide 3-4 options and one recommended option.";
+            $systemPrompt = "You are Yatri's travel advisor. You are in a conversational pre-plan flow to collect preferences for a trip. We have asked some questions and got answers (which may include custom direct messages or comments typed by the user).\n"
+                . "If the answers and comments so far are sufficient to build a perfect trip, or if we have reached 5 questions/inputs total (current count: {$answersCount}), set has_more to false and provide a structured compressed_context summary.\n"
+                . "Otherwise, set has_more to true and ask the next adaptive question based on the previous answers and user messages. Keep it highly relevant (e.g. if they typed a specific note or restriction, ask to clarify or target that area). Provide 3-4 options and one recommended option.";
 
             $userPrompt = "Selected values:\n"
                 . "- Destinations/Route: {$formValues['origin']} → {$destList}\n"
