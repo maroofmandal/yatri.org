@@ -267,11 +267,11 @@
   <div class="block reveal">
     <h2>Choose your route</h2>
     <p class="lead">Routing options for these stops — trade-offs compared.</p>
-    <div class="grid grid-2" id="routeOptions">
+    <div id="routeOptions">
       @foreach($plan['route_options'] as $ro)
         <div class="card route-card{{ $loop->first ? ' route-active' : '' }}" data-route-idx="{{ $loop->index }}">
           <div style="display:flex;align-items:center;gap:8px">
-            <h3>{{ $ro['label'] ?? 'Option' }}</h3>
+            <h3 style="white-space:nowrap">{{ $ro['label'] ?? 'Option' }}</h3>
             <span class="route-badge">Selected</span>
           </div>
           <p class="muted" style="font-size:13.5px">{{ $ro['summary'] ?? '' }}</p>

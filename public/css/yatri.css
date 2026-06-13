@@ -389,6 +389,7 @@ input[list]::-webkit-list-button{display:none!important}
 
 /* ── Route switching ── */
 .route-card{cursor:pointer;border-left:4px solid transparent;transition:border-color .2s,box-shadow .2s}
+.route-card + .route-card{margin-top:12px}
 .route-card.route-active{border-left:4px solid var(--md-primary);box-shadow:var(--md-elevation-1)}
 .route-badge{display:none;font-size:11px;font-weight:700;font-family:'Poppins';color:var(--md-primary);background:var(--md-primary-container);border-radius:var(--md-shape-full);padding:2px 10px;margin-left:auto}
 .route-active .route-badge{display:inline-block}
