@@ -50,10 +50,7 @@
             <td>@if($ak->is_active)<span class="badge ok">active</span>@else<span class="badge warn">exhausted</span>@endif</td>
             <td style="font-size:11px;color:var(--md-on-surface-variant)">{{ $ak->last_used_at ? $ak->last_used_at->diffForHumans() : 'never' }}</td>
             <td>
-              <form class="inline-form" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" onsubmit="return confirm('Remove this key?')">
-                @csrf @method('DELETE')
-                <button class="btn btn-small" style="color:var(--md-error)">remove</button>
-              </form>
+              <button class="btn btn-small" style="color:var(--md-error)" form="rm-gemini-{{ $ak->id }}">remove</button>
             </td>
           </tr>
         @empty
@@ -67,11 +64,7 @@
       <div>
         <button class="btn btn-accent" form="add-gemini-key-form">Add key</button>
         @if($geminiKeys->where('is_active',false)->count())
-          <form class="inline-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="margin-left:8px">
-            @csrf
-            <input type="hidden" name="service" value="gemini">
-            <button class="btn btn-small" title="Reactivate exhausted keys">Reactivate all</button>
-          </form>
+          <button class="btn btn-small" style="margin-left:8px" form="refresh-gemini-form" title="Reactivate exhausted keys">Reactivate all</button>
         @endif
       </div>
     </div>
@@ -91,10 +84,7 @@
             <td>@if($ak->is_active)<span class="badge ok">active</span>@else<span class="badge warn">exhausted</span>@endif</td>
             <td style="font-size:11px;color:var(--md-on-surface-variant)">{{ $ak->last_used_at ? $ak->last_used_at->diffForHumans() : 'never' }}</td>
             <td>
-              <form class="inline-form" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" onsubmit="return confirm('Remove this key?')">
-                @csrf @method('DELETE')
-                <button class="btn btn-small" style="color:var(--md-error)">remove</button>
-              </form>
+              <button class="btn btn-small" style="color:var(--md-error)" form="rm-nb-{{ $ak->id }}">remove</button>
             </td>
           </tr>
         @empty
@@ -108,11 +98,7 @@
       <div>
         <button class="btn btn-accent" form="add-nb-key-form">Add key</button>
         @if($nanoBananaKeys->where('is_active',false)->count())
-          <form class="inline-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="margin-left:8px">
-            @csrf
-            <input type="hidden" name="service" value="nano_banana">
-            <button class="btn btn-small" title="Reactivate exhausted keys">Reactivate all</button>
-          </form>
+          <button class="btn btn-small" style="margin-left:8px" form="refresh-nb-form" title="Reactivate exhausted keys">Reactivate all</button>
         @endif
       </div>
     </div>
@@ -238,7 +224,25 @@
   <button class="btn btn-accent">Save settings</button>
 </form>
 
-{{-- Separate forms for adding keys (POST to ApiKeyController) --}}
+{{-- Standalone forms for API key management (must be OUTSIDE the main settings form) --}}
+@foreach($geminiKeys as $ak)
+  <form id="rm-gemini-{{ $ak->id }}" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" style="display:none" onsubmit="return confirm('Remove this key?')">
+    @csrf @method('DELETE')
+  </form>
+@endforeach
+@foreach($nanoBananaKeys as $ak)
+  <form id="rm-nb-{{ $ak->id }}" method="POST" action="{{ route('admin.api-keys.destroy', $ak) }}" style="display:none" onsubmit="return confirm('Remove this key?')">
+    @csrf @method('DELETE')
+  </form>
+@endforeach
+<form id="refresh-gemini-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="display:none">
+  @csrf
+  <input type="hidden" name="service" value="gemini">
+</form>
+<form id="refresh-nb-form" method="POST" action="{{ route('admin.api-keys.refresh') }}" style="display:none">
+  @csrf
+  <input type="hidden" name="service" value="nano_banana">
+</form>
 <form id="add-gemini-key-form" method="POST" action="{{ route('admin.api-keys.store') }}" style="display:none">
   @csrf
   <input type="hidden" name="service" value="gemini">
