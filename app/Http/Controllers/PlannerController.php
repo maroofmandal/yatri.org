@@ -18,7 +18,10 @@ class PlannerController extends Controller
     public function create()
     {
         $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
-        $recent = Trip::where('is_public', true)->where('status', 'ready')->latest()->limit(6)->get();
+        $recent = Trip::where('is_public', true)->where('status', 'ready')
+            ->with('posts.media', 'media')
+            ->withCount(['likes', 'comments'])
+            ->latest()->limit(3)->get();
 
         // Admin-set fallback FX rates (1 USD → X) for client-side conversion.
         $fxRates = Setting::get('fx_rates', []);
@@ -34,7 +37,10 @@ class PlannerController extends Controller
         abort_unless($this->canManage($trip), 403);
 
         $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
-        $recent = Trip::where('is_public', true)->where('status', 'ready')->latest()->limit(6)->get();
+        $recent = Trip::where('is_public', true)->where('status', 'ready')
+            ->with('posts.media', 'media')
+            ->withCount(['likes', 'comments'])
+            ->latest()->limit(3)->get();
 
         $fxRates = Setting::get('fx_rates', []);
         if (!is_array($fxRates)) {

@@ -39,7 +39,7 @@
       @error('destinations')<div class="err">{{ $message }}</div>@enderror
     </div>
 
-    <div class="row row-3">
+    <div class="row row-2">
       <div class="field">
         <label>Start date <span class="muted" style="font-weight:500">(optional)</span></label>
         <input type="date" name="start_date" value="{{ isset($editTrip) && $editTrip->start_date ? $editTrip->start_date->format('Y-m-d') : old('start_date') }}">
@@ -48,13 +48,14 @@
         <label>End date <span class="muted" style="font-weight:500">(optional)</span></label>
         <input type="date" name="end_date" value="{{ isset($editTrip) && $editTrip->end_date ? $editTrip->end_date->format('Y-m-d') : old('end_date') }}">
       </div>
-      <div class="field">
-        <label>Travel style</label>
-        <div class="seg">
-          <label><input type="radio" name="style" value="budget" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='budget'?'checked':'' }}><span>Budget</span></label>
-          <label><input type="radio" name="style" value="mid" {{ (isset($editTrip) ? ($editTrip->style??'mid') : old('style','mid'))==='mid'?'checked':'' }}><span>Mid</span></label>
-          <label><input type="radio" name="style" value="luxury" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='luxury'?'checked':'' }}><span>Luxury</span></label>
-        </div>
+    </div>
+
+    <div class="field">
+      <label>Travel style</label>
+      <div class="seg">
+        <label><input type="radio" name="style" value="budget" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='budget'?'checked':'' }}><span>Budget</span></label>
+        <label><input type="radio" name="style" value="mid" {{ (isset($editTrip) ? ($editTrip->style??'mid') : old('style','mid'))==='mid'?'checked':'' }}><span>Mid</span></label>
+        <label><input type="radio" name="style" value="luxury" {{ (isset($editTrip) ? $editTrip->style : old('style'))==='luxury'?'checked':'' }}><span>Luxury</span></label>
       </div>
     </div>
 
@@ -120,13 +121,10 @@
   <div class="block">
     <h2>Recently planned</h2>
     <p class="lead">Real trips travelers built with Yatri.</p>
-    <div class="grid grid-3">
+    <div>
       @foreach($recent as $t)
-        <a class="card" href="{{ route('trip.show', $t) }}" style="color:inherit">
-          <h3>{{ $t->title }}</h3>
-          <p class="muted" style="font-size:13.5px;margin:6px 0">{{ $t->origin }} · {{ $t->days }} days · {{ $t->travelers }} pax</p>
-          <span class="tag">{{ strtoupper($t->currency) }} {{ number_format($t->budget_total) }}</span>
-        </a>
+        @php $trip = $t; @endphp
+        @include('partials.trip-card')
       @endforeach
     </div>
   </div>
