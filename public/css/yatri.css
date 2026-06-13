@@ -1052,6 +1052,7 @@ body.has-est-bar{padding-bottom:80px}
   .site-columns{grid-template-columns:220px 1fr 300px;gap:24px}
   .col-left{display:block;position:sticky;top:72px;align-self:start;height:calc(100vh - 80px);overflow-y:auto;padding:12px 0}
   .col-right{display:block;position:sticky;top:72px;align-self:start;height:calc(100vh - 80px)}
+  .col-main .grid-2,.col-main .grid-3,.col-main .row-2,.col-main .row-3{grid-template-columns:1fr}
 }
 
 /* ── Left sidebar nav ── */
