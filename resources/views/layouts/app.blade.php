@@ -299,8 +299,6 @@
 @if(session('ok'))<div class="wrap"><div class="flash flash-ok"><x-icon name="check_circle" :size="20" /> {{ session('ok') }}</div></div>@endif
 @if(session('error'))<div class="wrap"><div class="flash flash-err"><x-icon name="error" :size="20" /> {{ session('error') }}</div></div>@endif
 
-@yield('hero')
-
 <main>
 <div class="site-columns wrap">
   <aside class="col-left">
@@ -359,6 +357,7 @@
     </nav>
   </aside>
   <div class="col-main">
+    @yield('hero')
     @yield('content')
   </div>
   <aside class="col-right">

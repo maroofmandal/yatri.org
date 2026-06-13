@@ -877,6 +877,11 @@ body.has-bottom-nav{padding-bottom:80px}
 /* body padding for estimation bar */
 body.has-est-bar{padding-bottom:80px}
 
+/* ── Tablet: 3-col rows wrap to 2 cols ── */
+@media(max-width:900px) and (min-width:761px){
+  .row-3{grid-template-columns:1fr 1fr}
+}
+
 /* ── Mobile ── */
 @media(max-width:760px){
   .row-2,.row-3,.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
@@ -1086,6 +1091,7 @@ body.has-est-bar{padding-bottom:80px}
 .tcard-carousel:hover .carousel-nav{opacity:1}
 
 /* ── Trip card: no user, equal-width stats ── */
+.tcard + .tcard{margin-top:16px}
 .tcard .tcard-foot{justify-content:center;padding:10px 18px}
 .tcard .tstats{display:flex;justify-content:space-around;width:100%;font-size:13px;color:var(--md-on-surface-variant)}
 .tcard .tstats span{display:flex;align-items:center;gap:4px}

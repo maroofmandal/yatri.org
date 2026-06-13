@@ -57,7 +57,7 @@
   </div>
 
   @if($trips->count())
-    <div class="grid grid-2">
+    <div>
       @foreach($trips as $trip)
         @include('partials.trip-card')
       @endforeach

@@ -44,10 +44,8 @@
     <div class="tcard-head">
       <span class="tag tag-primary"><x-icon name="payments" :size="14" /> <span class="money" data-amt="{{ (float)$trip->budget_total }}" data-cur="{{ $trip->currency }}">{{ strtoupper($trip->currency) }} {{ number_format($trip->budget_total) }}</span></span>
       <span class="tag"><x-icon name="schedule" :size="14" /> {{ $trip->days }} days</span>
-      @if($trip->fit_status === 'fit')<span class="tag tag-success"><x-icon name="check_circle" :size="14" /> on budget</span>@endif
     </div>
-    <h3 style="margin:0 0 6px">{{ $trip->title }}</h3>
-    <p class="muted" style="font-size:13px;margin:0">{{ $trip->origin }} → {{ collect($trip->destinations)->pluck('name')->take(3)->implode(' · ') }}</p>
+    <h3 style="margin:0">{{ $trip->title }}</h3>
   </a>
 
   {{-- FOOTER: equal-width stats, no user --}}
