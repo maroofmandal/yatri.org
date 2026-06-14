@@ -89,6 +89,9 @@
   </div>
   <nav class="topbar-nav">
     <a href="{{ route('home') }}" @if($currentPage === 'home') style="color:var(--md-primary)" @endif>
+      <x-icon name="article" :size="20" /> Posts
+    </a>
+    <a href="{{ route('trips.explore') }}" @if($currentPage === 'trips.explore') style="color:var(--md-primary)" @endif>
       <x-icon name="explore" :size="20" /> Explore
     </a>
     <a href="{{ route('rankings') }}" @if($currentPage === 'rankings') style="color:var(--md-primary)" @endif>
@@ -238,6 +241,9 @@
       @endauth
 
       <a class="nav-drawer-item @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
+        <x-icon name="article" /> Posts
+      </a>
+      <a class="nav-drawer-item @if($currentPage === 'trips.explore') active @endif" href="{{ route('trips.explore') }}">
         <x-icon name="explore" /> Explore
       </a>
       <a class="nav-drawer-item @if($currentPage === 'rankings') active @endif" href="{{ route('rankings') }}">
@@ -304,6 +310,9 @@
   <aside class="col-left">
     <nav class="sidebar-nav">
       <a class="side-link @if($currentPage === 'home') active @endif" href="{{ route('home') }}">
+        <x-icon name="article" /> Posts
+      </a>
+      <a class="side-link @if($currentPage === 'trips.explore') active @endif" href="{{ route('trips.explore') }}">
         <x-icon name="explore" /> Explore
       </a>
       <a class="side-link @if($currentPage === 'rankings') active @endif" href="{{ route('rankings') }}">
@@ -361,6 +370,7 @@
     @yield('content')
   </div>
   <aside class="col-right">
+    @yield('right_sidebar')
   </aside>
 </div>
 </main>
@@ -445,7 +455,16 @@
 </div>
 
 @stack('scripts')
+@auth
+<script id="app-config" data-auth="1" data-theme-url="{{ route('settings.theme') }}" data-notif-url="{{ route('notifications.unreadCount') }}"></script>
+@else
+<script id="app-config" data-auth="0" data-theme-url="" data-notif-url=""></script>
+@endauth
 <script>
+var _cfg = document.getElementById('app-config').dataset;
+var IS_AUTHENTICATED = _cfg.auth === '1';
+var THEME_ROUTE = _cfg.themeUrl;
+var NOTIF_ROUTE = _cfg.notifUrl;
 // ── Theme Management ──
 function applyTheme(theme) {
   const root = document.documentElement;
@@ -473,26 +492,26 @@ function applyTheme(theme) {
 
 function setTheme(theme) {
   applyTheme(theme);
-  @auth
-  fetch('{{ route("settings.theme") }}', {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ theme: theme })
-  });
-  @else
-  try { localStorage.setItem('yatri-theme', theme); } catch(e) {}
-  @endauth
+  if (IS_AUTHENTICATED) {
+    fetch(THEME_ROUTE, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ theme: theme })
+    });
+  } else {
+    try { localStorage.setItem('yatri-theme', theme); } catch(e) {}
+  }
 }
-@guest
-/* Restore guest theme on load */
-try {
-  const savedTheme = localStorage.getItem('yatri-theme');
-  if (savedTheme) applyTheme(savedTheme);
-} catch(e) {}
-@endguest
+if (!IS_AUTHENTICATED) {
+  /* Restore guest theme on load */
+  try {
+    const savedTheme = localStorage.getItem('yatri-theme');
+    if (savedTheme) applyTheme(savedTheme);
+  } catch(e) {}
+}
 
 // ── Profile Dropdown ──
 function toggleProfileDropdown() {
@@ -525,26 +544,26 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ── Notification Polling ──
-@auth
-function checkNotifications() {
-  fetch('{{ route("notifications.unreadCount") }}')
-    .then(r => r.json())
-    .then(data => {
-      document.querySelectorAll('.badge, .nav-badge').forEach(badge => {
-        if (data.count > 0) {
-          badge.textContent = data.count;
-          badge.setAttribute('data-count', data.count);
-          badge.style.display = 'flex';
-        } else {
-          badge.setAttribute('data-count', '0');
-          badge.style.display = 'none';
-        }
+if (IS_AUTHENTICATED) {
+  function checkNotifications() {
+    fetch(NOTIF_ROUTE)
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll('.badge, .nav-badge').forEach(badge => {
+          if (data.count > 0) {
+            badge.textContent = data.count;
+            badge.setAttribute('data-count', data.count);
+            badge.style.display = 'flex';
+          } else {
+            badge.setAttribute('data-count', '0');
+            badge.style.display = 'none';
+          }
+        });
       });
-    });
+  }
+  checkNotifications();
+  setInterval(checkNotifications, 30000);
 }
-checkNotifications();
-setInterval(checkNotifications, 30000);
-@endauth
 </script>
 <script>
 // ── Social Interaction Functions ──

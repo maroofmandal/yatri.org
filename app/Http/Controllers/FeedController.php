@@ -16,37 +16,74 @@ class FeedController extends Controller
             ->withCount(['likes', 'comments'])
             ->where('is_public', true)
             ->latest()
-            ->take(10)
-            ->get();
+            ->paginate(10);
 
-        $trips = Trip::query()
+        $destinations = Destination::active()->orderByDesc('popularity')->limit(8)->get();
+
+        $latestTrips = Trip::query()
             ->where('is_public', true)
             ->where('status', 'ready')
             ->with('user', 'posts.media', 'media')
             ->withCount(['likes', 'comments'])
-            ->when($request->filter === 'following' && $request->user(), function ($q) use ($request) {
-                $q->whereIn('user_id', $request->user()->following()->pluck('users.id'));
-            })
             ->latest()
-            ->take(10)
+            ->limit(3)
             ->get();
 
-        $destinations = Destination::active()->orderByDesc('popularity')->limit(8)->get();
-
-        return view('feed', compact('posts', 'trips', 'destinations'));
+        return view('feed', compact('posts', 'destinations', 'latestTrips'));
     }
 
     public function trips(Request $request)
     {
-        $trips = Trip::query()
+        $query = Trip::query()
             ->where('is_public', true)
             ->where('status', 'ready')
-            ->with('user')
-            ->withCount(['likes', 'comments'])
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
+            ->with('user', 'posts.media', 'media')
+            ->withCount(['likes', 'comments']);
 
-        return view('trips.index', compact('trips'));
+        // Search
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('origin', 'like', "%{$search}%")
+                  ->orWhere('destinations', 'like', "%{$search}%");
+            });
+        }
+
+        // Sort
+        switch ($request->input('sort', 'latest')) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'budget_low':
+                $query->orderBy('budget_total', 'asc');
+                break;
+            case 'budget_high':
+                $query->orderBy('budget_total', 'desc');
+                break;
+            case 'most_liked':
+                $query->orderByDesc('likes_count');
+                break;
+            default:
+                $query->latest();
+        }
+
+        // Following filter
+        if ($request->input('filter') === 'following' && $request->user()) {
+            $query->whereIn('user_id', $request->user()->following()->pluck('users.id'));
+        }
+
+        // Destination filter
+        if ($dest = $request->input('destination')) {
+            $query->where(function ($q) use ($dest) {
+                $q->where('destinations', 'like', "%{$dest}%")
+                  ->orWhere('title', 'like', "%{$dest}%")
+                  ->orWhere('origin', 'like', "%{$dest}%");
+            });
+        }
+
+        $trips = $query->paginate(12)->withQueryString();
+        $destinations = Destination::active()->orderByDesc('popularity')->limit(8)->get();
+
+        return view('trips.index', compact('trips', 'destinations'));
     }
 }

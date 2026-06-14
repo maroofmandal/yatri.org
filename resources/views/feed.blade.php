@@ -18,21 +18,59 @@
 @endguest
 @endsection
 
+@section('right_sidebar')
+  @if($destinations->count())
+  <div class="sidebar-widget">
+    <h3>Popular destinations</h3>
+    <div class="chips">
+      @foreach($destinations as $d)
+        <a class="chip-link" href="{{ route('trips.explore', ['destination' => $d->name]) }}">
+          <x-icon name="location_on" :size="16" /> {{ $d->name }}
+        </a>
+      @endforeach
+    </div>
+  </div>
+  @endif
+
+  @if($latestTrips->count())
+  <div class="sidebar-widget">
+    <h3>Latest trips</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      @foreach($latestTrips as $trip)
+        @include('partials.trip-card')
+      @endforeach
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <a class="btn btn-outlined btn-sm" href="{{ route('trips.explore') }}" style="width:100%;justify-content:center">
+        <x-icon name="explore" :size="18" /> Explore all trips
+      </a>
+    </div>
+  </div>
+  @endif
+@endsection
+
 @section('content')
-  {{-- Posts --}}
+  {{-- Posts header --}}
   <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
     <h2 style="margin:0">Latest posts</h2>
-    <a class="btn btn-text btn-sm" href="{{ route('posts.index') }}">
-      View all posts <x-icon name="arrow_forward" :size="18" />
-    </a>
   </div>
 
   @if($posts->count())
-    <div class="posts-feed">
+    <div class="posts-feed" id="postsFeed">
       @foreach($posts as $post)
         @include('partials.post-card')
       @endforeach
     </div>
+
+    {{-- Infinite scroll trigger --}}
+    @if($posts->hasMorePages())
+      <div id="loadMoreTrigger" data-next-page="2" data-last-page="{{ $posts->lastPage() }}" style="text-align:center;padding:24px 0">
+        <div id="loadMoreSpinner" style="display:none">
+          <span style="display:inline-block;width:18px;height:18px;border:2.5px solid var(--md-outline-variant);border-radius:50%;border-top-color:var(--md-primary);animation:spin .8s linear infinite"></span>
+        </div>
+        <button id="loadMoreBtn" class="btn btn-ghost btn-sm" onclick="loadMorePosts()">Load more posts</button>
+      </div>
+    @endif
   @else
     <div class="block center">
       <x-icon name="article" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
@@ -44,48 +82,66 @@
       @endauth
     </div>
   @endif
-
-  {{-- Trips --}}
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:30px 0 14px;flex-wrap:wrap;gap:10px">
-    <h2 style="margin:0">Trending trips</h2>
-    <div style="display:flex;align-items:center;gap:10px">
-      @auth
-        <div class="seg">
-          <label><input type="radio" name="feedfilter" {{ request('filter')!=='following'?'checked':'' }} onclick="location='{{ route('home') }}'"><span>For you</span></label>
-          <label><input type="radio" name="feedfilter" {{ request('filter')==='following'?'checked':'' }} onclick="location='{{ route('home', ['filter'=>'following']) }}'"><span>Following</span></label>
-        </div>
-      @endauth
-    </div>
-  </div>
-
-  @if($trips->count())
-    <div>
-      @foreach($trips as $trip)
-        @include('partials.trip-card')
-      @endforeach
-    </div>
-    <div style="text-align:center;margin-top:16px">
-      <a class="btn btn-text" href="{{ route('trips.explore') }}">
-        View all trips <x-icon name="arrow_forward" :size="18" />
-      </a>
-    </div>
-  @else
-    <div class="block center">
-      <x-icon name="explore" :size="36" style="color:var(--md-on-surface-variant);display:block;margin:0 auto 12px" />
-      <p class="lead">No public trips yet — be the first to share one.</p>
-      <a class="btn btn-filled" href="{{ route('planner') }}">Plan a trip</a>
-    </div>
-  @endif
-
-  {{-- Popular destinations --}}
-  @if($destinations->count())
-  <div class="block mt2">
-    <h2 style="margin:0 0 12px">Popular destinations</h2>
-    <div class="chips">
-      @foreach($destinations as $d)
-        <span class="chip"><x-icon name="location_on" :size="18" /> {{ $d->name }}</span>
-      @endforeach
-    </div>
-  </div>
-  @endif
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+  const trigger = document.getElementById('loadMoreTrigger');
+  if (!trigger) return;
+
+  let loading = false;
+  let currentPage = parseInt(trigger.dataset.nextPage);
+  const lastPage = parseInt(trigger.dataset.lastPage);
+  const feed = document.getElementById('postsFeed');
+  const btn = document.getElementById('loadMoreBtn');
+  const spinner = document.getElementById('loadMoreSpinner');
+
+  function loadMore() {
+    if (loading || currentPage > lastPage) return;
+    loading = true;
+    if (btn) btn.style.display = 'none';
+    if (spinner) spinner.style.display = 'block';
+
+    fetch(window.location.pathname + '?page=' + currentPage, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.text())
+    .then(html => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const newFeed = doc.getElementById('postsFeed');
+      if (newFeed && newFeed.children.length > 0) {
+        Array.from(newFeed.children).forEach(el => feed.appendChild(el));
+        currentPage++;
+        trigger.dataset.nextPage = currentPage;
+        if (currentPage > lastPage) {
+          trigger.remove();
+        } else {
+          if (btn) btn.style.display = '';
+          if (spinner) spinner.style.display = 'none';
+        }
+      } else {
+        trigger.remove();
+      }
+      loading = false;
+    })
+    .catch(() => {
+      loading = false;
+      if (btn) btn.style.display = '';
+      if (spinner) spinner.style.display = 'none';
+    });
+  }
+
+  // Expose for manual click
+  window.loadMorePosts = loadMore;
+
+  // IntersectionObserver for automatic loading
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadMore();
+    }, { rootMargin: '300px' });
+    observer.observe(trigger);
+  }
+})();
+</script>
+@endpush

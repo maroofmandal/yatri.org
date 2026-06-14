@@ -137,7 +137,7 @@
 @endpush
 
 @section('content')
-<header class="trip-hero" id="tripHeroHeader" @if($tripImage) style="background-image:url('{{ $tripImage }}')" @else style="background:{{ $trip->fallbackGradient() }}" @endif>
+<header class="trip-hero" id="tripHeroHeader" data-bg-image="{{ $tripImage ?: '' }}" data-bg-fallback="{{ $trip->fallbackGradient() }}">
   @if(!$tripImage)
     <div id="aiImageStatus" class="ai-image-status" style="position:absolute;top:20px;right:24px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;color:#fff;z-index:10;border:1px solid rgba(255,255,255,0.15)">
       <span class="spinner-sm" style="display:inline-block;width:12px;height:12px;border:2.5px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 1s linear infinite;"></span>
@@ -186,12 +186,12 @@
 
   {{-- Interactive controls --}}
   <div class="controls-panel reveal d1">
-    <div class="ctrl-card">
-      <label>Budget target</label>
+    <div class="ctrl-card ctrl-budget">
+      <label>Budget</label>
       <div class="ctrl-value" id="budgetDisplay">{!! $money($trip->budget_total) !!}</div>
       <input type="range" id="budgetSlider" min="50" max="50000" step="50" value="{{ round($trip->budget_total) }}" style="margin-top:8px">
     </div>
-    <div class="ctrl-card">
+    <div class="ctrl-card ctrl-days">
       <label>Days</label>
       <div style="display:flex;align-items:center;gap:14px">
         <div class="day-stepper">
@@ -201,7 +201,7 @@
         </div>
       </div>
     </div>
-    <div class="ctrl-card">
+    <div class="ctrl-card ctrl-nights">
       <label>Nights</label>
       <div style="display:flex;align-items:center;gap:14px">
         <div class="day-stepper">
@@ -211,7 +211,7 @@
         </div>
       </div>
     </div>
-    <div class="ctrl-card">
+    <div class="ctrl-card ctrl-travellers">
       <label>Travellers</label>
       <div style="display:flex;align-items:center;gap:14px">
         <div class="day-stepper">
@@ -222,7 +222,7 @@
       </div>
     </div>
     @if(!empty($plan['route_options']) && count($plan['route_options']) > 1)
-    <div class="ctrl-card">
+    <div class="ctrl-card ctrl-route">
       <label>Route</label>
       <div class="route-tab-btn" id="routeTabs">
         @foreach($plan['route_options'] as $idx => $ro)
@@ -270,12 +270,12 @@
     <div id="routeOptions">
       @foreach($plan['route_options'] as $ro)
         <div class="card route-card{{ $loop->first ? ' route-active' : '' }}" data-route-idx="{{ $loop->index }}">
-          <div style="display:flex;align-items:center;gap:8px">
-            <h3 style="white-space:nowrap">{{ $ro['label'] ?? 'Option' }}</h3>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <h3 style="word-break:break-word;overflow-wrap:break-word">{{ $ro['label'] ?? 'Option' }}</h3>
             <span class="route-badge">Selected</span>
           </div>
-          <p class="muted" style="font-size:13.5px">{{ $ro['summary'] ?? '' }}</p>
-          <p style="font-size:14px;margin:8px 0"><strong>{{ $trip->origin }}</strong> → {{ implode(' → ', $ro['sequence'] ?? []) }} → <strong>{{ $trip->origin }}</strong></p>
+          <p class="muted" style="font-size:13.5px;word-break:break-word;overflow-wrap:break-word">{{ $ro['summary'] ?? '' }}</p>
+          <p style="font-size:14px;margin:8px 0;word-break:break-word;overflow-wrap:break-word"><strong>{{ $trip->origin }}</strong> → {{ implode(' → ', $ro['sequence'] ?? []) }} → <strong>{{ $trip->origin }}</strong></p>
           @if(!empty($ro['pros']))
           <div class="pc">
             <div class="pro"><b>Pros</b>{{ $ro['pros'] }}</div>
@@ -349,7 +349,7 @@
             </div>
             @if(isset($w['precipitation_sum']) && $w['precipitation_sum'] > 0)
               <div class="weather-bar-wrap" title="{{ $w['precipitation_sum'] }} mm rain">
-                <div class="weather-bar-fill" style="width:{{ min(100, $w['precipitation_sum'] * 10) }}%"></div>
+                <div class="weather-bar-fill" data-pct="{{ min(100, $w['precipitation_sum'] * 10) }}"></div>
               </div>
             @endif
           </div>
@@ -453,7 +453,7 @@
             @if(count($dayPhotoList) > 0)
             <div class="photo-carousel">
               @foreach($dayPhotoList as $phIdx => $phUrl)
-                <div class="c-item" onclick="openLightbox({{ $dIdx }}, {{ $phIdx }})">
+                <div class="c-item" data-day="{{ $dIdx }}" data-photo="{{ $phIdx }}">
                   <img src="{{ $phUrl }}" alt="Trip photo" loading="lazy" onerror="this.style.display='none'">
                 </div>
               @endforeach
@@ -507,12 +507,12 @@
         if(empty($cityHotels) && empty($citySpots)) { $cityIdx++; continue; }
       @endphp
       <div class="city-card" id="city{{ $cityIdx }}">
-        <div class="city-head" style="background:linear-gradient(135deg,{{ $cityColor }},#191a23)">
+        <div class="city-head" data-color="{{ $cityColor }}">
           <div>
             <h3>{{ $cityName }}</h3>
             <div class="nights">{{ $cityNights }} night{{ $cityNights != 1 ? 's' : '' }}</div>
           </div>
-          <button class="city-map-btn" onclick="flyCity({{ $cityIdx }})"><x-icon name="location_on" :size="16" /> Show on map</button>
+          <button class="city-map-btn" data-city="{{ $cityIdx }}"><x-icon name="location_on" :size="16" /> Show on map</button>
         </div>
         <div class="city-body">
           {{-- Cost chips --}}
@@ -854,7 +854,7 @@
 
     <div class="media-grid mt" id="media-grid-container">
       @forelse($media as $m)
-        <div class="media-item" style="cursor:pointer" onclick="{{ $m->mediable_type === 'App\Models\Post' ? 'openPostViewer('.$m->mediable_id.')' : 'openMediaLightbox(\''.$m->url.'\')' }}">
+        <div class="media-item" style="cursor:pointer" data-media-type="{{ $m->mediable_type === 'App\Models\Post' ? 'post' : 'media' }}" data-media-id="{{ $m->mediable_id }}" data-media-url="{{ $m->url }}">
           @if($m->isVideo())
             <video src="{{ $m->url }}" muted></video>
             <span class="media-play"><x-icon name="play_arrow" :size="32" /></span>
@@ -989,6 +989,12 @@
      data-chat-url="{{ route('trip.chat', $trip) }}"
      data-like-url="{{ route('trip.like', $trip) }}"
      data-trip-id="{{ $trip->id }}"
+     data-avg-food="{{ $avgFoodDay }}"
+     data-budget-act="{{ $budget['activities'] ?? 0 }}"
+     data-budget-trans="{{ ($budget['local_transport'] ?? 0) + ($budget['intercity_transport'] ?? 0) }}"
+     data-media-url="{{ route('media.store') }}"
+     data-image-ready="{{ !empty($trip->image) ? '1' : '0' }}"
+     data-day-photos="{!! e(json_encode($dayPhotos ?? new \stdClass())) !!}"
      style="display:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
@@ -1006,6 +1012,40 @@ const SHARE_TOKEN = _pd.shareToken;
 const PHOTO_KEY = _pd.photoKey;
 const CUR_TRIP = JSON.parse(_pd.curTrip);
 const CUR_SYM_MAP = {'USD':'$','INR':'₹','EUR':'€','GBP':'£','AED':'AED ','SGD':'S$','JPY':'¥'};
+
+/* ===== INIT DATA-ATTR STYLES ===== */
+(function initDataAttrs() {
+  /* Hero header background */
+  const hero = document.getElementById('tripHeroHeader');
+  if (hero) {
+    const bg = hero.dataset.bgImage;
+    hero.style.background = bg ? "url('" + bg + "') center/cover no-repeat" : hero.dataset.bgFallback;
+  }
+  /* Weather bar fills */
+  document.querySelectorAll('.weather-bar-fill[data-pct]').forEach(el => {
+    el.style.width = el.dataset.pct + '%';
+  });
+  /* City card gradients */
+  document.querySelectorAll('.city-head[data-color]').forEach(el => {
+    el.style.background = 'linear-gradient(135deg,' + el.dataset.color + ',#191a23)';
+  });
+  /* Carousel click */
+  document.querySelectorAll('.c-item[data-day]').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => openLightbox(parseInt(el.dataset.day), parseInt(el.dataset.photo)));
+  });
+  /* City map buttons */
+  document.querySelectorAll('.city-map-btn[data-city]').forEach(el => {
+    el.addEventListener('click', () => flyCity(parseInt(el.dataset.city)));
+  });
+  /* Media grid items */
+  document.querySelectorAll('.media-item[data-media-type]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (el.dataset.mediaType === 'post') openPostViewer(parseInt(el.dataset.mediaId));
+      else openMediaLightbox(el.dataset.mediaUrl);
+    });
+  });
+})();
 
 /* ===== STATE ===== */
 let state = {
@@ -1277,7 +1317,7 @@ if (daysContainer) {
 }
 
 /* ===== LIGHTBOX ===== */
-const allDayPhotos = @json($dayPhotos ?? new \stdClass());
+const allDayPhotos = JSON.parse(_pd.dayPhotos || '{}');
 let lbImages = [], lbIndex = 0;
 function openLightbox(dayIdx, idx) {
   lbImages = allDayPhotos[dayIdx] || [];
@@ -1334,10 +1374,10 @@ function recalcTotal() {
   if (ftEl) ftEl.innerHTML = '<span class="money" data-amt="' + flights + '">' + fmtMoney(flights).replace(/[^\d.,]/, '') + '</span>';
 
   /* Food: avg × days */
-  const food = {{ $avgFoodDay }} * state.days;
+  const food = parseFloat(_pd.avgFood) * state.days;
   /* Activities + transport from plan budget (proportional to days) */
-  const act = {{ ($budget['activities'] ?? 0) }};
-  const trans = {{ ($budget['local_transport'] ?? 0) + ($budget['intercity_transport'] ?? 0) }};
+  const act = parseFloat(_pd.budgetAct);
+  const trans = parseFloat(_pd.budgetTrans);
   const grand = accom + food + act + trans + flights;
 
   /* Update bar */
@@ -1510,11 +1550,11 @@ window.uploadMediaFile = async function(file) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('mediable_type', 'trip');
-  formData.append('mediable_id', '{{ $trip->id }}');
+  formData.append('mediable_id', _pd.tripId);
   formData.append('_token', CSRF);
   
   try {
-    const res = await fetch('{{ route('media.store') }}', {
+    const res = await fetch(_pd.mediaUrl, {
       method: 'POST',
       body: formData
     });
@@ -1623,7 +1663,7 @@ window.copyTripUrl = function() {
 
 /* ===== ASYNC IMAGE GENERATION ===== */
 (function() {
-  const isImageReady = {!! json_encode(!empty($trip->image)) !!};
+  const isImageReady = _pd.imageReady === '1';
   if (isImageReady) return;
 
   const token = CSRF;
