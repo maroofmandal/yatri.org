@@ -2,6 +2,7 @@
 
 namespace App\Services\ImageGen;
 
+use App\Models\GeminiLog;
 use App\Models\Setting;
 use App\Services\ApiKeyManager;
 use Illuminate\Support\Facades\Http;
@@ -35,8 +36,17 @@ class ImageGenClient
     {
         // NanoBanana uses the same Google Generative Language API as Gemini,
         // so fall back to Gemini keys if no dedicated NanoBanana keys exist.
-        return $this->keyManager->available($this->service)
-            || $this->keyManager->available(ApiKeyManager::SERVICE_GEMINI)
+        // Check for *active* keys in the pool, not just existence.
+        if ($this->keyManager->available($this->service)) {
+            return true;
+        }
+        if ($this->keyManager->available(ApiKeyManager::SERVICE_GEMINI)) {
+            return true;
+        }
+
+        // Legacy single-key settings / env vars
+        return ! empty(Setting::get('nano_banana_api_key'))
+            || ! empty(config('gemini.nano_banana_key'))
             || ! empty(config('gemini.key'));
     }
 
@@ -84,6 +94,7 @@ class ImageGenClient
     {
         $aspectRatio = $opts['aspect_ratio'] ?? '16:9';
         $imageSize   = $opts['image_size'] ?? '1K';
+        $tripId      = $opts['trip_id'] ?? null;
 
         $keyData = $this->resolveKey();
         $key     = $keyData['key'];
@@ -97,8 +108,9 @@ class ImageGenClient
             'gemini-2.5-flash-image',
         ])));
 
-        $base     = rtrim(config('gemini.base', 'https://generativelanguage.googleapis.com/v1beta'), '/');
+        $base      = rtrim(config('gemini.base', 'https://generativelanguage.googleapis.com/v1beta'), '/');
         $lastError = null;
+        $startTime = hrtime(true);
 
         foreach ($models as $candidate) {
             $url = "{$base}/models/{$candidate}:generateContent";
@@ -133,7 +145,12 @@ class ImageGenClient
                     ->post($url, $payload);
 
                 if ($resp->successful()) {
-                    $result = $this->parse($resp->json(), $candidate);
+                    $json   = $resp->json();
+                    $result = $this->parse($json, $candidate);
+                    $usage  = $json['usageMetadata'] ?? [];
+                    $latency = (int) ((hrtime(true) - $startTime) / 1_000_000);
+
+                    $this->log($tripId, $candidate, $prompt, $usage, $latency, 'ok');
 
                     return [
                         'data'   => $result['data'],
@@ -189,6 +206,9 @@ class ImageGenClient
             break;
         }
 
+        $latency = (int) ((hrtime(true) - $startTime) / 1_000_000);
+        $this->log($tripId, $model, $prompt, [], $latency, 'error', $lastError);
+
         throw new RuntimeException('Image generation failed — ' . ($lastError ?? 'unknown error'));
     }
 
@@ -212,6 +232,29 @@ class ImageGenClient
         }
 
         return $filename;
+    }
+
+    /**
+     * Log an image generation call to the gemini_logs table.
+     */
+    protected function log(?int $tripId, string $model, string $prompt, array $usage, int $latencyMs, string $status, ?string $error = null): void
+    {
+        try {
+            GeminiLog::create([
+                'user_id'        => \Illuminate\Support\Facades\Auth::id(),
+                'trip_id'        => $tripId,
+                'kind'           => 'image_gen',
+                'model'          => $model,
+                'prompt_tokens'  => (int) ($usage['promptTokenCount'] ?? 0),
+                'output_tokens'  => (int) ($usage['candidatesTokenCount'] ?? 0),
+                'latency_ms'     => $latencyMs,
+                'grounded'       => false,
+                'status'         => $status,
+                'error'          => $error ? \Illuminate\Support\Str::limit($error, 500) : null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to write image gen log: ' . $e->getMessage());
+        }
     }
 
     protected function parse(array $json, string $model): array

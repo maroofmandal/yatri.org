@@ -1,14 +1,14 @@
 @extends('admin.layout')
-@section('title','Gemini usage')
+@section('title','AI usage')
 
 @section('admin')
 <div class="adm-h">
-  <h1>Gemini usage</h1>
+  <h1>AI usage</h1>
   <form method="GET">
     <select name="kind" onchange="this.form.submit()">
       <option value="">All kinds</option>
-      @foreach(['research','plan','chat'] as $k)
-        <option value="{{ $k }}" {{ request('kind')===$k?'selected':'' }}>{{ ucfirst($k) }}</option>
+      @foreach(['research','plan','chat','image_gen'] as $k)
+        <option value="{{ $k }}" {{ request('kind')===$k?'selected':'' }}>{{ $k === 'image_gen' ? 'Image Gen' : ucfirst($k) }}</option>
       @endforeach
     </select>
   </form>

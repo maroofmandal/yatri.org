@@ -50,7 +50,7 @@ table.t tr:last-child td{border-bottom:none}
     <a class="{{ $is('admin.trips.*') }}" href="{{ route('admin.trips.index') }}"><x-icon name="map" /> Trips</a>
     <a class="{{ $is('admin.users.*') }}" href="{{ route('admin.users.index') }}"><x-icon name="people" /> Users</a>
     <a class="{{ $is('admin.destinations.*') }}" href="{{ route('admin.destinations.index') }}"><x-icon name="location_on" /> Destinations</a>
-    <a class="{{ $is('admin.gemini.*') }}" href="{{ route('admin.gemini.index') }}"><x-icon name="smart_toy" /> Gemini usage</a>
+    <a class="{{ $is('admin.gemini.*') }}" href="{{ route('admin.gemini.index') }}"><x-icon name="smart_toy" /> AI usage</a>
     <a class="{{ $is('admin.settings.*') }}" href="{{ route('admin.settings.edit') }}"><x-icon name="settings" /> Settings</a>
     <div class="sep"></div>
     <a href="{{ route('home') }}"><x-icon name="open_in_new" /> View site</a>

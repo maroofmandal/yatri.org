@@ -76,6 +76,7 @@ class TripImageGenerator
                 'aspect_ratio' => '16:9',
                 'image_size'   => '1K',
                 'temperature'  => 0.35,
+                'trip_id'      => $trip->id,
             ]);
             $subdir = 'trip-images/' . $trip->share_token;
             $path = $this->client->saveImage($subdir, $imageData);
@@ -90,6 +91,7 @@ class TripImageGenerator
                     'aspect_ratio' => '16:9',
                     'image_size'   => '1K',
                     'temperature'  => 0.35,
+                    'trip_id'      => $trip->id,
                 ]);
                 $subdir = 'trip-images/' . $trip->share_token;
                 $path = $this->client->saveImage($subdir, $imageData);
@@ -128,6 +130,7 @@ class TripImageGenerator
                     'aspect_ratio' => '16:9',
                     'image_size'   => '1K',
                     'temperature'  => 0.35,
+                    'trip_id'      => $trip->id,
                 ]);
                 $path = $this->client->saveImage($subdir, $imageData);
                 $destImages[$key] = $path;
