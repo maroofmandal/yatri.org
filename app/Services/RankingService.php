@@ -10,11 +10,7 @@ class RankingService
     public function getTopTravelers(string $period = 'all', int $limit = 100)
     {
         $query = User::query()
-            ->select('users.*')
-            ->selectRaw('(select count(*) from trips where trips.user_id = users.id and status = ?) as trips_count', ['ready'])
-            ->selectRaw('(select count(*) from follows where follows.following_id = users.id) as followers_count')
-            ->selectRaw('(select count(*) from posts where posts.user_id = users.id) as posts_count')
-            ->selectRaw('(select count(*) from reviews where reviews.user_id = users.id) as reviews_count')
+            ->withRankingCounts()
             ->selectRaw('
                 users.total_days_traveled * 2 +
                 users.total_kilometers * 0.1 +

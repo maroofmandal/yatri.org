@@ -3,8 +3,10 @@ set -e
 
 cd "$(dirname "$0")"
 
+export APP_URL=http://localhost:8008
+
 echo "==> Yatri — starting servers on localhost"
-echo "    Laravel: http://127.0.0.1:8008"
+echo "    App:     http://localhost:8008"
 echo "    Vite:    http://localhost:5173"
 echo ""
 
@@ -18,7 +20,7 @@ cleanup() {
 }
 trap cleanup SIGINT SIGTERM
 
-php artisan serve --host=127.0.0.1 --port=8008 &
+php artisan serve --host=localhost --port=8008 &
 LARAVEL_PID=$!
 
 npm run dev &

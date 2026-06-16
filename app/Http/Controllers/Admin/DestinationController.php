@@ -11,7 +11,7 @@ class DestinationController extends Controller
     public function index(Request $request)
     {
         $destinations = Destination::query()
-            ->when($request->q, fn ($query, $q) => $query->where('name', 'like', "%$q%"))
+            ->when($request->q, fn ($query, $q) => $query->where('name', 'like', '%' . static::escapeLike($q) . '%'))
             ->orderByDesc('popularity')
             ->paginate(20)
             ->withQueryString();

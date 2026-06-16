@@ -30,12 +30,7 @@ class RankingController extends Controller
 
     protected function getTravelersByCategory(string $category, string $period)
     {
-        $query = \App\Models\User::query()
-            ->select('users.*')
-            ->selectRaw('(select count(*) from trips where trips.user_id = users.id and status = ?) as trips_count', ['ready'])
-            ->selectRaw('(select count(*) from follows where follows.following_id = users.id) as followers_count')
-            ->selectRaw('(select count(*) from posts where posts.user_id = users.id) as posts_count')
-            ->selectRaw('(select count(*) from reviews where reviews.user_id = users.id) as reviews_count');
+        $query = \App\Models\User::query()->withRankingCounts();
 
         if ($period !== 'all') {
             $dateFilter = match($period) {

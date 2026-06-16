@@ -59,10 +59,10 @@ Route::post('/plan', [PlannerController::class, 'store'])->name('plan.store');
 Route::post('/plan/pre-chat-init', [PlannerController::class, 'prePlanChatInit'])->name('plan.pre-chat-init');
 Route::post('/plan/pre-chat-next', [PlannerController::class, 'prePlanChatNext'])->name('plan.pre-chat-next');
 Route::get('/t/{trip}', [PlannerController::class, 'show'])->name('trip.show');
-Route::post('/t/{trip}/generate', [PlannerController::class, 'generate'])->name('trip.generate');
-Route::post('/t/{trip}/generate-images', [PlannerController::class, 'generateImages'])->name('trip.generate-images');
+Route::post('/t/{trip}/generate', [PlannerController::class, 'generate'])->middleware('throttle:trip-generate')->name('trip.generate');
+Route::post('/t/{trip}/generate-images', [PlannerController::class, 'generateImages'])->middleware('throttle:trip-generate')->name('trip.generate-images');
 Route::get('/t/{trip}/images-status', [PlannerController::class, 'imagesStatus'])->name('trip.images-status');
-Route::post('/t/{trip}/chat', [PlannerController::class, 'chat'])->name('trip.chat');
+Route::post('/t/{trip}/chat', [PlannerController::class, 'chat'])->middleware('throttle:trip-generate')->name('trip.chat');
 Route::post('/t/{trip}/regenerate', [PlannerController::class, 'regenerate'])->name('trip.regenerate');
 Route::post('/t/{trip}/update', [PlannerController::class, 'update'])->name('trip.update');
 
@@ -97,9 +97,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');
 });
 
-// ── Share tracking (no auth required) ────────────────────────────
-Route::post('/api/trip/{id}/share', [SocialController::class, 'shareTrip'])->name('trip.share');
-Route::post('/posts/{postId}/share', [SocialController::class, 'sharePost'])->name('post.share');
+// ── Share tracking (auth required to prevent inflation) ─────────────
+Route::middleware('auth')->group(function () {
+    Route::post('/api/trip/{id}/share', [SocialController::class, 'shareTrip'])->name('trip.share');
+    Route::post('/posts/{postId}/share', [SocialController::class, 'sharePost'])->name('post.share');
+});
 
 // ── Auth ────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

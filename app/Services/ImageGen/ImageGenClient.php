@@ -158,7 +158,7 @@ class ImageGenClient
                             }
                         }
                     }
-                    $delay = min(max($delay ?: 5, 2), 60);
+                    $delay = min(max($delay ?: 2, 1), 10);
                     Log::info("ImageGen 429 for {$candidate} (attempt {$attempt}), waiting {$delay}s...");
                     sleep($delay);
                     continue;

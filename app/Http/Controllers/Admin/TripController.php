@@ -12,7 +12,8 @@ class TripController extends Controller
     {
         $trips = Trip::query()
             ->when($request->q, fn ($query, $q) => $query->where(
-                fn ($w) => $w->where('title', 'like', "%$q%")->orWhere('origin', 'like', "%$q%")
+                fn ($w) => $w->where('title', 'like', '%' . static::escapeLike($q) . '%')
+                    ->orWhere('origin', 'like', '%' . static::escapeLike($q) . '%')
             ))
             ->when($request->status, fn ($query, $s) => $query->where('status', $s))
             ->latest()

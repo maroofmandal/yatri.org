@@ -17,25 +17,18 @@ class PlannerController extends Controller
 {
     public function create()
     {
-        $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
-        $recent = Trip::where('is_public', true)->where('status', 'ready')
-            ->with('posts.media', 'media')
-            ->withCount(['likes', 'comments'])
-            ->latest()->limit(3)->get();
-
-        // Admin-set fallback FX rates (1 USD → X) for client-side conversion.
-        $fxRates = Setting::get('fx_rates', []);
-        if (!is_array($fxRates)) {
-            $fxRates = [];
-        }
-
-        return view('planner.create', compact('destinations', 'recent', 'fxRates'));
+        return view('planner.create', $this->plannerViewData());
     }
 
     public function edit(Trip $trip)
     {
         abort_unless($this->canManage($trip), 403);
 
+        return view('planner.create', $this->plannerViewData($trip));
+    }
+
+    private function plannerViewData(?Trip $editTrip = null): array
+    {
         $destinations = Destination::active()->orderByDesc('popularity')->limit(12)->get();
         $recent = Trip::where('is_public', true)->where('status', 'ready')
             ->with('posts.media', 'media')
@@ -47,22 +40,13 @@ class PlannerController extends Controller
             $fxRates = [];
         }
 
-        $editTrip = $trip;
-
-        return view('planner.create', compact('destinations', 'recent', 'fxRates', 'editTrip'));
+        return compact('destinations', 'recent', 'fxRates') + ($editTrip ? ['editTrip' => $editTrip] : []);
     }
 
     public function store(StorePlanRequest $request)
     {
         $data = $request->validated();
-
-        $dests = collect($data['destinations'])->map(fn ($d) => [
-            'name'   => $d['name'],
-            'days'   => (int) ($d['days'] ?? 3),
-            'nights' => (int) ($d['nights'] ?? 2),
-            'lat'    => $d['lat'] ?? null,
-            'lng'    => $d['lng'] ?? null,
-        ])->all();
+        $dests = $this->buildDestinations($data);
 
         $trip = Trip::create([
             'user_id'      => $request->user()?->id,
@@ -137,6 +121,8 @@ class PlannerController extends Controller
      */
     public function generate(Trip $trip, TripPlanner $planner)
     {
+        abort_unless($this->canManage($trip), 403);
+
         $force = request()->boolean('force');
 
         // Already done.
@@ -211,6 +197,8 @@ class PlannerController extends Controller
 
     public function generateImages(Trip $trip)
     {
+        abort_unless($this->canManage($trip), 403);
+
         $tripId = $trip->id;
         dispatch(function () use ($tripId) {
             @set_time_limit(0);
@@ -253,14 +241,7 @@ class PlannerController extends Controller
         abort_unless($this->canManage($trip), 403);
 
         $data = $request->validated();
-
-        $dests = collect($data['destinations'])->map(fn ($d) => [
-            'name'   => $d['name'],
-            'days'   => (int) ($d['days'] ?? 3),
-            'nights' => (int) ($d['nights'] ?? 2),
-            'lat'    => $d['lat'] ?? null,
-            'lng'    => $d['lng'] ?? null,
-        ])->all();
+        $dests = $this->buildDestinations($data);
 
         $trip->update([
             'origin'       => $data['origin'],
@@ -292,6 +273,17 @@ class PlannerController extends Controller
     }
 
     // ── helpers ──
+
+    private function buildDestinations(array $data): array
+    {
+        return collect($data['destinations'])->map(fn ($d) => [
+            'name'   => $d['name'],
+            'days'   => (int) ($d['days'] ?? 3),
+            'nights' => (int) ($d['nights'] ?? 2),
+            'lat'    => $d['lat'] ?? null,
+            'lng'    => $d['lng'] ?? null,
+        ])->all();
+    }
 
     protected function computeDays(array $data, array $dests): int
     {

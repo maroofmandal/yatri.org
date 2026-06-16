@@ -42,10 +42,11 @@ class FeedController extends Controller
 
         // Search
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('origin', 'like', "%{$search}%")
-                  ->orWhere('destinations', 'like', "%{$search}%");
+            $safe = static::escapeLike($search);
+            $query->where(function ($q) use ($safe) {
+                $q->where('title', 'like', "%{$safe}%")
+                  ->orWhere('origin', 'like', "%{$safe}%")
+                  ->orWhere('destinations', 'like', "%{$safe}%");
             });
         }
 
@@ -74,10 +75,11 @@ class FeedController extends Controller
 
         // Destination filter
         if ($dest = $request->input('destination')) {
-            $query->where(function ($q) use ($dest) {
-                $q->where('destinations', 'like', "%{$dest}%")
-                  ->orWhere('title', 'like', "%{$dest}%")
-                  ->orWhere('origin', 'like', "%{$dest}%");
+            $safe = static::escapeLike($dest);
+            $query->where(function ($q) use ($safe) {
+                $q->where('destinations', 'like', "%{$safe}%")
+                  ->orWhere('title', 'like', "%{$safe}%")
+                  ->orWhere('origin', 'like', "%{$safe}%");
             });
         }
 

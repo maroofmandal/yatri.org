@@ -12,7 +12,8 @@ class UserController extends Controller
     {
         $users = User::query()
             ->when($request->q, fn ($query, $q) => $query->where(
-                fn ($w) => $w->where('name', 'like', "%$q%")->orWhere('email', 'like', "%$q%")
+                fn ($w) => $w->where('name', 'like', '%' . static::escapeLike($q) . '%')
+                    ->orWhere('email', 'like', '%' . static::escapeLike($q) . '%')
             ))
             ->withCount('trips')
             ->latest()

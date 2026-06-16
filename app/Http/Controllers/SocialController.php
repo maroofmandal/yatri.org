@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Trip;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SocialController extends Controller
@@ -16,40 +17,12 @@ class SocialController extends Controller
 
     public function like(Trip $trip)
     {
-        if (!auth()->check()) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-        $user = auth()->user();
-        $existing = $trip->likes()->where('user_id', $user->id)->first();
-
-        if ($existing) {
-            $existing->delete();
-            $liked = false;
-        } else {
-            $like = $trip->likes()->create(['user_id' => $user->id]);
-            $this->notificationService->sendLikeNotification($user, $like);
-            $liked = true;
-        }
-
-        return response()->json(['liked' => $liked, 'count' => $trip->likes()->count()]);
+        return $this->toggleLike($trip);
     }
 
     public function likePost($postId)
     {
-        $post = Post::findOrFail($postId);
-        $user = auth()->user();
-        $existing = $post->likes()->where('user_id', $user->id)->first();
-
-        if ($existing) {
-            $existing->delete();
-            $liked = false;
-        } else {
-            $like = $post->likes()->create(['user_id' => $user->id]);
-            $this->notificationService->sendLikeNotification($user, $like);
-            $liked = true;
-        }
-
-        return response()->json(['liked' => $liked, 'count' => $post->likes()->count()]);
+        return $this->toggleLike(Post::findOrFail($postId));
     }
 
     public function comment(Request $request, Trip $trip)
@@ -98,17 +71,35 @@ class SocialController extends Controller
 
     public function shareTrip($id)
     {
-        $trip = Trip::findOrFail($id);
-        $trip->increment('shares');
-
-        return response()->json(['shares' => $trip->fresh()->shares]);
+        return $this->trackShare(Trip::findOrFail($id));
     }
 
     public function sharePost($postId)
     {
-        $post = Post::findOrFail($postId);
-        $post->increment('shares');
+        return $this->trackShare(Post::findOrFail($postId));
+    }
 
-        return response()->json(['shares' => $post->fresh()->shares]);
+    private function toggleLike($likeable): JsonResponse
+    {
+        $user = auth()->user();
+        $existing = $likeable->likes()->where('user_id', $user->id)->first();
+
+        if ($existing) {
+            $existing->delete();
+            $liked = false;
+        } else {
+            $like = $likeable->likes()->create(['user_id' => $user->id]);
+            $this->notificationService->sendLikeNotification($user, $like);
+            $liked = true;
+        }
+
+        return response()->json(['liked' => $liked, 'count' => $likeable->likes()->count()]);
+    }
+
+    private function trackShare($shareable): JsonResponse
+    {
+        $shareable->increment('shares');
+
+        return response()->json(['shares' => $shareable->fresh()->shares]);
     }
 }
