@@ -994,6 +994,7 @@
      data-budget-trans="{{ ($budget['local_transport'] ?? 0) + ($budget['intercity_transport'] ?? 0) }}"
      data-media-url="{{ route('media.store') }}"
      data-image-ready="{{ !empty($trip->image) ? '1' : '0' }}"
+     data-can-manage="{{ $canManage ? '1' : '0' }}"
      data-day-photos="{!! e(json_encode($dayPhotos ?? new \stdClass())) !!}"
      style="display:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -1664,7 +1665,8 @@ window.copyTripUrl = function() {
 /* ===== ASYNC IMAGE GENERATION ===== */
 (function() {
   const isImageReady = _pd.imageReady === '1';
-  if (isImageReady) return;
+  const canManage = _pd.canManage === '1';
+  if (isImageReady || !canManage) return;
 
   const token = CSRF;
 
