@@ -1669,7 +1669,7 @@ window.copyTripUrl = function() {
   const token = CSRF;
 
   // Trigger image generation
-  fetch(`/t/${_pd.tripId}/generate-images`, {
+  fetch(`/t/${_pd.shareToken}/generate-images`, {
     method: 'POST',
     headers: {
       'X-CSRF-TOKEN': token,
@@ -1692,7 +1692,7 @@ window.copyTripUrl = function() {
     }
 
     try {
-      const res = await fetch(`/t/${_pd.tripId}/images-status`);
+      const res = await fetch(`/t/${_pd.shareToken}/images-status`);
       if (res.ok) {
         const data = await res.json();
         if (data.ready && data.image_url) {
