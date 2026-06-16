@@ -26,7 +26,7 @@ class FeedController extends Controller
             ->with('user', 'posts.media', 'media')
             ->withCount(['likes', 'comments'])
             ->latest()
-            ->limit(3)
+            ->limit(1)
             ->get();
 
         return view('feed', compact('posts', 'destinations', 'latestTrips'));
